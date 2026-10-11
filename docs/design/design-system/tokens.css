@@ -1,0 +1,50 @@
+/* Abonemen theme variables, from the Abonemen design system's tokens.json */
+:root, [data-theme="light"] {
+  --bg-document: #f7f6f2; --bg-surface: #ffffff; --bg-subtle: #eeece6;
+  --text-default: #1b1d2a; --text-subtle: #4a4d5e;
+  --border-default: #d4d1c8; --border-control: #6b6e7f;
+  --action-1: #2e3a8c; --action-1-hover: #222c6e; --on-action-1: #ffffff;
+  --accent-2: #9a5800; --accent-2-bg: #fbe9c0;
+  --status-positive: #17663a; --status-positive-bg: #e2f1e7;
+  --status-negative: #b3261e; --status-negative-bg: #fbe5e2;
+  --status-warning: #8a4b00; --status-warning-bg: #fdf0d6;
+  --status-info: #1f5a96; --status-info-bg: #e4eef9;
+  --focus-ring: #1b1d2a;
+  --chart-1: #2e3a8c; --chart-2: #b8740a; --chart-3: #1f7a70; --chart-4: #a8436f;
+  --shadow-overlay: 0 8px 24px rgba(27, 29, 42, 0.18);
+}
+[data-theme="dark"] {
+  --bg-document: #12131c; --bg-surface: #1b1d2a; --bg-subtle: #252838;
+  --text-default: #eeeef4; --text-subtle: #b4b7c8;
+  --border-default: #3a3d50; --border-control: #8b8ea4;
+  --action-1: #aab4ff; --action-1-hover: #c6cdff; --on-action-1: #12131c;
+  --accent-2: #f2b544; --accent-2-bg: #3b2c0f;
+  --status-positive: #7fd3a0; --status-positive-bg: #14301f;
+  --status-negative: #ff9d92; --status-negative-bg: #3d1915;
+  --status-warning: #f5c46e; --status-warning-bg: #3a2b0f;
+  --status-info: #9ec8ff; --status-info-bg: #14283f;
+  --focus-ring: #ffd166;
+  --chart-1: #aab4ff; --chart-2: #f2b544; --chart-3: #5cc4b6; --chart-4: #f08fb8;
+  --shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+[data-theme="contrast"] {
+  --bg-document: #ffffff; --bg-surface: #ffffff; --bg-subtle: #f2f2f2;
+  --text-default: #000000; --text-subtle: #262626;
+  --border-default: #595959; --border-control: #000000;
+  --action-1: #1a2266; --action-1-hover: #0d1240; --on-action-1: #ffffff;
+  --accent-2: #5c3300; --accent-2-bg: #fff1c9;
+  --status-positive: #0b4524; --status-positive-bg: #e6f4ea;
+  --status-negative: #7a1610; --status-negative-bg: #fde8e5;
+  --status-warning: #5c3300; --status-warning-bg: #fff1c9;
+  --status-info: #0f3a66; --status-info-bg: #e6f0fb;
+  --focus-ring: #000000;
+  --chart-1: #1a2266; --chart-2: #7a4a00; --chart-3: #0b5048; --chart-4: #6e1f44;
+  --shadow-overlay: none;
+}
+:root {
+  --font-sans: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-6: 24px; --space-8: 32px; --space-12: 48px;
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 16px; --radius-round: 999px;
+  --target-min: 44px; --focus-width: 3px; --focus-offset: 2px; --border-width: 1px; --border-width-control: 2px;
+  --content-max: 72rem; --logo-size: 40px;
+}
