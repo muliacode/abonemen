@@ -2,6 +2,7 @@
     "$schema": "https://www.schemastore.org/package.json",
     "name": "abonemen",
     "private": true,
+    "license": "EUPL-1.2",
     "type": "module",
     "scripts": {
         "build": "vp build",

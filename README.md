@@ -12,7 +12,7 @@ The name is the Indonesian word for subscription, borrowed from the Dutch *abonn
 
 ## Status
 
-Abonemen is in the design phase. The product, technical and design documents exist; the application does not yet. Nothing here is ready to install.
+Abonemen is under construction. The product, technical and design documents are written and the Laravel application is scaffolded, but there are no features yet. Nothing here is ready to install.
 
 ## Documentation
 
@@ -28,7 +28,17 @@ All documents live in [`docs/`](docs/README.md):
 
 ## Built with
 
-Laravel, Vue and Inertia, on PHP 8.3 or newer. See the [technical design](docs/product/technical-design.md) for the full stack.
+Laravel 13, Vue 3 and Inertia 3 with TypeScript and Vite, on PHP 8.3 or newer. See the [technical design](docs/product/technical-design.md) for the full stack.
+
+## Development
+
+You need PHP 8.3 or newer, Composer and the Node version in [`.nvmrc`](.nvmrc).
+
+```sh
+composer setup      # install dependencies, create .env, migrate, build assets
+composer dev        # run the server, queue worker and Vite
+composer ci:check   # the checks CI runs: lint, types and tests
+```
 
 ## Contributing and security
 
