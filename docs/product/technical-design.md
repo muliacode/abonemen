@@ -98,8 +98,8 @@ app/
   Providers/      AppServiceProvider plus a provider per domain that needs wiring
   Support/Crypto/ key hierarchy, casts, file encryption
 resources/js/
-  Pages/          one folder per domain
-  Layouts/
+  pages/          one folder per domain (lowercase, as in the Laravel Vue starter kit)
+  layouts/
 resources/css/
   abonemen-theme.css  the Abonemen theme: Utrecht component tokens
 ```
