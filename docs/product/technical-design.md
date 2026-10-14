@@ -84,6 +84,8 @@ Rules, enforced by Pest architecture tests in CI:
 - Only `App\Support\Crypto` touches keys or encrypted plaintext outside a model cast.
 - Every model with a `household_id` uses a `BelongsToHousehold` global scope, so a query can never cross households by accident.
 
+The tests live in `tests/Arch`. Because models are flat, `tests/Arch/Support/Domains.php` records which domain owns each one: a new model needs an entry there, or the build fails. A domain's actions, events, controllers, requests and jobs may not use another domain's models at all, which is stricter than "never write" because Pest cannot tell reads from writes. The household rule checks the migrated database for a `household_id` column, and `App\Models\Concerns\BelongsToHousehold` fails closed: with no household bound, a query matches nothing.
+
 ```text
 app/
   Actions/        Accounts/ Crypto/ Data/ Insights/ Money/ Platform/ Reminders/ Subscriptions/
