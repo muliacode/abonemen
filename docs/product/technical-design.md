@@ -110,6 +110,8 @@ resources/css/
 
 Every sensitive field is encrypted with a key that belongs to its household; those keys are themselves encrypted (wrapped) by a master key that never enters the database. Rotating the master key therefore only rewraps a few dozen small keys, and deleting a household destroys its key first (SEC-01 to SEC-04, PRIV-03).
 
+[Data security](../security/data-security.md) follows each kind of data through these layers and gives the security argument for each, with sources.
+
 | Level | Key | Notes |
 | --- | --- | --- |
 | Root | Master key (MK) | Env or secret file, never in the database |
