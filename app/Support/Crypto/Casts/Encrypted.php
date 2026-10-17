@@ -9,6 +9,7 @@ use App\Support\Crypto\HouseholdCipher;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Database\Eloquent\Model;
 use RuntimeException;
+use WeakMap;
 
 /**
  * Encrypts one household field: `'name' => Encrypted::class`.
@@ -25,6 +26,9 @@ use RuntimeException;
  */
 final class Encrypted implements CastsAttributes
 {
+    /** @var WeakMap<Model, array<string, FieldContext>>|null */
+    private static ?WeakMap $contexts = null;
+
     /**
      * @param  array<string, mixed>  $attributes
      */
@@ -55,6 +59,17 @@ final class Encrypted implements CastsAttributes
         $extra = [];
         $keyName = $model->getKeyName();
 
+        // An existing row must have been loaded with what binds its fields:
+        // guessing them would tie this field to another household or version
+        // than the row's other fields, and they would no longer decrypt.
+        if ($model->exists) {
+            foreach ([$keyName, 'household_id', 'key_version'] as $required) {
+                if (($attributes[$required] ?? null) === null) {
+                    throw new RuntimeException("Load {$model->getTable()}.{$required} before setting the encrypted field {$key}.");
+                }
+            }
+        }
+
         if (($attributes[$keyName] ?? null) === null) {
             $attributes[$keyName] = $extra[$keyName] = $model->newUniqueId();
         }
@@ -70,10 +85,60 @@ final class Encrypted implements CastsAttributes
             $attributes['key_version'] = $extra['key_version'] = app(DataKeyRing::class)->household((string) $attributes['household_id'])->version;
         }
 
+        $context = $this->context($model, $key, $attributes);
+        self::remember($model, $context);
+
         return [
             ...$extra,
-            $key => app(HouseholdCipher::class)->encrypt((string) $value, $this->context($model, $key, $attributes)),
+            $key => app(HouseholdCipher::class)->encrypt((string) $value, $context),
         ];
+    }
+
+    /**
+     * Throws when a field was encrypted for another row id, household or key
+     * version than the model now has, for example when household_id was set
+     * after the field. HasEncryptedFields calls this before every save.
+     *
+     * @throws RuntimeException
+     */
+    public static function assertStillBound(Model $model): void
+    {
+        $contexts = self::contexts()[$model] ?? [];
+
+        foreach ($contexts as $column => $context) {
+            $now = [
+                (string) $model->getKey(),
+                (string) $model->getAttribute('household_id'),
+                (int) $model->getAttribute('key_version'),
+            ];
+
+            if ($now !== [$context->rowId, $context->householdId, $context->keyVersion]) {
+                throw new RuntimeException("{$model->getTable()}.{$column} was encrypted for another row, household or key version than the row now has; set household_id before encrypted fields.");
+            }
+        }
+    }
+
+    public static function forgetContexts(Model $model): void
+    {
+        $contexts = self::contexts();
+        unset($contexts[$model]);
+    }
+
+    private static function remember(Model $model, FieldContext $context): void
+    {
+        $contexts = self::contexts();
+        $contexts[$model] = [...($contexts[$model] ?? []), $context->column => $context];
+    }
+
+    /**
+     * What each field of each model in memory was encrypted for, without
+     * keeping the models alive.
+     *
+     * @return WeakMap<Model, array<string, FieldContext>>
+     */
+    private static function contexts(): WeakMap
+    {
+        return self::$contexts ??= new WeakMap;
     }
 
     /**
