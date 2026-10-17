@@ -465,6 +465,8 @@ With one maintainer and no budget for audits, CI is the quality team: every PRD 
 
 Manual checks the PRD asks for (keyboard only, NVDA, TalkBack, 400% zoom, high contrast) are a checklist in the release pull request template, so a release cannot be tagged without ticking them.
 
+The checks that run on every push live in `.github/workflows/ci.yml`. Its last job, **CI passed**, succeeds only when every other job did, so it is the one status check `main` requires. ESLint runs only `eslint-plugin-vuejs-accessibility`; general linting and formatting come from Vite+ (oxlint and oxfmt). PHP coverage counts `app/` without the service providers and fails below 80%; the report is in the job summary and as a build artefact.
+
 The encryption leak test is `tests/Feature/Crypto/EncryptionLeakTest.php`, part of the normal Pest run. It points the app at a SQLite file and storage folders in a temporary directory, seeds canaries through `tests/Support/Leaks/Canaries.php`, and searches every byte written there, including the WAL file, logs, and the contents of unencrypted zip entries and gzip files. Each text canary is also searched for in its lowercase, JSON, URL, HTML, base64 and UTF-16 forms, and each amount with a decimal point, a decimal comma and in minor units. Every new sensitive field adds a canary in the same pull request. Fields not encrypted yet are listed in `Canaries::PLAINTEXT_UNTIL_FIXED` with their issue; the test fails once one of them stops leaking, so the list only shrinks. The backup part runs as soon as `backup:run` exists.
 
 ## Decisions and open questions

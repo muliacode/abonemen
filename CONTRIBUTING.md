@@ -17,15 +17,15 @@ Do not open a public issue. Follow [SECURITY.md](SECURITY.md).
 ## Before you start
 
 1. Read the [concept](docs/product/concept.md) and the [requirements](docs/product/requirements.md). Work is tracked as GitHub issues that refer to requirement IDs (such as `SUB-03`) and to screens by their image name in the [wireframes](docs/design/wireframes/README.md).
-2. Look for an existing issue. For anything bigger than a small fix, comment on the issue or open one first, so nobody builds something that will not be merged.
+2. Look for an existing issue. For anything bigger than a small fix, comment on the issue or open one first, so nobody builds something that will not be merged. New issues use a form: bug report, accessibility problem or feature request. The accessibility form never asks for a WCAG reference; describe the barrier in your own words.
 3. Pick up one issue at a time, and say so on the issue.
 
 ## Workflow
 
 1. Fork the repository and create a branch from `main`. Name it after the issue, for example `feat/42-bulk-actions`.
 2. Keep the change small and focused on one issue.
-3. Run `composer ci:check` (formatting, types and tests for PHP and the frontend) and any checks listed in the issue. A pull request that fails CI is not reviewed until it passes.
-4. Open a pull request that links the issue (`Closes #42`) and says what changed and how you tested it.
+3. Run `composer ci:check` (formatting, linting, types and tests for PHP and the frontend) and any checks listed in the issue. CI runs the same checks, plus PHP coverage, which must stay at 80% or more. A pull request that fails CI is not reviewed until it passes and cannot be merged.
+4. Open a pull request that links the issue (`Closes #42`) and says what changed and how you tested it. The pull request template has a short checklist.
 5. A maintainer reviews it. Expect questions; this is a volunteer project, so replies can take a few days.
 
 ## Standards
@@ -37,6 +37,10 @@ These come from the [requirements](docs/product/requirements.md) and apply to ev
 - **Encryption.** Sensitive fields are encrypted as described in the [technical design](docs/product/technical-design.md). Do not log or store them in plaintext. A new sensitive field gets a canary in `tests/Support/Leaks/Canaries.php`, so the encryption leak test checks it.
 - **Tests.** New behaviour comes with tests, and a bug fix starts with a test that fails.
 - **Documentation.** If a change alters behaviour described in `docs/`, update the document in the same pull request.
+
+## Releases
+
+A release is a pull request from a `release/` branch that uses the [release template](.github/PULL_REQUEST_TEMPLATE/release.md) (add `?template=release.md` to the URL of the "Open a pull request" page). It lists the manual accessibility checks the requirements ask for: keyboard only, NVDA, TalkBack, 200% and 400% zoom, Windows high contrast and text spacing. The required **Release checklist** check fails while any of its boxes is unticked, so a release cannot be merged until every check is done.
 
 ## Other ways to help
 

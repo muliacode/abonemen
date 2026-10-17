@@ -1,0 +1,41 @@
+name: Set up PHP and Composer
+description: Installs PHP with the extensions Abonemen needs, restores the Composer cache, installs dependencies and prepares .env.
+
+inputs:
+  coverage:
+    description: Coverage driver for setup-php (none or pcov).
+    required: false
+    default: none
+
+runs:
+  using: composite
+  steps:
+    - name: Setup PHP
+      uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+      with:
+        php-version: '8.3'
+        extensions: sodium, pdo_sqlite, intl, mbstring, gd
+        tools: composer:v2
+        coverage: ${{ inputs.coverage }}
+
+    - name: Locate the Composer cache
+      id: composer-cache
+      shell: bash
+      run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+    - name: Cache Composer downloads
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ steps.composer-cache.outputs.dir }}
+        key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+        restore-keys: composer-${{ runner.os }}-
+
+    - name: Install Composer dependencies
+      shell: bash
+      run: composer install --no-interaction --no-progress --prefer-dist
+
+    - name: Prepare the environment file
+      shell: bash
+      run: |
+        cp .env.example .env
+        php artisan key:generate --ansi
