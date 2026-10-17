@@ -12,8 +12,13 @@ ARG ALPINE_IMAGE=alpine:3.24
 # --- PHP with Abonemen's extensions ------------------------------------------
 FROM ${FRANKENPHP_IMAGE} AS php
 
+# The official binary carries cap_net_bind_service so it can bind :80 as a
+# normal user. A binary with file capabilities cannot start under
+# `--cap-drop ALL` with no-new-privileges, and we listen on :8080, so drop it.
 RUN install-php-extensions intl gd zip pcntl bcmath \
-    && rm -f /usr/local/bin/php-cgi /usr/local/bin/phpdbg
+    && rm -f /usr/local/bin/php-cgi /usr/local/bin/phpdbg \
+    && apk add --no-cache libcap-utils \
+    && setcap -r /usr/local/bin/frankenphp
 
 # Shared libraries that FrankenPHP, libphp and the extensions link against,
 # as apk "so:" dependencies for the runtime stage.
