@@ -4,7 +4,9 @@ use App\Models\Concerns\HasEncryptedFields;
 use App\Support\Crypto\Casts\Encrypted;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Tests\Arch\Support\Domains;
+use Tests\Arch\Support\JobPayloads;
 use Tests\Support\Crypto\EncryptedNote;
+use Tests\Support\Crypto\RenewNoteJob;
 
 // Rules from "Code organisation" in docs/product/technical-design.md (EXT-01).
 
@@ -85,4 +87,16 @@ it('gives every model with an encrypted field the trait that hides it, and ULID 
             ->toContain(HasEncryptedFields::class)
             ->toContain(HasUlids::class);
     }
+});
+
+it('queues jobs with ids, never plaintext', function () {
+    $violations = array_merge(...array_map(JobPayloads::violations(...), JobPayloads::appJobs()));
+
+    expect($violations)->toBe([])
+        // The check itself: an id passes, a value does not.
+        ->and(JobPayloads::violations(RenewNoteJob::class))->toBe([])
+        ->and(JobPayloads::violations((new class('', '')
+        {
+            public function __construct(public string $noteId, public string $title) {}
+        })::class))->toHaveCount(1);
 });

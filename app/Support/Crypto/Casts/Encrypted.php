@@ -4,6 +4,7 @@ namespace App\Support\Crypto\Casts;
 
 use App\Models\Scopes\HouseholdScope;
 use App\Support\Crypto\DataKeyRing;
+use App\Support\Crypto\DecryptedValues;
 use App\Support\Crypto\FieldContext;
 use App\Support\Crypto\HouseholdCipher;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
@@ -34,7 +35,10 @@ final class Encrypted implements CastsAttributes
             return null;
         }
 
-        return app(HouseholdCipher::class)->decrypt((string) $value, $this->context($model, $key, $attributes));
+        $plaintext = app(HouseholdCipher::class)->decrypt((string) $value, $this->context($model, $key, $attributes));
+        app(DecryptedValues::class)->add($plaintext);
+
+        return $plaintext;
     }
 
     /**
@@ -69,6 +73,9 @@ final class Encrypted implements CastsAttributes
         if (($attributes['key_version'] ?? null) === null) {
             $attributes['key_version'] = $extra['key_version'] = app(DataKeyRing::class)->household((string) $attributes['household_id'])->version;
         }
+
+        // A value just set is as sensitive as one just read.
+        app(DecryptedValues::class)->add((string) $value);
 
         return [
             ...$extra,

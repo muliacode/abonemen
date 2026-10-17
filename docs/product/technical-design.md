@@ -164,7 +164,7 @@ The plain columns are what the scheduler needs without decrypting anything. They
 
 ### Plaintext handling
 
-Decrypted values exist only in memory during a request or job. Nothing may key a table by a sensitive value in plaintext: Laravel's `password_reset_tokens` uses the email as its key, so password reset (#31) must key its tokens by user id or the blind index instead. Queued jobs carry IDs, never plaintext. Encrypted attributes are hidden from model serialisation and logs, and the exception handler redacts them (SEC-11). Decrypted data sent to the browser is limited to what the current page shows.
+Decrypted values exist only in memory during a request or job. Nothing may key a table by a sensitive value in plaintext: Laravel's `password_reset_tokens` uses the email as its key, so password reset (#31) must key its tokens by user id or the blind index instead. Queued jobs carry IDs, never plaintext; an architecture test allows only id-named ints, strings and arrays, models and enums in a job's constructor. Encrypted attributes are hidden from model serialisation and logs, and the exception handler redacts them (SEC-11). Decrypted data sent to the browser is limited to what the current page shows.
 
 ### What this protects against
 
@@ -398,7 +398,7 @@ Logos: at most 1 MB, type checked from the file content, not the name. Raster im
 
 ### Logs and audit trail
 
-- Application logs are structured JSON. A Monolog processor redacts known sensitive keys (password, token, secret, email, name, price, url) and no request bodies are logged (SEC-11).
+- Application logs are structured JSON. A Monolog tap on every channel redacts known sensitive keys (password, token, secret, email, name, price, url and similar) at any depth, and no request bodies are logged (SEC-11). It also scrubs every value decrypted during the request or job (`DecryptedValues`) from the message, the context and exceptions, whatever key it sits under, and logs exceptions, with their previous ones, as scrubbed text. `zend.exception_ignore_args` is on, so stack traces carry no argument values. Failed jobs are stored through a wrapper that scrubs the exception text the same way.
 - The audit log records sign-ins, failed sign-ins, 2FA changes, role changes, invites, exports, backups, key operations and deletions, with the user, time and a truncated IP (/24 for IPv4, /48 for IPv6). It never stores the values involved (SEC-10).
 
 ### Supply chain
