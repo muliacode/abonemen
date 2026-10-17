@@ -12,6 +12,7 @@ use App\Support\Crypto\MasterKey;
 use App\Support\Crypto\MasterKeyLoader;
 use App\Support\Crypto\MasterKeyMissing;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Support\Crypto\TestKeys;
 
 /*
  * SEC-01: the global data key and versioned household data keys live in
@@ -20,6 +21,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
  */
 
 uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    TestKeys::installRecoveryKey();
+});
 
 const HOUSEHOLD_A = '01JAHOUSEHOLDAAAAAAAAAAAAA';
 const HOUSEHOLD_B = '01JBHOUSEHOLDBBBBBBBBBBBBB';
@@ -31,7 +36,7 @@ function bytesFrom(int $first, int $count): string
 
 function freshRing(): DataKeyRing
 {
-    app(DataKeyRing::class)->forget();
+    TestKeys::forget();
 
     return app(DataKeyRing::class);
 }

@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
- * A data key wrapped by the master key: the global data key (GDK) or one
- * version of a household data key (HDK).
+ * A data key wrapped by the master key and sealed to the recovery key: the
+ * global data key (GDK) or one version of a household data key (HDK).
  *
  * Only App\Support\Crypto reads and writes these rows; it never stores the
  * unwrapped key. There is no household_id column on purpose: data keys are
@@ -21,12 +21,13 @@ use Illuminate\Support\Carbon;
  * @property string $owner_id
  * @property int $version
  * @property string $wrapped_mk
+ * @property string|null $wrapped_rk
  * @property string $status
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['owner_type', 'owner_id', 'version', 'wrapped_mk', 'status'])]
-#[Hidden(['wrapped_mk'])]
+#[Fillable(['owner_type', 'owner_id', 'version', 'wrapped_mk', 'wrapped_rk', 'status'])]
+#[Hidden(['wrapped_mk', 'wrapped_rk'])]
 class DataKey extends Model
 {
     use HasUlids;
