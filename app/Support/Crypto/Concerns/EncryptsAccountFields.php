@@ -2,6 +2,7 @@
 
 namespace App\Support\Crypto\Concerns;
 
+use App\Support\Crypto\DecryptedValues;
 use App\Support\Crypto\Transformations\CaseFolded;
 use Illuminate\Database\Eloquent\Model;
 use ParagonIE\CipherSweet\BlindIndex;
@@ -23,7 +24,9 @@ use Spatie\LaravelCipherSweet\Concerns\UsesCipherSweet;
  */
 trait EncryptsAccountFields
 {
-    use UsesCipherSweet;
+    use UsesCipherSweet {
+        decryptRow as decryptRowWithCipherSweet;
+    }
 
     /** Bits kept from each blind index; matches are confirmed by decrypting. */
     public const BLIND_INDEX_BITS = 32;
@@ -52,6 +55,20 @@ trait EncryptsAccountFields
                 $model->beforeEncrypting();
             }
         });
+    }
+
+    /**
+     * Decrypts the row, and records the plaintext so the log redaction can
+     * scrub it (SEC-11).
+     */
+    public function decryptRow(): void
+    {
+        $this->decryptRowWithCipherSweet();
+
+        foreach (array_keys(static::accountEncryptedFields()) as $column) {
+            $value = $this->getAttributes()[$column] ?? null;
+            app(DecryptedValues::class)->add(is_string($value) ? $value : null);
+        }
     }
 
     public static function configureCipherSweet(EncryptedRow $encryptedRow): void
