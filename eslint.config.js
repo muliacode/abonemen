@@ -32,5 +32,12 @@ export default [
         linterOptions: {
             reportUnusedDisableDirectives: 'error',
         },
+        rules: {
+            // A label needs a control by nesting or by for/id, not both.
+            'vuejs-accessibility/label-has-for': [
+                'error',
+                { required: { some: ['nesting', 'id'] } },
+            ],
+        },
     },
 ];
