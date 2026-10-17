@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Support\Crypto\DataKeyRing;
 use App\Support\Crypto\MasterKeyLoader;
+use App\Support\Crypto\RecoveryKeyStore;
 use Illuminate\Http\Request;
 use Illuminate\Support\Env;
 use Illuminate\Support\ServiceProvider;
@@ -31,6 +32,7 @@ class CryptoServiceProvider extends ServiceProvider
             );
         });
 
+        $this->app->singleton(RecoveryKeyStore::class);
         $this->app->singleton(DataKeyRing::class);
     }
 
