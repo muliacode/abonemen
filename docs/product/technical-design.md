@@ -152,7 +152,7 @@ The plain columns are what the scheduler needs without decrypting anything. They
 
 ### Files and backups
 
-- **Logos** are sanitised (SVG through `rhukster/dom-sanitizer` in its SVG mode, MIT-licensed), then encrypted with libsodium secretstream under a key derived from the HDK and the file's ULID. They are stored outside the web root and served only by an authorised route with `Cache-Control: private, no-store`.
+- **Logos** are sanitised (SVG through `rhukster/dom-sanitizer` in its SVG mode, MIT-licensed), then encrypted with libsodium secretstream under a key derived from the HDK and the file's ULID (HKDF-SHA384, like every other key derived from the HDK), in 64 KiB chunks whose last one carries the final tag, so truncation is detected. They are stored on the `encrypted` disk (`storage/app/encrypted`), outside the web root and off Laravel's `/storage` route, and served only by `GET /files/{file}` to the file's household, with `Cache-Control: private, no-store`; anyone else gets 403.
 - **Backups** take a consistent SQLite copy with `VACUUM INTO` and hand it, with the encrypted files, to `spatie/laravel-backup`, which zips them with AES-256 under a random password per backup. That password is wrapped by the MK and sealed to the RK in a small key file beside the archive, so a backup restores with either. The database inside is still field-encrypted, so a backup is protected twice. Restore is our own command, since laravel-backup has none.
 
 ### Rotation and recovery

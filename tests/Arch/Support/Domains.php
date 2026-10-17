@@ -27,6 +27,7 @@ final class Domains
     public const MODEL_OWNERS = [
         'DataKey' => 'Crypto',
         'Setting' => 'Platform',
+        'StoredFile' => 'Crypto',
         'User' => 'Accounts',
     ];
 
