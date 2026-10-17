@@ -99,7 +99,7 @@ jobs:
           docker exec abonemen ls -la /data /data/storage
 
           echo "--- a queued job runs"
-          docker exec abonemen php artisan tinker --execute "dispatch(function () { file_put_contents('/data/queue-ran', 'yes'); });"
+          docker exec abonemen php artisan tinker --execute "Artisan::queue('spike:touch', ['path' => '/data/queue-ran']);"
           for _ in $(seq 1 20); do docker exec abonemen test -f /data/queue-ran && break; sleep 1; done
           docker exec abonemen cat /data/queue-ran
 
