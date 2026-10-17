@@ -5,7 +5,9 @@ namespace App\Support\Crypto;
 use App\Models\StoredFile;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
+use League\Flysystem\UnableToReadFile;
 use RuntimeException;
+use Throwable;
 
 /**
  * Encrypts uploads with libsodium secretstream (XChaCha20-Poly1305) under a
@@ -48,13 +50,21 @@ final class FileVault
         $path = "{$householdId}/{$file->id}";
         $this->disk()->put($path, $encrypted);
 
-        $file->fill([
-            'household_id' => $householdId,
-            'mime' => $mime,
-            'size' => strlen($contents),
-            'path' => $path,
-            'key_version' => $key->version,
-        ])->save();
+        // No row, no file: an encrypted file nothing points to would never be
+        // deleted.
+        try {
+            $file->fill([
+                'household_id' => $householdId,
+                'mime' => $mime,
+                'size' => strlen($contents),
+                'path' => $path,
+                'key_version' => $key->version,
+            ])->save();
+        } catch (Throwable $e) {
+            $this->disk()->delete($path);
+
+            throw $e;
+        }
 
         return $file;
     }
@@ -65,8 +75,14 @@ final class FileVault
      */
     public function read(StoredFile $file): string
     {
-        $encrypted = $this->disk()->get($file->path)
-            ?? throw new FileDecryptionFailed("File {$file->id} is missing from the disk.");
+        try {
+            $encrypted = $this->disk()->get($file->path);
+        } catch (UnableToReadFile) {
+            $encrypted = null;
+        }
+        if ($encrypted === null) {
+            throw new FileDecryptionFailed("File {$file->id} is missing from the disk.");
+        }
 
         $headerBytes = SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_HEADERBYTES;
         if (! str_starts_with($encrypted, self::MAGIC) || strlen($encrypted) < strlen(self::MAGIC) + $headerBytes) {

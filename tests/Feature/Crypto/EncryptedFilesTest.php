@@ -104,6 +104,22 @@ describe('the vault', function () {
         expect(fn () => $this->vault->read(freshFile($b->id)))->toThrow(FileDecryptionFailed::class);
     });
 
+    it('says a file is missing with FileDecryptionFailed', function () {
+        config()->set('filesystems.disks.encrypted', [...config('filesystems.disks.encrypted'), 'root' => sys_get_temp_dir().'/abonemen-vault-'.bin2hex(random_bytes(4))]);
+        Storage::forgetDisk(FileVault::DISK);
+        $file = $this->vault->store(FILES_A, 'logo', 'image/png');
+        Storage::disk(FileVault::DISK)->delete($file->path);
+
+        expect(fn () => $this->vault->read(freshFile($file->id)))->toThrow(FileDecryptionFailed::class, 'missing');
+    });
+
+    it('leaves no file behind when its row cannot be saved', function () {
+        StoredFile::saving(fn () => throw new RuntimeException('database down'));
+
+        expect(fn () => $this->vault->store(FILES_A, 'logo', 'image/png'))->toThrow(RuntimeException::class, 'database down')
+            ->and(Storage::disk(FileVault::DISK)->allFiles())->toBe([]);
+    });
+
     it('deletes the file and its row', function () {
         $file = $this->vault->store(FILES_A, 'logo', 'image/png');
         $this->vault->delete($file);
