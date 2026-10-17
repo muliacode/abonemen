@@ -2,7 +2,9 @@
 
 namespace Tests\Support\Leaks;
 
+use App\Actions\Crypto\CreateHouseholdDataKey;
 use App\Models\User;
+use App\Support\Crypto\FileVault;
 
 /**
  * Writes a canary to every sensitive field the app has so far, through the
@@ -10,7 +12,9 @@ use App\Models\User;
  *
  * When a feature adds a sensitive field (see "Fields" in
  * docs/product/technical-design.md), it adds a canary here in the same pull
- * request. Uploads (#23) and backups (#85) join the scan when they exist.
+ * request. Household fields use the Encrypted cast, which has its own leak test
+ * (EncryptedCastTest); each household model adds its canaries here as it lands.
+ * Backups (#85) join the scan when they exist.
  */
 final class Canaries
 {
@@ -19,10 +23,7 @@ final class Canaries
      * them. The leak test accepts these leaks, and fails as soon as one stops
      * leaking, so the entry has to be removed with the fix.
      */
-    public const PLAINTEXT_UNTIL_FIXED = [
-        'users.name' => '#22',
-        'users.email' => '#22',
-    ];
+    public const PLAINTEXT_UNTIL_FIXED = [];
 
     /**
      * @return list<Canary>
@@ -39,6 +40,12 @@ final class Canaries
             'password' => 'canary-password-7f3a9c',
         ]);
         array_push($canaries, $name, $email);
+
+        $household = '01JLEAKTESTHOUSEHOLD000000';
+        app(CreateHouseholdDataKey::class)($household);
+        $logo = Canary::text('files.contents', '<svg><title>Kanarie logo 2b8e4f</title></svg>');
+        app(FileVault::class)->store($household, $logo->value, 'image/svg+xml');
+        $canaries[] = $logo;
 
         return $canaries;
     }

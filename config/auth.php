@@ -63,7 +63,8 @@ return [
 
     'providers' => [
         'users' => [
-            'driver' => 'eloquent',
+            // Finds users by email through the blind index; see AccountsServiceProvider.
+            'driver' => 'encrypted-eloquent',
             'model' => env('AUTH_MODEL', User::class),
         ],
 

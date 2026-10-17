@@ -3,6 +3,7 @@
 namespace Tests\Support\Crypto;
 
 use App\Support\Crypto\DataKeyRing;
+use App\Support\Crypto\HouseholdCipher;
 use App\Support\Crypto\RecoveryKeyStore;
 use App\Support\Crypto\RecoverySecret;
 
@@ -30,5 +31,6 @@ final class TestKeys
     {
         app(DataKeyRing::class)->forget();
         app(RecoveryKeyStore::class)->forget();
+        app(HouseholdCipher::class)->forget();
     }
 }

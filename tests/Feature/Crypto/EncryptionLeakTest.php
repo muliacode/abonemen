@@ -1,9 +1,11 @@
 <?php
 
+use App\Actions\Crypto\CreateGlobalDataKey;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Tests\Support\Crypto\TestKeys;
 use Tests\Support\Leaks\Canaries;
 use Tests\Support\Leaks\Canary;
 use Tests\Support\Leaks\Leak;
@@ -26,6 +28,7 @@ beforeEach(function () {
 
     config()->set('database.connections.sqlite.database', "{$this->root}/database/database.sqlite");
     config()->set('filesystems.disks.local.root', "{$this->root}/storage");
+    config()->set('filesystems.disks.encrypted.root', "{$this->root}/storage/encrypted");
     config()->set('logging.channels.leak', [
         'driver' => 'single',
         'path' => "{$this->root}/logs/laravel.log",
@@ -36,6 +39,10 @@ beforeEach(function () {
     DB::purge('sqlite');
     Log::forgetChannel('leak');
     Artisan::call('migrate', ['--force' => true]);
+
+    // The key hierarchy, as the setup wizard leaves it.
+    TestKeys::installRecoveryKey();
+    app(CreateGlobalDataKey::class)();
 });
 
 afterEach(function () {
