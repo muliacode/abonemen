@@ -73,6 +73,10 @@ try {
     const body = await driver.findElement(By.css('main')).getText();
     assert.match(body, new RegExp(`Signed in as ${email.replace('.', '\\.')}`));
     console.log('ok: passwordless sign-in');
+} catch (error) {
+    console.error('FAILED at', await driver.getCurrentUrl());
+    console.error('Page text:\n' + (await driver.findElement(By.css('body')).getText()));
+    throw error;
 } finally {
     await driver.quit();
 }

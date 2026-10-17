@@ -65,7 +65,7 @@ jobs:
           php artisan tinker --execute "App\\Models\\User::create(['name' => 'Spike', 'email' => getenv('EMAIL'), 'password' => getenv('PASSWORD')]);"
           (cd public && PHP_CLI_SERVER_WORKERS=4 php -S localhost:8100 ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php > ../storage/logs/server.log 2>&1 &)
           for _ in $(seq 1 30); do curl -sf http://localhost:8100/up > /dev/null && break; sleep 1; done
-          BASE_URL=http://localhost:8100 node tests/e2e-firefox/passkeys.mjs
+          BASE_URL=http://localhost:8100 node tests/e2e-firefox/passkeys.mjs || { tail -40 storage/logs/server.log; tail -40 storage/logs/laravel.log 2>/dev/null; exit 1; }
 
       - name: Upload logs
         if: ${{ failure() }}
