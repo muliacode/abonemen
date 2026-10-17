@@ -439,7 +439,7 @@ Docker and Kubernetes upgrade on container start; shared hosting after uploading
 | Variable | Purpose |
 | --- | --- |
 | `APP_URL`, `APP_KEY` | Laravel basics |
-| `ABONEMEN_MASTER_KEY` or `ABONEMEN_MASTER_KEY_FILE` | The master key, the file form preferred |
+| `ABONEMEN_MASTER_KEY_FILE` or `ABONEMEN_MASTER_KEY` | The master key, the file form preferred; never both. The key is read at runtime, never into the config, so `config:cache` cannot write it to disk; `ABONEMEN_MASTER_KEY` must then be a real environment variable. Without a usable key every page returns 503 except `/up` |
 | `ABONEMEN_RUN_MODE` | `cron` (shared hosting) or `daemon` (containers) |
 | `DB_DATABASE` | Path of the SQLite file |
 | `MAIL_*` | SMTP for invites, resets and reminders |

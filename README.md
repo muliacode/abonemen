@@ -35,13 +35,15 @@ Laravel 13, Vue 3 and Inertia 3 with TypeScript and Vite, on PHP 8.3 or newer. S
 You need PHP 8.3 or newer, Composer and the Node version in [`.nvmrc`](.nvmrc).
 
 ```sh
-composer setup      # install dependencies, create .env, migrate, build assets
+composer setup      # install dependencies, create .env and a master key, migrate, build assets
 composer dev        # run the server, queue worker and Vite
 composer ci:check   # the checks CI runs: lint, types and tests
 npm run test:e2e    # Playwright and axe on every page; run `npm run build` first
 ```
 
 The end-to-end tests need the Playwright browsers once: `npx playwright install --with-deps`.
+
+Abonemen refuses to serve pages without a master key. `composer setup` creates one in `storage/master.key`, the path that `ABONEMEN_MASTER_KEY_FILE` in `.env` points to; `php artisan abonemen:keys:generate-master` does the same on its own and never replaces an existing key. The file form is preferred over putting the key in `ABONEMEN_MASTER_KEY`.
 
 ## Contributing and security
 

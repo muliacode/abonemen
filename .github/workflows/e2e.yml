@@ -53,6 +53,7 @@ jobs:
         run: |
           cp .env.example .env
           php artisan key:generate --ansi
+          php artisan abonemen:keys:generate-master --ansi
 
       - name: Build assets
         run: npm run build

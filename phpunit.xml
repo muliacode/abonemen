@@ -27,6 +27,9 @@
     <php>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <!-- A fixed master key for tests only; the file form from .env is switched off. -->
+        <env name="ABONEMEN_MASTER_KEY" value="dGVzdC1tYXN0ZXIta2V5LW5vdC1mb3ItcHJvZC11c2U="/>
+        <env name="ABONEMEN_MASTER_KEY_FILE" value=""/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
