@@ -38,6 +38,8 @@
         <env name="SESSION_DRIVER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <!-- SPIKE (#12): a fixed test GDK. -->
+        <env name="ABONEMEN_SPIKE_GDK" value="dGVzdC1nbG9iYWwtZGF0YS1rZXktMzItYnl0ZXMtISE="/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
     </php>
 </phpunit>
