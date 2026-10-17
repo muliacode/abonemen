@@ -1,0 +1,8 @@
+{
+    "Subscriptions": "Abonnements",
+    "Language": "Langue",
+    "Welcome back, :name!": "Bon retour, :name !",
+    "{0} No subscriptions yet|{1} :count subscription|[2,*] :count subscriptions": "{0} Aucun abonnement pour l’instant|{1} :count abonnement|[2,*] :count abonnements",
+    ":count subscription renews today|:count subscriptions renew today": ":count abonnement est renouvelé aujourd’hui|:count abonnements sont renouvelés aujourd’hui",
+    "A self-hostable, privacy-first subscription tracker.": "Un suivi d’abonnements auto-hébergeable qui protège votre vie privée."
+}

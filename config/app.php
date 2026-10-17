@@ -82,6 +82,9 @@ return [
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
+    // SPIKE (#16): the launch locales (NFR-09), in the order the language menu shows them.
+    'supported_locales' => ['nl', 'en', 'id', 'fr', 'de'],
+
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 
     /*

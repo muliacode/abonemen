@@ -13,9 +13,8 @@ it('sets the document language from the application locale', function () {
         ->assertOk()
         ->assertSee('<html lang="en">', false);
 
-    app()->setLocale('nl');
-
-    $this->get(route('home'))->assertSee('<html lang="nl">', false);
+    $this->get(route('home'), ['Accept-Language' => 'nl-NL,nl;q=0.9'])
+        ->assertSee('<html lang="nl">', false);
 });
 
 it('has a single h1 in the page component', function () {

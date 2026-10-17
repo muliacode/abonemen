@@ -1,0 +1,8 @@
+{
+    "Subscriptions": "Subscriptions",
+    "Language": "Language",
+    "Welcome back, :name!": "Welcome back, :name!",
+    "{0} No subscriptions yet|{1} :count subscription|[2,*] :count subscriptions": "{0} No subscriptions yet|{1} :count subscription|[2,*] :count subscriptions",
+    ":count subscription renews today|:count subscriptions renew today": ":count subscription renews today|:count subscriptions renew today",
+    "A self-hostable, privacy-first subscription tracker.": "A self-hostable, privacy-first subscription tracker."
+}

@@ -1,0 +1,187 @@
+{
+    "en": [
+        {
+            "key": ":count subscription renews today|:count subscriptions renew today",
+            "count": 0,
+            "expected": "0 subscriptions renew today"
+        },
+        {
+            "key": ":count subscription renews today|:count subscriptions renew today",
+            "count": 1,
+            "expected": "1 subscription renews today"
+        },
+        {
+            "key": ":count subscription renews today|:count subscriptions renew today",
+            "count": 2,
+            "expected": "2 subscriptions renew today"
+        },
+        {
+            "key": ":count subscription renews today|:count subscriptions renew today",
+            "count": 21,
+            "expected": "21 subscriptions renew today"
+        },
+        {
+            "key": "{0} No subscriptions yet|{1} :count subscription|[2,*] :count subscriptions",
+            "count": 0,
+            "expected": "No subscriptions yet"
+        },
+        {
+            "key": "{0} No subscriptions yet|{1} :count subscription|[2,*] :count subscriptions",
+            "count": 1,
+            "expected": "1 subscription"
+        },
+        {
+            "key": "{0} No subscriptions yet|{1} :count subscription|[2,*] :count subscriptions",
+            "count": 2,
+            "expected": "2 subscriptions"
+        }
+    ],
+    "nl": [
+        {
+            "key": ":count subscription renews today|:count subscriptions renew today",
+            "count": 0,
+            "expected": "0 abonnementen worden vandaag verlengd"
+        },
+        {
+            "key": ":count subscription renews today|:count subscriptions renew today",
+            "count": 1,
+            "expected": "1 abonnement wordt vandaag verlengd"
+        },
+        {
+            "key": ":count subscription renews today|:count subscriptions renew today",
+            "count": 2,
+            "expected": "2 abonnementen worden vandaag verlengd"
+        },
+        {
+            "key": ":count subscription renews today|:count subscriptions renew today",
+            "count": 21,
+            "expected": "21 abonnementen worden vandaag verlengd"
+        },
+        {
+            "key": "{0} No subscriptions yet|{1} :count subscription|[2,*] :count subscriptions",
+            "count": 0,
+            "expected": "Nog geen abonnementen"
+        },
+        {
+            "key": "{0} No subscriptions yet|{1} :count subscription|[2,*] :count subscriptions",
+            "count": 1,
+            "expected": "1 abonnement"
+        },
+        {
+            "key": "{0} No subscriptions yet|{1} :count subscription|[2,*] :count subscriptions",
+            "count": 2,
+            "expected": "2 abonnementen"
+        }
+    ],
+    "id": [
+        {
+            "key": ":count subscription renews today|:count subscriptions renew today",
+            "count": 0,
+            "expected": "0 langganan diperpanjang hari ini"
+        },
+        {
+            "key": ":count subscription renews today|:count subscriptions renew today",
+            "count": 1,
+            "expected": "1 langganan diperpanjang hari ini"
+        },
+        {
+            "key": ":count subscription renews today|:count subscriptions renew today",
+            "count": 2,
+            "expected": "2 langganan diperpanjang hari ini"
+        },
+        {
+            "key": ":count subscription renews today|:count subscriptions renew today",
+            "count": 21,
+            "expected": "21 langganan diperpanjang hari ini"
+        },
+        {
+            "key": "{0} No subscriptions yet|{1} :count subscription|[2,*] :count subscriptions",
+            "count": 0,
+            "expected": "Belum ada langganan"
+        },
+        {
+            "key": "{0} No subscriptions yet|{1} :count subscription|[2,*] :count subscriptions",
+            "count": 1,
+            "expected": "1 langganan"
+        },
+        {
+            "key": "{0} No subscriptions yet|{1} :count subscription|[2,*] :count subscriptions",
+            "count": 2,
+            "expected": "2 langganan"
+        }
+    ],
+    "fr": [
+        {
+            "key": ":count subscription renews today|:count subscriptions renew today",
+            "count": 0,
+            "expected": "0 abonnement est renouvelé aujourd’hui"
+        },
+        {
+            "key": ":count subscription renews today|:count subscriptions renew today",
+            "count": 1,
+            "expected": "1 abonnement est renouvelé aujourd’hui"
+        },
+        {
+            "key": ":count subscription renews today|:count subscriptions renew today",
+            "count": 2,
+            "expected": "2 abonnements sont renouvelés aujourd’hui"
+        },
+        {
+            "key": ":count subscription renews today|:count subscriptions renew today",
+            "count": 21,
+            "expected": "21 abonnements sont renouvelés aujourd’hui"
+        },
+        {
+            "key": "{0} No subscriptions yet|{1} :count subscription|[2,*] :count subscriptions",
+            "count": 0,
+            "expected": "Aucun abonnement pour l’instant"
+        },
+        {
+            "key": "{0} No subscriptions yet|{1} :count subscription|[2,*] :count subscriptions",
+            "count": 1,
+            "expected": "1 abonnement"
+        },
+        {
+            "key": "{0} No subscriptions yet|{1} :count subscription|[2,*] :count subscriptions",
+            "count": 2,
+            "expected": "2 abonnements"
+        }
+    ],
+    "de": [
+        {
+            "key": ":count subscription renews today|:count subscriptions renew today",
+            "count": 0,
+            "expected": "0 Abonnements werden heute verlängert"
+        },
+        {
+            "key": ":count subscription renews today|:count subscriptions renew today",
+            "count": 1,
+            "expected": "1 Abonnement wird heute verlängert"
+        },
+        {
+            "key": ":count subscription renews today|:count subscriptions renew today",
+            "count": 2,
+            "expected": "2 Abonnements werden heute verlängert"
+        },
+        {
+            "key": ":count subscription renews today|:count subscriptions renew today",
+            "count": 21,
+            "expected": "21 Abonnements werden heute verlängert"
+        },
+        {
+            "key": "{0} No subscriptions yet|{1} :count subscription|[2,*] :count subscriptions",
+            "count": 0,
+            "expected": "Noch keine Abonnements"
+        },
+        {
+            "key": "{0} No subscriptions yet|{1} :count subscription|[2,*] :count subscriptions",
+            "count": 1,
+            "expected": "1 Abonnement"
+        },
+        {
+            "key": "{0} No subscriptions yet|{1} :count subscription|[2,*] :count subscriptions",
+            "count": 2,
+            "expected": "2 Abonnements"
+        }
+    ]
+}

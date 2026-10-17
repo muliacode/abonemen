@@ -1,0 +1,8 @@
+{
+    "Subscriptions": "Langganan",
+    "Language": "Bahasa",
+    "Welcome back, :name!": "Selamat datang kembali, :name!",
+    "{0} No subscriptions yet|{1} :count subscription|[2,*] :count subscriptions": "{0} Belum ada langganan|[1,*] :count langganan",
+    ":count subscription renews today|:count subscriptions renew today": ":count langganan diperpanjang hari ini",
+    "A self-hostable, privacy-first subscription tracker.": "Pelacak langganan yang bisa di-host sendiri dan mengutamakan privasi."
+}

@@ -1,0 +1,8 @@
+{
+    "Subscriptions": "Abonnementen",
+    "Language": "Taal",
+    "Welcome back, :name!": "Welkom terug, :name!",
+    "{0} No subscriptions yet|{1} :count subscription|[2,*] :count subscriptions": "{0} Nog geen abonnementen|{1} :count abonnement|[2,*] :count abonnementen",
+    ":count subscription renews today|:count subscriptions renew today": ":count abonnement wordt vandaag verlengd|:count abonnementen worden vandaag verlengd",
+    "A self-hostable, privacy-first subscription tracker.": "Een zelf te hosten abonnementenoverzicht dat privacy voorop zet."
+}
