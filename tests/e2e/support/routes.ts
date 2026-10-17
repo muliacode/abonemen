@@ -24,6 +24,7 @@ interface ArtisanRoute {
 const excluded: Record<string, string> = {
     up: 'health check, plain text',
     'storage.local': 'file downloads',
+    'files.show': 'encrypted uploads, for household members only',
 };
 
 /** URI prefixes that belong to packages, not to Abonemen. */

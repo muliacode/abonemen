@@ -28,6 +28,7 @@ beforeEach(function () {
 
     config()->set('database.connections.sqlite.database', "{$this->root}/database/database.sqlite");
     config()->set('filesystems.disks.local.root', "{$this->root}/storage");
+    config()->set('filesystems.disks.encrypted.root', "{$this->root}/storage/encrypted");
     config()->set('logging.channels.leak', [
         'driver' => 'single',
         'path' => "{$this->root}/logs/laravel.log",

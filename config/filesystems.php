@@ -38,6 +38,17 @@ return [
             'report' => false,
         ],
 
+        // Encrypted uploads (SEC-04): outside the web root, never served by
+        // Laravel's /storage route; only FileController hands them out.
+        'encrypted' => [
+            'driver' => 'local',
+            'root' => storage_path('app/encrypted'),
+            'serve' => false,
+            'visibility' => 'private',
+            'throw' => true,
+            'report' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

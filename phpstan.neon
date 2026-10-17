@@ -13,11 +13,6 @@ parameters:
     level: 7
 
     ignoreErrors:
-        # Remove once the first model with a household_id uses the trait.
-        -
-            identifier: trait.unused
-            path: app/Models/Concerns/BelongsToHousehold.php
-            count: 1
         # Remove once the first model with an encrypted household field uses the trait.
         -
             identifier: trait.unused

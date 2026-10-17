@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Support\Crypto\DataKeyRing;
+use App\Support\Crypto\FileVault;
 use App\Support\Crypto\HouseholdCipher;
 use App\Support\Crypto\MasterKeyLoader;
 use App\Support\Crypto\RecoveryKeyStore;
@@ -31,5 +32,6 @@ class CryptoServiceProvider extends ServiceProvider
         $this->app->singleton(RecoveryKeyStore::class);
         $this->app->singleton(DataKeyRing::class);
         $this->app->singleton(HouseholdCipher::class);
+        $this->app->singleton(FileVault::class);
     }
 }
