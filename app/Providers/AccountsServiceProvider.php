@@ -27,9 +27,12 @@ class AccountsServiceProvider extends ServiceProvider
             'hasPasskey' => (bool) $this->challengedUser($request)?->passkeys()->exists(),
         ]));
 
-        RateLimiter::for('login', fn (Request $request) => Limit::perMinute(5)->by(strtolower((string) $request->input(Fortify::username())).'|'.$request->ip()));
-        RateLimiter::for('two-factor', fn (Request $request) => Limit::perMinute(5)->by((string) $request->session()->get('login.id')));
-        RateLimiter::for('passkeys', fn (Request $request) => Limit::perMinute(10)->by($request->ip()));
+        // SPIKE: the end-to-end tests sign many users in from one address.
+        $scale = $this->app->environment('testing') ? 100 : 1;
+
+        RateLimiter::for('login', fn (Request $request) => Limit::perMinute(5 * $scale)->by(strtolower((string) $request->input(Fortify::username())).'|'.$request->ip()));
+        RateLimiter::for('two-factor', fn (Request $request) => Limit::perMinute(5 * $scale)->by((string) $request->session()->get('login.id')));
+        RateLimiter::for('passkeys', fn (Request $request) => Limit::perMinute(10 * $scale)->by($request->ip()));
     }
 
     private function challengedUser(Request $request): ?User
