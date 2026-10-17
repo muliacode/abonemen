@@ -81,9 +81,9 @@ jobs:
 
           echo "--- processes"
           docker top abonemen -o pid,user,args
-          docker top abonemen -o args | grep -q 'frankenphp run'
-          docker top abonemen -o args | grep -q 'schedule:work'
-          docker top abonemen -o args | grep -q 'queue:work'
+          docker top abonemen -o pid,args | grep -q 'frankenphp run'
+          docker top abonemen -o pid,args | grep -q 'schedule:work'
+          docker top abonemen -o pid,args | grep -q 'queue:work'
           test "$(docker exec abonemen id -u)" = 10001
 
           echo "--- requests"
