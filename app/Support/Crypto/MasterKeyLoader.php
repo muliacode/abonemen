@@ -49,6 +49,14 @@ final class MasterKeyLoader
     }
 
     /**
+     * Whether ABONEMEN_MASTER_KEY is set, whatever else is.
+     */
+    public function usesEnvironment(): bool
+    {
+        return $this->environmentValue !== null && $this->environmentValue !== '';
+    }
+
+    /**
      * Why a configured key cannot be used, without the key itself.
      */
     public function problem(): ?string
@@ -78,7 +86,7 @@ final class MasterKeyLoader
         }
         $this->loaded = true;
 
-        $fromEnvironment = $this->environmentValue !== null && $this->environmentValue !== '';
+        $fromEnvironment = $this->usesEnvironment();
         $path = $this->filePath();
 
         try {

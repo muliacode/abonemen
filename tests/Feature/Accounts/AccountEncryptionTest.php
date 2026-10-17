@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Accounts\EmailAlreadyTaken;
 use App\Actions\Accounts\FindUserByEmail;
 use App\Actions\Crypto\CreateGlobalDataKey;
 use App\Models\User;
@@ -10,6 +11,7 @@ use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Tests\Support\Crypto\TestKeys;
 
 /*
@@ -139,4 +141,60 @@ describe('the GDK encrypter for packages', function () {
 
         expect($encrypter->decrypt($encrypter->encrypt(new ArrayObject([1]))))->toBeInstanceOf(__PHP_Incomplete_Class::class);
     });
+});
+
+describe('unique email addresses', function () {
+    it('refuses a second account with the same email, in any case or Unicode form', function (string $email) {
+        expect(fn () => User::create(['name' => 'Copy', 'email' => $email, 'password' => 'x']))->toThrow(EmailAlreadyTaken::class)
+            ->and(User::query()->count())->toBe(2);
+    })->with([
+        'same' => ['Alice@Example.org'],
+        'other case' => ['ALICE@example.org'],
+        'spaces' => [' alice@example.org '],
+    ]);
+
+    it('refuses changing an email to one another account has, and allows keeping your own', function () {
+        $bob = User::query()->findOrFail($this->bob->id);
+
+        expect(fn () => $bob->update(['email' => 'alice@example.org']))->toThrow(EmailAlreadyTaken::class);
+
+        $alice = User::query()->findOrFail($this->alice->id);
+        $alice->update(['email' => 'ALICE@example.org', 'name' => 'Alice']);
+
+        expect(User::query()->findOrFail($this->alice->id)->email)->toBe('ALICE@example.org');
+    });
+
+    it('signs in nobody if two accounts ever share an email', function () {
+        // A second account with Alice's email, saved without the check, as a
+        // race between two sign-ups could leave it.
+        $duplicate = new class extends User
+        {
+            protected $table = 'users';
+
+            public function beforeEncrypting(): void {}
+
+            public function getMorphClass(): string
+            {
+                return User::class;
+            }
+        };
+        $duplicate->fill(['name' => 'Mallory', 'email' => 'alice@example.org', 'password' => 'correct horse'])->save();
+
+        expect(User::query()->whereBlind('email', User::EMAIL_INDEX, 'alice@example.org')->count())->toBe(2)
+            ->and(app(FindUserByEmail::class)('alice@example.org'))->toBeNull()
+            ->and(Auth::attempt(['email' => 'alice@example.org', 'password' => 'correct horse']))->toBeFalse();
+    });
+});
+
+it('finds an email whatever the case of non-ASCII letters, as the index ignores it too', function () {
+    $user = User::create(['name' => 'Änne', 'email' => 'Änne@Example.org', 'password' => 'secret secret']);
+
+    expect(app(FindUserByEmail::class)('änne@example.org')?->id)->toBe($user->id)
+        ->and(app(FindUserByEmail::class)('ÄNNE@EXAMPLE.ORG')?->id)->toBe($user->id)
+        // NFD: "A" followed by a combining diaeresis.
+        ->and(app(FindUserByEmail::class)("A\u{0308}nne@example.org")?->id)->toBe($user->id);
+});
+
+it('creates no table that stores emails in plaintext', function () {
+    expect(Schema::hasTable('password_reset_tokens'))->toBeFalse();
 });
