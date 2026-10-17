@@ -73,6 +73,12 @@ export function forEveryPage(
                     await applyTheme(page, theme);
 
                     const response = await page.goto(route.path);
+                    test.skip(
+                        !(response?.headers()['content-type'] ?? '').includes(
+                            'text/html',
+                        ),
+                        'Not a page: the route does not return HTML.',
+                    );
                     expect(response?.status(), 'HTTP status').toBeLessThan(400);
                     await page.waitForLoadState('networkidle');
 
