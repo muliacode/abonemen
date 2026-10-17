@@ -465,6 +465,8 @@ With one maintainer and no budget for audits, CI is the quality team: every PRD 
 
 Manual checks the PRD asks for (keyboard only, NVDA, TalkBack, 400% zoom, high contrast) are a checklist in the release pull request template, so a release cannot be tagged without ticking them.
 
+The Playwright suite lives in `tests/e2e` and runs from `.github/workflows/e2e.yml`, one job per browser. `forEveryPage()` in `tests/e2e/support/accessibility.ts` reads the page routes from `php artisan route:list`, so a new page is checked without touching the tests; a route with parameters fails the suite until it has example values in `tests/e2e/support/routes.ts`. Each page is checked in four themes (light, dark, high contrast and forced colours) at 320 px and at desktop width: axe with the WCAG 2.2 A and AA rules, no horizontal scrolling at 320 px, and exactly one `h1`. A theme emulates the media features (`prefers-color-scheme`, `prefers-contrast`, `forced-colors`, reduced motion) and sets `data-theme` on `<html>`. Engines that cannot emulate forced colours skip that theme and say so in the report.
+
 ## Decisions and open questions
 
 Fifteen architecture decisions are recorded; short spikes confirm three of them before building starts.
