@@ -127,7 +127,7 @@ Either root key alone can unwrap every data key, so losing one is recoverable; l
 | Key | Size and form | Where it lives | Protects |
 | --- | --- | --- | --- |
 | Master key (MK) | 256-bit random, base64 | `ABONEMEN_MASTER_KEY` or `ABONEMEN_MASTER_KEY_FILE` (Docker or Kubernetes secret); never in the database or backups | Wraps every data key |
-| Recovery key (RK) | X25519 key pair made at setup; the private half is shown once, as groups of base32 | Public half in `settings`; private half printed or saved by the admin, never stored on the server | Every data key is also sealed to the public half, so keys made after setup are recoverable too |
+| Recovery key (RK) | X25519 key pair made at setup; the private half is shown once, as groups of base32 | Public half in `settings`, with a MAC under a key derived from the MK; private half printed or saved by the admin, never stored on the server | Every data key is also sealed to the public half, so keys made after setup are recoverable too. The MAC stops someone who can write to the database from swapping in their own public key; a public key that fails it is refused |
 | Global data key (GDK) | 256-bit random | `data_keys` table, wrapped by MK and sealed to RK | Account-level fields: user email and name, TOTP secrets, recovery codes, OIDC and SMTP secrets, plus the email blind index |
 | Household data key (HDK) | 256-bit random, one per household, versioned | `data_keys` table, wrapped by MK and sealed to RK | Every sensitive field and file of that household |
 | `APP_KEY` | Laravel's own key | Environment | Sessions, cookies and signed URLs only, never data |
