@@ -127,12 +127,14 @@ Either root key alone can unwrap every data key, so losing one is recoverable; l
 | Key | Size and form | Where it lives | Protects |
 | --- | --- | --- | --- |
 | Master key (MK) | 256-bit random, base64 | `ABONEMEN_MASTER_KEY` or `ABONEMEN_MASTER_KEY_FILE` (Docker or Kubernetes secret); never in the database or backups | Wraps every data key |
-| Recovery key (RK) | X25519 key pair made at setup; the private half is shown once, as groups of base32 | Public half in `settings`; private half printed or saved by the admin, never stored on the server | Every data key is also sealed to the public half, so keys made after setup are recoverable too |
+| Recovery key (RK) | X25519 key pair made at setup; the private half is shown once, as groups of base32 | Public half in `settings`, with a MAC under a key derived from the MK; private half printed or saved by the admin, never stored on the server | Every data key is also sealed to the public half, so keys made after setup are recoverable too. The MAC stops someone who can write to the database from swapping in their own public key; a public key that fails it is refused |
 | Global data key (GDK) | 256-bit random | `data_keys` table, wrapped by MK and sealed to RK | Account-level fields: user email and name, TOTP secrets, recovery codes, OIDC and SMTP secrets, plus the email blind index |
 | Household data key (HDK) | 256-bit random, one per household, versioned | `data_keys` table, wrapped by MK and sealed to RK | Every sensitive field and file of that household |
 | `APP_KEY` | Laravel's own key | Environment | Sessions, cookies and signed URLs only, never data |
 
-Wrapping uses XChaCha20-Poly1305 with the key's id, owner and version as associated data, so a wrapped key cannot be moved to another household. The associated data is those values length-prefixed; the stored form is `v1:` followed by base64 of the nonce, ciphertext and tag, so a later scheme can sit beside it. Unwrapped keys stay in memory for one request or job. Sealing to the RK uses a libsodium sealed box, so the server can protect each new key for recovery without ever holding the private half.
+Each root and data key goes into one algorithm only, HKDF-SHA384, which derives a separate key for each use; no key is used directly by two different algorithms, because no security proof covers that and weak key separation is how sound primitives have been broken in practice (see [Data security](../security/data-security.md)). From the MK it derives the wrapping key (`abonemen:master-key:key-wrap`) and the MAC key for the RK's public half (`abonemen:master-key:recovery-public-key`).
+
+Wrapping uses XChaCha20-Poly1305 under the MK's wrapping key, with the key's id, owner and version as associated data, so a wrapped key cannot be moved to another household. The associated data is those values length-prefixed; the stored form is `v1:` followed by base64 of the nonce, ciphertext and tag, so a later scheme can sit beside it. Unwrapped keys stay in memory for one request or job. Sealing to the RK uses a libsodium sealed box, so the server can protect each new key for recovery without ever holding the private half. A sealed box has no associated data, so the sealed message starts with the same associated data as the MK wrap and recovery checks it: a sealed key copied into another row is refused. No data key is made while no RK is installed. The private half is shown as 14 groups of 4 base32 characters: the 32-byte key and a 3-byte BLAKE2b checksum that catches typos; reading ignores case, spaces and dashes and takes 0, 1 and 8 as O, I and B.
 
 ### Fields
 
@@ -246,7 +248,7 @@ About two dozen application tables, all keyed by ULIDs (`users` too, unlike Lara
 | `exchange_rates` | Public rates | none | `base`, `quote`, `rate` (decimal string), `rate_on`, `source` |
 | `cost_snapshots` | Weekly totals for trends | `monthly_total`, `yearly_total` | `week_start` |
 | `audit_events` | Security log | none (no sensitive values by design) | `user_id`, `type`, `ip_prefix`, `created_at` |
-| `settings` | Instance settings | secret values (SMTP password, OIDC secret, VAPID private key) | `key`, `is_secret` |
+| `settings` | Instance settings, including the RK's public half (`crypto.recovery_public_key`) | secret values (SMTP password, OIDC secret, VAPID private key) | `key`, `is_secret` |
 
 `cancel_by_on` and `next_payment_on` are stored so the scheduler can find due items with an indexed date query, without decrypting. Indexes: `(household_id, next_payment_on)`, `(household_id, status)`, `(cancel_by_on)`, `(trial_ends_on)`.
 

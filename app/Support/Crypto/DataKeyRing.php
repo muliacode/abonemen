@@ -7,7 +7,9 @@ use Illuminate\Support\Facades\DB;
 use LogicException;
 
 /**
- * Creates data keys and unwraps them with the master key.
+ * Creates data keys and unwraps them with the master key. Every new key is
+ * wrapped by the master key and sealed to the recovery key; without a recovery
+ * key no data key is made, so none can be unrecoverable.
  *
  * Unwrapped keys are kept in memory for the rest of the request or job, never
  * stored. The ring is a singleton; forget() drops what it holds.
@@ -17,7 +19,10 @@ final class DataKeyRing
     /** @var array<string, DataKeyMaterial> */
     private array $unwrapped = [];
 
-    public function __construct(private readonly MasterKeyLoader $masterKey) {}
+    public function __construct(
+        private readonly MasterKeyLoader $masterKey,
+        private readonly RecoveryKeyStore $recoveryKey,
+    ) {}
 
     /**
      * Creates the global data key. There is one per instance.
@@ -113,11 +118,9 @@ final class DataKeyRing
         $key = new DataKeyMaterial(random_bytes(DataKeyMaterial::BYTES), $version);
         $row = new DataKey(['owner_type' => $ownerType, 'owner_id' => $ownerId, 'version' => $version, 'status' => DataKey::STATUS_ACTIVE]);
         $row->id = $row->newUniqueId();
-        $row->wrapped_mk = KeyWrap::wrap(
-            $this->masterKey->key(),
-            $key->bytes(),
-            KeyWrap::associatedData($row->id, $ownerType, $ownerId, $version),
-        );
+        $associatedData = KeyWrap::associatedData($row->id, $ownerType, $ownerId, $version);
+        $row->wrapped_mk = KeyWrap::wrap($this->masterKey->key(), $key->bytes(), $associatedData);
+        $row->wrapped_rk = KeySeal::seal($this->recoveryKey->publicKey(), $key->bytes(), $associatedData);
         $row->save();
 
         // The new key is now the newest one: a cached "latest" would otherwise
