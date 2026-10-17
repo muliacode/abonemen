@@ -5,6 +5,7 @@ use App\Support\Crypto\Casts\Encrypted;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Tests\Arch\Support\Domains;
 use Tests\Arch\Support\JobPayloads;
+use Tests\Arch\Support\JobStatus;
 use Tests\Support\Crypto\EncryptedNote;
 use Tests\Support\Crypto\RenewNoteJob;
 
@@ -98,5 +99,9 @@ it('queues jobs with ids, never plaintext', function () {
         ->and(JobPayloads::violations((new class('', '')
         {
             public function __construct(public string $noteId, public string $title) {}
-        })::class))->toHaveCount(1);
+        })::class))->toHaveCount(1)
+        ->and(JobPayloads::violations((new class(JobStatus::Queued)
+        {
+            public function __construct(public JobStatus $status) {}
+        })::class))->toBe([]);
 });

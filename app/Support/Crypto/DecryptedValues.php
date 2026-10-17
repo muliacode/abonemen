@@ -7,7 +7,7 @@ namespace App\Support\Crypto;
  * redaction can scrub them from messages and exceptions wherever they ended
  * up, under any key or none (SEC-11).
  *
- * It lives only in memory and is emptied before and after every queued job.
+ * It lives only in memory and is emptied when a queued job starts or succeeds.
  * Values shorter than three characters are not kept: scrubbing them would
  * mangle unrelated text, and they say little on their own.
  */
@@ -18,8 +18,16 @@ final class DecryptedValues
     /** Bounds memory in a long-running worker; the oldest values go first. */
     private const MAX_VALUES = 5000;
 
-    /** @var array<string, true> */
+    /**
+     * Keyed by "v" plus the value, so a numeric value never becomes an integer
+     * key, which array functions renumber.
+     *
+     * @var array<string, string>
+     */
     private array $values = [];
+
+    /** @var list<string>|null Longest first; rebuilt only after a change. */
+    private ?array $sorted = null;
 
     public function add(#[\SensitiveParameter] ?string $value): void
     {
@@ -27,11 +35,16 @@ final class DecryptedValues
             return;
         }
 
-        unset($this->values[$value]);
-        $this->values[$value] = true;
+        $key = 'v'.$value;
+        if (isset($this->values[$key])) {
+            return;
+        }
+
+        $this->values[$key] = $value;
+        $this->sorted = null;
 
         if (count($this->values) > self::MAX_VALUES) {
-            array_shift($this->values);
+            unset($this->values[array_key_first($this->values)]);
         }
     }
 
@@ -45,14 +58,18 @@ final class DecryptedValues
             return $text;
         }
 
-        $values = array_map('strval', array_keys($this->values));
-        usort($values, fn (string $a, string $b): int => strlen($b) <=> strlen($a));
+        if ($this->sorted === null) {
+            $sorted = array_values($this->values);
+            usort($sorted, fn (string $a, string $b): int => strlen($b) <=> strlen($a));
+            $this->sorted = $sorted;
+        }
 
-        return str_replace($values, '[redacted]', $text);
+        return str_replace($this->sorted, '[redacted]', $text);
     }
 
     public function forget(): void
     {
         $this->values = [];
+        $this->sorted = null;
     }
 }

@@ -114,6 +114,18 @@ it('scrubs values that were just set, before they are saved', function () {
 });
 
 describe('the decrypted values', function () {
+    it('keep numeric values after the oldest ones are evicted', function () {
+        $values = new DecryptedValues;
+        foreach (range(1, 5001) as $i) {
+            $values->add("value-{$i}");
+        }
+        $values->add('1299');
+        $values->add('17.99');
+
+        expect($values->scrub('price 1299 and 17.99 at line 100'))->toBe('price [redacted] and [redacted] at line 100')
+            ->and($values->scrub('value-3 value-4 value-5001'))->toBe('value-3 [redacted] [redacted]');
+    });
+
     it('scrub longer values first and ignore very short ones', function () {
         $values = new DecryptedValues;
         $values->add('Net');
@@ -136,11 +148,54 @@ describe('the decrypted values', function () {
     });
 });
 
-it('taps every log channel', function () {
+it('taps every log channel but stacks, which run their channels\' processors', function () {
     foreach (config('logging.channels') as $name => $channel) {
-        expect([$name => $channel['tap'] ?? []])->toHaveKey($name)
-            ->and($channel['tap'] ?? [])->toContain(RedactSensitiveData::class);
+        if (($channel['driver'] ?? null) === 'stack') {
+            expect($channel)->not->toHaveKey('tap');
+
+            continue;
+        }
+
+        expect($channel['tap'] ?? [])->toContain(RedactSensitiveData::class);
     }
+});
+
+it('redacts through a stack channel too', function () {
+    config()->set('logging.default', 'stack');
+    config()->set('logging.channels.stack.channels', ['single']);
+
+    Log::info('Via the stack', ['password' => 'hunter22']);
+
+    expect(theLog($this))->toContain('Via the stack')
+        ->and(theLog($this))->not->toContain('hunter22');
+});
+
+it('cleans objects in the context, and logs others by class only', function () {
+    $title = EncryptedNote::query()->findOrFail($this->note->id)->title;
+
+    Log::info('Objects', [
+        'collection' => collect(['detail' => "about {$title}", 'password' => 'hunter22']),
+        'json' => new class($title) implements JsonSerializable
+        {
+            public function __construct(private string $title) {}
+
+            public function jsonSerialize(): array
+            {
+                return ['title_copy' => $this->title];
+            }
+        },
+        'stringable' => str("for {$title}"),
+        'plain' => new class($title)
+        {
+            public function __construct(public string $title) {}
+        },
+        'row' => EncryptedNote::query()->findOrFail($this->note->id),
+    ]);
+
+    expect(theLog($this))->not->toContain('Netflix')
+        ->and(theLog($this))->not->toContain('hunter22')
+        ->and(theLog($this))->toContain('class@anonymous')
+        ->and(theLog($this))->toContain($this->note->id);
 });
 
 it('keeps argument values out of stack traces', function () {

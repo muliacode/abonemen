@@ -141,8 +141,11 @@ $logging = [
 ];
 
 // Every channel, including any added later, redacts sensitive data (SEC-11).
+// A stack runs the processors of its channels, so it gets no tap of its own.
 $logging['channels'] = array_map(
-    fn (array $channel): array => [...$channel, 'tap' => [...(array) data_get($channel, 'tap', []), RedactSensitiveData::class]],
+    fn (array $channel): array => data_get($channel, 'driver') === 'stack'
+        ? $channel
+        : [...$channel, 'tap' => [...(array) data_get($channel, 'tap', []), RedactSensitiveData::class]],
     $logging['channels'],
 );
 

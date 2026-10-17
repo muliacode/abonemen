@@ -3,9 +3,12 @@
 namespace App\Support\Crypto\Logging;
 
 use App\Support\Crypto\DecryptedValues;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Log\Logger;
+use JsonSerializable;
 use Monolog\Logger as Monolog;
 use Monolog\LogRecord;
+use Stringable;
 use Throwable;
 
 /**
@@ -63,11 +66,37 @@ final class RedactSensitiveData
                 is_array($value) => $this->clean($value, $values),
                 is_string($value) => $values->scrub($value),
                 $value instanceof Throwable => $values->scrub($this->describe($value)),
+                is_object($value) => $this->cleanObject($value, $values),
                 default => $value,
             };
         }
 
         return $data;
+    }
+
+    /**
+     * The formatter would print an object as it is, so it is turned into data
+     * that can be cleaned first; an object that offers no such view is logged
+     * by its class name only. Models are Arrayable, which already hides their
+     * encrypted fields.
+     *
+     * @return array<mixed>|string
+     */
+    private function cleanObject(object $value, DecryptedValues $values): array|string
+    {
+        $data = match (true) {
+            $value instanceof Arrayable => $value->toArray(),
+            $value instanceof JsonSerializable => $value->jsonSerialize(),
+            $value instanceof Stringable => (string) $value,
+            default => '['.$value::class.']',
+        };
+
+        return match (true) {
+            is_array($data) => $this->clean($data, $values),
+            is_string($data) => $values->scrub($data),
+            is_scalar($data) || $data === null => $values->scrub(var_export($data, true)),
+            default => '['.$value::class.']',
+        };
     }
 
     private function describe(Throwable $e): string

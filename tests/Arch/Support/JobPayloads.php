@@ -34,8 +34,9 @@ final class JobPayloads
             $allowed = match (true) {
                 $named === 'int' => true,
                 in_array($named, ['string', 'array'], true) => (bool) preg_match('/Ids?$/', $name),
-                $named !== null && class_exists($named) => is_subclass_of($named, Model::class),
+                // Enums first: class_exists() is true for them too.
                 $named !== null && enum_exists($named) => is_subclass_of($named, BackedEnum::class),
+                $named !== null && class_exists($named) => is_subclass_of($named, Model::class),
                 default => false,
             };
 
