@@ -3,8 +3,8 @@
 # Fails a release pull request while any checklist box in its description is
 # unticked. Other pull requests pass.
 #
-# A pull request is a release when its branch starts with "release/" or its
-# description contains the marker from .github/PULL_REQUEST_TEMPLATE/release.md.
+# A pull request is a release when its branch starts with "release/" or a line
+# of its description is the marker from .github/PULL_REQUEST_TEMPLATE/release.md.
 #
 # Input (environment): PR_BODY, the pull request description, and HEAD_REF,
 # the name of its branch. TEMPLATE overrides the path of the release template.
@@ -16,7 +16,9 @@ body="${PR_BODY:-}"
 head_ref="${HEAD_REF:-}"
 
 has_marker=false
-if grep -qF -- "$marker" <<< "$body"; then
+# Only a line that holds just the marker counts, so a description that quotes
+# the marker in passing is not mistaken for a release.
+if tr -d '\r' <<< "$body" | grep -qxE -- "[[:space:]]*${marker}[[:space:]]*"; then
     has_marker=true
 fi
 
