@@ -1,6 +1,10 @@
 <?php
 
+use App\Models\Concerns\HasEncryptedFields;
+use App\Support\Crypto\Casts\Encrypted;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Tests\Arch\Support\Domains;
+use Tests\Support\Crypto\EncryptedNote;
 
 // Rules from "Code organisation" in docs/product/technical-design.md (EXT-01).
 
@@ -62,4 +66,23 @@ it('gives every model an owning domain', function () {
 
     expect($models)->each->toBeIn(array_keys(Domains::MODEL_OWNERS))
         ->and(array_values(Domains::MODEL_OWNERS))->each->toBeIn(Domains::ALL);
+});
+
+it('gives every model with an encrypted field the trait that hides it, and ULID keys', function () {
+    $models = array_filter(
+        [...Domains::modelClasses(), EncryptedNote::class],
+        fn (string $class): bool => in_array(
+            Encrypted::class,
+            (new $class)->getCasts(),
+            true,
+        ),
+    );
+
+    expect($models)->not->toBeEmpty();
+
+    foreach ($models as $class) {
+        expect(class_uses_recursive($class))
+            ->toContain(HasEncryptedFields::class)
+            ->toContain(HasUlids::class);
+    }
 });

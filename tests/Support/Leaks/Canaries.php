@@ -10,7 +10,9 @@ use App\Models\User;
  *
  * When a feature adds a sensitive field (see "Fields" in
  * docs/product/technical-design.md), it adds a canary here in the same pull
- * request. Uploads (#23) and backups (#85) join the scan when they exist.
+ * request. Household fields use the Encrypted cast, which has its own leak test
+ * (EncryptedCastTest); each household model adds its canaries here as it lands.
+ * Uploads (#23) and backups (#85) join the scan when they exist.
  */
 final class Canaries
 {

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Support\Crypto\DataKeyRing;
+use App\Support\Crypto\HouseholdCipher;
 use App\Support\Crypto\MasterKeyLoader;
 use App\Support\Crypto\RecoveryKeyStore;
 use Illuminate\Http\Request;
@@ -34,6 +35,7 @@ class CryptoServiceProvider extends ServiceProvider
 
         $this->app->singleton(RecoveryKeyStore::class);
         $this->app->singleton(DataKeyRing::class);
+        $this->app->singleton(HouseholdCipher::class);
     }
 
     public static function scrubServerVariables(?Request $request): void
