@@ -61,7 +61,9 @@ COPY --chmod=0755 docker/entrypoint.sh /usr/local/bin/abonemen-entrypoint
 WORKDIR /app
 COPY --from=vendor /app /app
 COPY --from=assets /app/public/build /app/public/build
+# /data belongs to the app user: a new named volume takes its owner from here.
 RUN rm -rf node_modules tests storage .git .github docs \
+    && mkdir -p /data && chown 10001:10001 /data \
     && ln -s /data/storage /app/storage \
     && php artisan route:cache \
     && php artisan event:cache
