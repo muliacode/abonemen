@@ -24,7 +24,7 @@ Do not open a public issue. Follow [SECURITY.md](SECURITY.md).
 
 1. Fork the repository and create a branch from `main`. Name it after the issue, for example `feat/42-bulk-actions`.
 2. Keep the change small and focused on one issue.
-3. Run `composer ci:check` (formatting, types and tests for PHP and the frontend) and any checks listed in the issue. A pull request that fails CI is not reviewed until it passes.
+3. Run `composer ci:check` (formatting, linting, types and tests for PHP and the frontend) and any checks listed in the issue. CI runs the same checks, plus PHP coverage, which must stay at 80% or more. A pull request that fails CI is not reviewed until it passes and cannot be merged.
 4. Open a pull request that links the issue (`Closes #42`) and says what changed and how you tested it.
 5. A maintainer reviews it. Expect questions; this is a volunteer project, so replies can take a few days.
 
