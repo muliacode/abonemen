@@ -467,6 +467,8 @@ Manual checks the PRD asks for (keyboard only, NVDA, TalkBack, 400% zoom, high c
 
 The checks that run on every push live in `.github/workflows/ci.yml`. Its last job, **CI passed**, succeeds only when every other job did, so it is the one status check `main` requires. ESLint runs only `eslint-plugin-vuejs-accessibility`; general linting and formatting come from Vite+ (oxlint and oxfmt). PHP coverage counts `app/` without the service providers and fails below 80%; the report is in the job summary and as a build artefact.
 
+The Playwright suite lives in `tests/e2e` and runs from `.github/workflows/e2e.yml`, one job per browser. `forEveryPage()` in `tests/e2e/support/accessibility.ts` reads the page routes from `php artisan route:list`, so a new page is checked without touching the tests; a route with parameters fails the suite until it has example values in `tests/e2e/support/routes.ts`. Each page is checked in four themes (light, dark, high contrast and forced colours) at 320 px and at desktop width: axe with the WCAG 2.2 A and AA rules, no horizontal scrolling at 320 px, and exactly one `h1`. A theme emulates the media features (`prefers-color-scheme`, `prefers-contrast`, `forced-colors`, reduced motion) and sets `data-theme` on `<html>`. Engines that cannot emulate forced colours skip that theme and say so in the report.
+
 ## Decisions and open questions
 
 Fifteen architecture decisions are recorded; short spikes confirm three of them before building starts.
