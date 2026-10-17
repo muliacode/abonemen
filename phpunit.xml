@@ -19,6 +19,10 @@
         <include>
             <directory>app</directory>
         </include>
+        <!-- Coverage counts domain code only; providers are framework wiring. -->
+        <exclude>
+            <directory>app/Providers</directory>
+        </exclude>
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>

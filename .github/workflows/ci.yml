@@ -1,0 +1,153 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  workflows:
+    name: Workflow rules
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check action pins and triggers
+        run: bash .github/scripts/check-workflows.sh
+
+  php-quality:
+    name: PHP style and static analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: ./.github/actions/setup-php
+
+      - name: Pint
+        run: vendor/bin/pint --test
+
+      - name: Larastan
+        run: vendor/bin/phpstan analyse --no-progress --error-format=github
+
+  php-tests:
+    name: PHP tests with coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: ./.github/actions/setup-php
+        with:
+          coverage: pcov
+
+      # Coverage counts app/ without providers (see phpunit.xml); NFR-11 asks for 80%.
+      - name: Pest
+        run: >-
+          vendor/bin/pest --ci --coverage --min=80
+          --colors=never
+          --coverage-text=build/coverage/coverage.txt
+          --coverage-clover=build/coverage/clover.xml
+          --coverage-html=build/coverage/html
+
+      - name: Add the coverage report to the summary
+        if: ${{ !cancelled() && hashFiles('build/coverage/coverage.txt') != '' }}
+        run: |
+          {
+            echo '## PHP coverage'
+            echo
+            echo '```text'
+            cat build/coverage/coverage.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the coverage report
+        if: ${{ !cancelled() && hashFiles('build/coverage/clover.xml') != '' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: php-coverage
+          path: build/coverage
+          retention-days: 14
+
+  frontend:
+    name: Frontend lint, types and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The Wayfinder plugin runs artisan during the build to generate route helpers.
+      - name: Set up PHP
+        uses: ./.github/actions/setup-php
+
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Format and lint (Vite+)
+        run: npm run check
+
+      - name: Accessibility lint (ESLint)
+        run: npm run lint:a11y
+
+      - name: Type check (vue-tsc)
+        run: npm run types:check
+
+      - name: Component tests (Vitest)
+        run: npm test
+
+  # The one check to mark as required: it fails when any job above fails or is cancelled.
+  ci-passed:
+    name: CI passed
+    if: ${{ always() }}
+    needs: [workflows, php-quality, php-tests, frontend]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check the results of every job
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Job results: $RESULTS"
+          for result in $RESULTS; do
+            if [[ "$result" != "success" ]]; then
+              echo "::error::At least one CI job did not succeed."
+              exit 1
+            fi
+          done

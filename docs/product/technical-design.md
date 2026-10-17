@@ -467,6 +467,8 @@ With one maintainer and no budget for audits, CI is the quality team: every PRD 
 
 Manual checks the PRD asks for (keyboard only, NVDA, TalkBack, 400% zoom, high contrast) are a checklist in the release pull request template, so a release cannot be tagged without ticking them.
 
+The checks that run on every push live in `.github/workflows/ci.yml`. Its last job, **CI passed**, succeeds only when every other job did, so it is the one status check `main` requires. ESLint runs only `eslint-plugin-vuejs-accessibility`; general linting and formatting come from Vite+ (oxlint and oxfmt). PHP coverage counts `app/` without the service providers and fails below 80%; the report is in the job summary and as a build artefact.
+
 ## Decisions and open questions
 
 Fifteen architecture decisions are recorded; short spikes confirm three of them before building starts.
