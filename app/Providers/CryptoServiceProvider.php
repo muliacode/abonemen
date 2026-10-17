@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\Crypto\DataKeyRing;
 use App\Support\Crypto\MasterKeyLoader;
 use Illuminate\Support\Env;
 use Illuminate\Support\ServiceProvider;
@@ -24,5 +25,7 @@ class CryptoServiceProvider extends ServiceProvider
                 is_string($path) ? $path : null,
             );
         });
+
+        $this->app->singleton(DataKeyRing::class);
     }
 }

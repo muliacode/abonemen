@@ -132,7 +132,7 @@ Either root key alone can unwrap every data key, so losing one is recoverable; l
 | Household data key (HDK) | 256-bit random, one per household, versioned | `data_keys` table, wrapped by MK and sealed to RK | Every sensitive field and file of that household |
 | `APP_KEY` | Laravel's own key | Environment | Sessions, cookies and signed URLs only, never data |
 
-Wrapping uses XChaCha20-Poly1305 with the key's id, owner and version as associated data, so a wrapped key cannot be moved to another household. Sealing to the RK uses a libsodium sealed box, so the server can protect each new key for recovery without ever holding the private half.
+Wrapping uses XChaCha20-Poly1305 with the key's id, owner and version as associated data, so a wrapped key cannot be moved to another household. The associated data is those values length-prefixed; the stored form is `v1:` followed by base64 of the nonce, ciphertext and tag, so a later scheme can sit beside it. Unwrapped keys stay in memory for one request or job. Sealing to the RK uses a libsodium sealed box, so the server can protect each new key for recovery without ever holding the private half.
 
 ### Fields
 
@@ -226,7 +226,7 @@ About two dozen application tables, all keyed by ULIDs (`users` too, unlike Lara
 | Table | Holds | Encrypted columns | Main plain columns |
 | --- | --- | --- | --- |
 | `households` | One household | `name`, `budget_amount` | `main_currency`, `timezone`, `key_version` |
-| `data_keys` | Wrapped GDK and HDKs | (wrapped key material) | `owner_type`, `owner_id`, `version`, `wrapped_mk`, `wrapped_rk`, `status` |
+| `data_keys` | Wrapped GDK and HDKs | (wrapped key material) | `owner_type` (`global` or `household`), `owner_id` (`instance` for the GDK), `version`, `wrapped_mk`, `wrapped_rk`, `status`; unique on owner and version |
 | `users` | Accounts | `email`, `name`, `two_factor_secret`, `two_factor_recovery_codes` | `email_bidx`, `password`, `locale`, `theme`, `upcoming_window_days` (default 30), `email_verified_at` |
 | `household_user` | Membership | none | `household_id`, `user_id`; roles live in the permission tables |
 | `invites` | Pending invites | `email` | `email_bidx`, `token_hash`, `role`, `expires_at`, `accepted_at` |

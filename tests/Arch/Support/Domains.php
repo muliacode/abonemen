@@ -25,6 +25,7 @@ final class Domains
      * Model class basename => owning domain.
      */
     public const MODEL_OWNERS = [
+        'DataKey' => 'Crypto',
         'User' => 'Accounts',
     ];
 
