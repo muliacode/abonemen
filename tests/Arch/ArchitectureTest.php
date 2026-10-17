@@ -53,6 +53,8 @@ arch('Support\Crypto is used only by the Crypto domain, models and wiring')
         'App\Models',
         'App\Providers',
         'App\Console',
+        // EnsureMasterKey, which keeps the app closed until a master key is set.
+        'App\Http\Middleware',
     ]);
 
 it('gives every model an owning domain', function () {
