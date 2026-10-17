@@ -34,7 +34,7 @@ These come from the [requirements](docs/product/requirements.md) and apply to ev
 
 - **Accessibility.** Every screen conforms to WCAG 2.2 AA. Use the [design system](docs/design/design-system/README.md) rather than inventing components. Walk new screens through with the keyboard and a screen reader, and never convey status by colour alone.
 - **Privacy.** No telemetry, analytics or third-party assets. Fonts and icons are self-hosted.
-- **Encryption.** Sensitive fields are encrypted as described in the [technical design](docs/product/technical-design.md). Do not log or store them in plaintext.
+- **Encryption.** Sensitive fields are encrypted as described in the [technical design](docs/product/technical-design.md). Do not log or store them in plaintext. A new sensitive field gets a canary in `tests/Support/Leaks/Canaries.php`, so the encryption leak test checks it.
 - **Tests.** New behaviour comes with tests, and a bug fix starts with a test that fails.
 - **Documentation.** If a change alters behaviour described in `docs/`, update the document in the same pull request.
 
