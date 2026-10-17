@@ -8,7 +8,7 @@ By taking part you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 Abonemen is licensed under the [EUPL-1.2](LICENSE). By submitting a contribution you agree that it is licensed under the EUPL-1.2 as well. There is no separate contributor agreement, and you keep the copyright to what you write.
 
-Only submit work you wrote yourself, or work under a licence that is compatible with the EUPL-1.2 (see the Appendix of the [LICENSE](LICENSE)). Do not copy code from GPL-only or AGPL projects, including other subscription trackers: it cannot be relicensed under the EUPL-1.2. Pull requests that do this will be closed. The same goes for new dependencies: a licence check in CI rejects any whose licence cannot be combined with the EUPL-1.2.
+Only submit work you wrote yourself, or work under a licence that is compatible with the EUPL-1.2 (see the Appendix of the [LICENSE](LICENSE)). Do not copy code from GPL-only or AGPL projects, including other subscription trackers: it cannot be relicensed under the EUPL-1.2. Pull requests that do this will be closed. The same goes for new dependencies: a licence check in CI rejects any whose licence cannot be combined with the EUPL-1.2. The allowed licences are listed in [`.github/licence-policy.json`](.github/licence-policy.json); run `node .github/scripts/check-licences.mjs` to check locally.
 
 ## Reporting a security problem
 
