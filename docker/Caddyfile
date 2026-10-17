@@ -1,0 +1,15 @@
+# SPIKE (#14): FrankenPHP serving Abonemen on :8080 as a non-root user.
+# TLS is left to a proxy or ingress in front, or to Caddy when SERVER_NAME is a
+# domain and the container may bind 80 and 443.
+{
+	skip_install_trust
+	admin off
+	frankenphp
+}
+
+{$SERVER_NAME::8080} {
+	root /app/public
+	encode zstd br gzip
+
+	php_server
+}

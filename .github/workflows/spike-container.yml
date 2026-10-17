@@ -1,0 +1,112 @@
+name: spike container
+
+# SPIKE (#14): runs only for the spike branch, which is never merged.
+on:
+  push:
+    branches:
+      - spike/14-frankenphp
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  image:
+    name: Image (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build
+        run: |
+          start=$(date +%s)
+          docker build --pull -t abonemen:spike .
+          echo "BUILD_SECONDS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+
+      - name: Measure the image
+        run: |
+          uncompressed=$(docker image inspect abonemen:spike --format '{{.Size}}')
+          compressed=$(docker save abonemen:spike | gzip -6 | wc -c)
+          {
+            echo "## Image size (${{ matrix.arch }})"
+            echo
+            echo "| Measure | MB |"
+            echo "| --- | --- |"
+            echo "| Uncompressed (docker image inspect) | $(( uncompressed / 1000000 )) |"
+            echo "| Compressed (docker save, gzip -6) | $(( compressed / 1000000 )) |"
+            echo
+            echo "Build time: ${BUILD_SECONDS} s"
+            echo
+            echo '```text'
+            docker history abonemen:spike --format '{{.Size}}\t{{.CreatedBy}}' | cut -c1-140
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "uncompressed=${uncompressed} compressed=${compressed}"
+          docker run --rm --entrypoint php abonemen:spike -m | tr '\n' ' '
+          echo
+          docker run --rm --entrypoint php abonemen:spike -r 'echo PHP_VERSION, " argon2id=", defined("PASSWORD_ARGON2ID") ? "yes" : "no", " zip-aes=", defined("ZipArchive::EM_AES_256") ? "yes" : "no", " intl=", extension_loaded("intl") ? "yes" : "no", PHP_EOL;'
+          test "$uncompressed" -lt 200000000
+
+      - name: Run with a read-only root file system
+        run: |
+          docker volume create abonemen-data
+          docker run -d --name abonemen \
+            --read-only --tmpfs /tmp:rw,size=64m \
+            --cap-drop ALL --security-opt no-new-privileges \
+            -v abonemen-data:/data \
+            -e APP_KEY="base64:$(head -c 32 /dev/urandom | base64)" \
+            -e APP_URL=http://localhost:8080 \
+            -p 8080:8080 \
+            abonemen:spike
+          for _ in $(seq 1 60); do
+            [ "$(docker inspect -f '{{.State.Health.Status}}' abonemen)" = healthy ] && break
+            sleep 2
+          done
+          docker inspect -f '{{.State.Health.Status}}' abonemen
+          docker logs abonemen 2>&1 | tail -30
+
+          echo "--- processes"
+          docker top abonemen -o pid,user,args
+          docker top abonemen -o args | grep -q 'frankenphp run'
+          docker top abonemen -o args | grep -q 'schedule:work'
+          docker top abonemen -o args | grep -q 'queue:work'
+          test "$(docker exec abonemen id -u)" = 10001
+
+          echo "--- requests"
+          curl -fsS http://localhost:8080/up > /dev/null
+          curl -fsS http://localhost:8080/ | grep -q '<h1\|data-page'
+          curl -fsSI http://localhost:8080/build/manifest.json | head -1
+
+          echo "--- the root file system is read-only; /data and /tmp are not"
+          for path in /app/written-at-runtime /usr/local/bin/written-at-runtime /etc/written-at-runtime; do
+            if docker exec abonemen touch "$path"; then echo "::error::$path is writable"; exit 1; fi
+          done
+          docker exec abonemen touch /data/ok /tmp/ok
+          docker exec abonemen ls -la /data /data/storage
+
+          echo "--- a queued job runs"
+          docker exec abonemen php artisan tinker --execute "dispatch(function () { file_put_contents('/data/queue-ran', 'yes'); });"
+          for _ in $(seq 1 20); do docker exec abonemen test -f /data/queue-ran && break; sleep 1; done
+          docker exec abonemen cat /data/queue-ran
+
+          echo "--- stopping exits cleanly"
+          docker stop -t 20 abonemen
+          docker inspect -f 'exit code {{.State.ExitCode}}' abonemen
+
+      - name: Logs
+        if: ${{ always() }}
+        run: docker logs abonemen 2>&1 | tail -80 || true
