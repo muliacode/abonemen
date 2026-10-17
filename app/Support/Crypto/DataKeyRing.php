@@ -120,6 +120,10 @@ final class DataKeyRing
         );
         $row->save();
 
+        // The new key is now the newest one: a cached "latest" would otherwise
+        // keep handing out the version it replaces.
+        $this->unwrapped["{$ownerType}\0{$ownerId}\0latest"] = $key;
+
         return $this->unwrapped["{$ownerType}\0{$ownerId}\0{$version}"] = $key;
     }
 }

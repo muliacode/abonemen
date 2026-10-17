@@ -98,6 +98,20 @@ describe('the key ring', function () {
             ->and($first->bytes())->not->toBe($second->bytes());
     });
 
+    it('hands out a new version at once, even when the old one was already in use', function () {
+        $ring = freshRing();
+        $first = $ring->createHousehold(HOUSEHOLD_A);
+        $ring = freshRing();
+
+        expect($ring->household(HOUSEHOLD_A)->version)->toBe(1);
+
+        $second = $ring->createHousehold(HOUSEHOLD_A);
+
+        expect($ring->household(HOUSEHOLD_A)->version)->toBe(2)
+            ->and($ring->household(HOUSEHOLD_A)->bytes())->toBe($second->bytes())
+            ->and($ring->household(HOUSEHOLD_A, 1)->bytes())->toBe($first->bytes());
+    });
+
     it('gives each household its own key', function () {
         $ring = freshRing();
 
