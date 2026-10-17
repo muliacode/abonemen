@@ -6,4 +6,5 @@ Short proofs of concept from the [technical design](../product/technical-design.
 | --- | --- | --- |
 | [1. CipherSweet multi-tenant encryption](1-ciphersweet.md) | [#12](https://github.com/muliacode/abonemen/issues/12) | ADR 3 accepted with changes: a faster backend with the same wire format, ULIDs returned by the cast, ULID keys for users |
 | [2. Passkeys with Fortify and Inertia v3](2-passkeys.md) | [#13](https://github.com/muliacode/abonemen/issues/13) | ADR 11 holds: Fortify integrates `laravel/passkeys`; a passkey as second factor is our own step |
+| [3. FrankenPHP container image](3-container.md) | [#14](https://github.com/muliacode/abonemen/issues/14) | ADR 10 accepted: under 200 MB on amd64 and arm64, runs non-root with a read-only root and every capability dropped |
 | [5. Translations with laravel-vue-i18n](5-translations.md) | [#16](https://github.com/muliacode/abonemen/issues/16) | Design holds: plurals agree on server and client in all five locales; no reload on switching |
