@@ -30,6 +30,17 @@ const excluded: Record<string, string> = {
 const excludedPrefixes = ['_inertia/', '_ignition/'];
 
 /**
+ * Route names of JSON endpoints, which are not pages. Visiting them would also
+ * use up their rate limits for the tests that need them.
+ */
+const excludedJsonRoutes = [
+    /^passkey\./,
+    /^two-factor\.passkey\./,
+    /^two-factor\.(qr-code|secret-key|recovery-codes)$/,
+    /^password\.confirmation$/,
+];
+
+/**
  * Example parameters for routes that need them, by route name. A page route
  * with parameters fails the suite until it has an entry here, so no page is
  * skipped by accident.
@@ -57,6 +68,12 @@ export function pageRoutes(): AppRoute[] {
                 ),
         )
         .filter((route) => !((route.name ?? route.uri) in excluded))
+        .filter(
+            (route) =>
+                !excludedJsonRoutes.some((pattern) =>
+                    pattern.test(route.name ?? ''),
+                ),
+        )
         .map((route) => {
             const name = route.name ?? route.uri;
 

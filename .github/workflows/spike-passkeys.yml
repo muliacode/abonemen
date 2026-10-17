@@ -1,0 +1,79 @@
+name: spike passkeys
+
+# SPIKE (#13): runs only for the spike branch, which is never merged.
+on:
+  push:
+    branches:
+      - spike/13-passkeys
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  passkeys:
+    name: Passkeys (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: ./.github/actions/setup-php
+
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Chromium (Playwright, CDP virtual authenticator)
+        if: ${{ matrix.browser == 'chromium' }}
+        run: |
+          npx playwright install --with-deps chromium
+          npx playwright test --project=chromium tests/e2e/passkeys.spec.ts
+
+      - name: Firefox (geckodriver, WebDriver virtual authenticator)
+        if: ${{ matrix.browser == 'firefox' }}
+        env:
+          APP_ENV: testing
+          APP_URL: http://localhost:8100
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ${{ github.workspace }}/database/e2e.sqlite
+          EMAIL: firefox@example.com
+          PASSWORD: correct horse battery staple
+        run: |
+          firefox --version
+          geckodriver --version || true
+          touch database/e2e.sqlite
+          php artisan migrate:fresh --force --no-interaction
+          php artisan tinker --execute "App\\Models\\User::create(['name' => 'Spike', 'email' => getenv('EMAIL'), 'password' => getenv('PASSWORD')]);"
+          (cd public && PHP_CLI_SERVER_WORKERS=4 php -S localhost:8100 ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php > ../storage/logs/server.log 2>&1 &)
+          for _ in $(seq 1 30); do curl -sf http://localhost:8100/up > /dev/null && break; sleep 1; done
+          BASE_URL=http://localhost:8100 node tests/e2e-firefox/passkeys.mjs
+
+      - name: Upload logs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: passkeys-${{ matrix.browser }}
+          path: |
+            build/playwright
+            storage/logs
+          if-no-files-found: ignore
+          retention-days: 7

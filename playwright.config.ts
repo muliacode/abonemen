@@ -3,7 +3,8 @@ import { resolve } from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 
 const port = Number(process.env.E2E_PORT ?? 8100);
-const baseURL = `http://127.0.0.1:${port}`;
+// WebAuthn does not accept an IP address as relying party, so use localhost.
+const baseURL = `http://localhost:${port}`;
 
 // The end-to-end suite gets its own SQLite file, so it never touches the
 // development database.
@@ -51,7 +52,7 @@ export default defineConfig({
         // `artisan serve` drops most environment variables, so the PHP
         // built-in server runs Laravel's router script directly. That script
         // expects to start in public/.
-        command: `php artisan migrate:fresh --force --no-interaction && cd public && php -S 127.0.0.1:${port} ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php`,
+        command: `php artisan migrate:fresh --force --no-interaction && cd public && php -S localhost:${port} ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php`,
         url: `${baseURL}/up`,
         reuseExistingServer: !process.env.CI,
         timeout: 60_000,
