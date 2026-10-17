@@ -46,10 +46,10 @@ The stack is mainstream Laravel and Vue, with one deliberate addition: [CipherSw
 | Front end | Vue 3 with TypeScript, Vite | Requested stack; Vite builds assets at release time, so no Node on the server |
 | Design system | `@muliacode/ui`: brand-neutral Vue wrappers over `@utrecht/component-library-css` and NL Design System tokens, themed per app; built in muliacode/design-system (v2) and installed from npm | Shared across Muliacode apps; Abonemen supplies its own theme |
 | Database | SQLite 3 in WAL mode, via Eloquent and the query builder only | Shared-hosting friendly; MySQL/MariaDB and PostgreSQL later without code changes |
-| Field encryption | `spatie/laravel-ciphersweet` for account-level fields and their blind indexes; a small cast on `paragonie/ciphersweet`'s multi-tenant mode for household fields. Both use libsodium (XChaCha20-Poly1305, BLAKE2b blind indexes) | Spatie's package covers the common case (one key, `whereBlind`, unique rules) but its key provider has no tenant context, so household fields use the multi-tenant mode it is built on (*spike*) |
+| Field encryption | `spatie/laravel-ciphersweet` for account-level fields and their blind indexes; a small cast on `paragonie/ciphersweet`'s multi-tenant mode for household fields. Both use libsodium (XChaCha20 with a BLAKE2b MAC, BLAKE2b blind indexes), through a faster backend with CipherSweet's own wire format | Spatie's package covers the common case (one key, `whereBlind`, unique rules) but its key provider has no tenant context, so household fields use the multi-tenant mode it is built on ([spike 1](../spikes/1-ciphersweet.md)) |
 | File and backup encryption | Logos: libsodium secretstream (XChaCha20-Poly1305). Backups: `spatie/laravel-backup` with AES-256 zip encryption | Secretstream encrypts large files in authenticated chunks; laravel-backup handles archiving, AES-256 and retention |
 | Passwords | Argon2id via Laravel's `Hash`; bcrypt fallback when PHP lacks Argon2 | PRD ACC-02; some shared hosts build PHP without Argon2 |
-| Auth backend | Laravel Fortify (sign-in, reset, verification, TOTP, recovery codes); `laravel/passkeys` with `@laravel/passkeys` for passkeys | Headless, works with Inertia; both first-party (*spike*: passkeys alongside Fortify) |
+| Auth backend | Laravel Fortify (sign-in, reset, verification, TOTP, recovery codes, passkeys); `laravel/passkeys`, which Fortify depends on and configures, with `@laravel/passkeys` in the browser | Headless, works with Inertia; both first-party ([spike 2](../spikes/2-passkeys.md)) |
 | Roles and permissions | spatie/laravel-permission with its teams feature, one team per household | Household-scoped roles now; granular permissions after 1.0 become configuration, not a redesign |
 | OIDC | Laravel Socialite with a generic OpenID Connect provider | PRD ACC-03, beta phase |
 | Money | `brick/money` and `brick/math` | Exact decimal arithmetic and ISO 4217 data (MON-05) |
@@ -136,7 +136,9 @@ Wrapping uses XChaCha20-Poly1305 with the key's id, owner and version as associa
 
 ### Fields
 
-Encrypted columns use one Eloquent cast, `Encrypted::class`, backed by CipherSweet's multi-tenant mode with the HDK as the tenant root key. CipherSweet derives a separate key per table and column. Each ciphertext is bound to its row's ULID through associated data, so copying a ciphertext into another row fails to decrypt. ULIDs are generated before insert for this reason.
+Encrypted columns use one Eloquent cast, `Encrypted::class`, backed by CipherSweet's multi-tenant mode with the HDK as the tenant root key. CipherSweet derives a separate key per table and column. Each ciphertext is bound to its row's ULID and household through associated data, so copying a ciphertext into another row fails to decrypt. ULIDs are generated before insert for this reason: the cast returns a new ULID, and the bound household, together with the ciphertext when the row has none yet. The cast decrypts a field only when it is read.
+
+CipherSweet's stock `BoringCrypto` backend spends most of its time in PHP (a pure-PHP base64 decoder and subkey derivation on every call), which puts 500 subscriptions over the NFR-02 budget. `App\Support\Crypto\FastBoringCrypto` keeps its algorithm and wire format but uses libsodium's base64 and caches subkeys per field key: 500 subscriptions with five fields decrypt in about 30 ms instead of 90 ms ([spike 1](../spikes/1-ciphersweet.md)). Its ciphertexts are interchangeable with the stock backend in both directions.
 
 | Encrypted (sensitive) | Plain (operational) |
 | --- | --- |
@@ -182,8 +184,8 @@ A user signs in once and may belong to several households; each request runs in 
 ### Signing in
 
 - **Passwords** through Laravel Fortify, hashed with Argon2id. Paste and password managers are always allowed (WCAG 3.3.8).
-- **Second factor:** TOTP with ten one-time recovery codes, or a passkey. The TOTP secret and codes are stored under the GDK, not `APP_KEY`, by overriding Fortify's two-factor storage.
-- **Passkeys** (WebAuthn, beta phase) work as a second factor or as passwordless sign-in, through the first-party `laravel/passkeys` package and its `@laravel/passkeys` browser helper.
+- **Second factor:** TOTP with ten one-time recovery codes, or a passkey. The TOTP secret and codes are stored under a key derived from the GDK, not `APP_KEY`, through `Fortify::encryptUsing()`.
+- **Passkeys** (WebAuthn, beta phase) work as a second factor or as passwordless sign-in, through the first-party `laravel/passkeys` package and its `@laravel/passkeys` browser helper. Fortify's `Features::passkeys()` provides passwordless sign-in. Fortify's two-factor challenge only knows TOTP, so a passkey as second factor is our own step: a password sign-in asks for the second factor when the user has a passkey, and the challenge accepts only that user's own passkeys ([spike 2](../spikes/2-passkeys.md)). WebAuthn needs a domain name, so passkeys are not available when Abonemen is reached by IP address.
 - **OIDC** (beta phase) through Socialite. Accounts link only on a verified email. Auto-create and "disable password login" are admin settings, also settable by environment variable.
 - **Rate limits:** 5 sign-in attempts per minute per email and IP, then an increasing lockout and an email to the account owner. Reset and invite requests: 3 per hour per email (SEC-08).
 
@@ -219,7 +221,7 @@ The REST API (API-01, 1.0) uses Laravel Sanctum personal access tokens with `rea
 
 ## Data model
 
-About two dozen application tables, all keyed by ULIDs, all with a `household_id` except the instance-level ones. Encrypted columns are `TEXT` holding CipherSweet ciphertext; money inside them is a decimal string such as `"15.99"`, never a float. Laravel's own tables (`sessions`, `cache`, `jobs`, `failed_jobs`, `personal_access_tokens`) and `spatie/laravel-permission`'s tables (`roles`, `permissions` and their pivots, with `household_id` as the team column) are standard.
+About two dozen application tables, all keyed by ULIDs (`users` too, unlike Laravel's default, and spatie's `blind_indexes` table uses ULID morphs), all with a `household_id` except the instance-level ones. Encrypted columns are `TEXT` holding CipherSweet ciphertext; money inside them is a decimal string such as `"15.99"`, never a float. Laravel's own tables (`sessions`, `cache`, `jobs`, `failed_jobs`, `personal_access_tokens`) and `spatie/laravel-permission`'s tables (`roles`, `permissions` and their pivots, with `household_id` as the team column) are standard.
 
 | Table | Holds | Encrypted columns | Main plain columns |
 | --- | --- | --- | --- |
@@ -475,13 +477,13 @@ The encryption leak test is `tests/Feature/Crypto/EncryptionLeakTest.php`, part 
 
 ## Decisions and open questions
 
-Fifteen architecture decisions are recorded; short spikes confirm three of them before building starts.
+Fifteen architecture decisions are recorded; short spikes confirm three of them before building starts. Spike outcomes are in [`docs/spikes`](../spikes/README.md).
 
 | # | Decision | Rejected alternatives | Status |
 | --- | --- | --- | --- |
 | 1 | Modular monolith in Laravel 13: eight domains in Laravel's standard folder layout | Separate API and SPA; a custom `app/Modules` tree or `nwidart/laravel-modules` | Accepted |
 | 2 | Inertia v3, client-rendered, no SSR in 1.0 | SSR, which needs Node in production | Accepted |
-| 3 | Field encryption: `spatie/laravel-ciphersweet` for account fields; a cast on CipherSweet's multi-tenant mode for household fields | One app-wide key for everything, which loses per-household rotation and crypto-shredding; Laravel's encrypted casts; hand-written libsodium code | Proposed, spike 1 |
+| 3 | Field encryption: `spatie/laravel-ciphersweet` for account fields; a cast on CipherSweet's multi-tenant mode for household fields; a faster backend with CipherSweet's wire format | One app-wide key for everything, which loses per-household rotation and crypto-shredding; Laravel's encrypted casts; hand-written libsodium code; CipherSweet's stock backend, too slow for NFR-02 | Accepted, [spike 1](../spikes/1-ciphersweet.md) |
 | 4 | Envelope encryption: data keys wrapped by the MK and sealed to an X25519 recovery key pair | MK only, which makes a lost key fatal; a symmetric recovery key, which would have to stay on the server to protect new keys | Accepted |
 | 5 | Search, sort and totals in memory per household | Blind indexes on every field; plaintext amounts for SQL sums | Accepted |
 | 6 | SQLite only in 1.0, all access through Eloquent and the query builder | MySQL or PostgreSQL from day one | Accepted (PRD) |
@@ -489,7 +491,7 @@ Fifteen architecture decisions are recorded; short spikes confirm three of them 
 | 8 | Own SVG chart components with table twins | Chart.js, ECharts | Accepted |
 | 9 | Frankfurter v2 as the exchange-rate source | Fixer (needs a key) | Accepted (PRD) |
 | 10 | FrankenPHP as the container web server | nginx with php-fpm and a process supervisor | Accepted, [spike 3](../spikes/3-container.md) |
-| 11 | First-party `laravel/passkeys` for passkeys | `laragear/webauthn`, archived in May 2026 in favour of it | Accepted, spike 2 checks Fortify |
+| 11 | First-party `laravel/passkeys` for passkeys, through Fortify's passkey feature | `laragear/webauthn`, archived in May 2026 in favour of it | Accepted, [spike 2](../spikes/2-passkeys.md) |
 | 12 | `spatie/laravel-backup` for backups, 30-day retention, own restore command | Own backup code | Accepted |
 | 13 | `@muliacode/ui`: a brand-neutral component library for all Muliacode apps, built as v2 of muliacode/design-system (v1 kept on its own branch) | An Abonemen-only library; a package inside the Abonemen repository | Accepted |
 | 14 | spatie/laravel-permission with teams for household roles; own table for per-subscription grants | A hand-written role column and checks | Accepted |
@@ -497,8 +499,8 @@ Fifteen architecture decisions are recorded; short spikes confirm three of them 
 
 ### Spikes before building
 
-- [ ] **1. Encryption:** `spatie/laravel-ciphersweet` with a custom key provider that supplies the GDK, plus a multi-tenant CipherSweet cast with per-household HDKs and row-bound associated data. Decrypt 500 subscriptions in under 100 ms, leaving room in the 300 ms budget (NFR-02). Include storing Fortify's TOTP secret under the GDK.
-- [ ] **2. Passkeys:** `laravel/passkeys` alongside Fortify and Inertia v3, as second factor and passwordless sign-in.
+- [x] **1. Encryption:** `spatie/laravel-ciphersweet` with a custom key provider that supplies the GDK, plus a multi-tenant CipherSweet cast with per-household HDKs and row-bound associated data. Decrypt 500 subscriptions in under 100 ms, leaving room in the 300 ms budget (NFR-02). Include storing Fortify's TOTP secret under the GDK. [Outcome](../spikes/1-ciphersweet.md): done in about 30 ms with a faster backend.
+- [x] **2. Passkeys:** `laravel/passkeys` alongside Fortify and Inertia v3, as second factor and passwordless sign-in. [Outcome](../spikes/2-passkeys.md): both flows work in Chromium and Firefox.
 - [x] **3. Container:** FrankenPHP image on amd64 and arm64, non-root, read-only root file system. [Outcome](../spikes/3-container.md): under 200 MB on both, runs with every capability dropped.
 - [ ] **4. Shared hosting:** cron mode on a real shared host: queue drains in time, Argon2 and AES-256 zip support available, document root set to `public/`.
 - [ ] **5. Translations:** `laravel-vue-i18n` working with Inertia v3 and five locales.
