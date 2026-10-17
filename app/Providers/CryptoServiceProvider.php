@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\Crypto\DataKeyRing;
 use App\Support\Crypto\MasterKeyLoader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Env;
@@ -29,6 +30,8 @@ class CryptoServiceProvider extends ServiceProvider
                 is_string($path) ? $path : null,
             );
         });
+
+        $this->app->singleton(DataKeyRing::class);
     }
 
     public static function scrubServerVariables(?Request $request): void
