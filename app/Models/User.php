@@ -3,7 +3,9 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Actions\Accounts\EmailAlreadyTaken;
 use App\Support\Crypto\Concerns\EncryptsAccountFields;
+use App\Support\Crypto\Transformations\CaseFolded;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -35,6 +37,38 @@ class User extends Authenticatable implements CipherSweetEncrypted
     use Notifiable;
 
     public const EMAIL_INDEX = 'email_index';
+
+    /**
+     * Emails are encrypted, so no database index can keep them unique: check
+     * before every save that changes one, while it is still plaintext.
+     *
+     * @throws EmailAlreadyTaken
+     */
+    public function beforeEncrypting(): void
+    {
+        if (! $this->isDirty('email')) {
+            return;
+        }
+
+        $taken = static::query()
+            ->whereBlind('email', self::EMAIL_INDEX, $this->email)
+            ->when($this->exists, fn ($query) => $query->whereKeyNot($this->getKey()))
+            ->get()
+            ->contains(fn (User $other): bool => self::sameEmail($other->email, $this->email));
+
+        if ($taken) {
+            throw new EmailAlreadyTaken;
+        }
+    }
+
+    /**
+     * Compares email addresses the way the blind index does: ignoring case,
+     * Unicode form and surrounding spaces.
+     */
+    public static function sameEmail(string $a, string $b): bool
+    {
+        return CaseFolded::fold($a) === CaseFolded::fold($b);
+    }
 
     /**
      * @return array<string, string|null>

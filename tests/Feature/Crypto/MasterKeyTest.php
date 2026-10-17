@@ -1,10 +1,12 @@
 <?php
 
+use App\Providers\CryptoServiceProvider;
 use App\Support\Crypto\InvalidMasterKey;
 use App\Support\Crypto\MasterKey;
 use App\Support\Crypto\MasterKeyLoader;
 use App\Support\Crypto\MasterKeyMissing;
 use App\Support\Crypto\MasterKeyStatus;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
@@ -116,13 +118,18 @@ describe('the key object', function () {
             ->and(app(MasterKeyLoader::class)->status())->toBe(MasterKeyStatus::Ready);
     });
 
-    it('is removed from the server variables once loaded', function () {
+    it('is removed from the server variables and the request as the app boots, before anything uses it', function () {
         $_SERVER['ABONEMEN_MASTER_KEY'] = $_ENV['ABONEMEN_MASTER_KEY'] = $this->key->toBase64();
-        app()->forgetInstance(MasterKeyLoader::class);
+        $request = Request::create('/', server: ['ABONEMEN_MASTER_KEY' => $this->key->toBase64()]);
+        app()->instance('request', $request);
 
-        expect(app(MasterKeyLoader::class)->key()->equals($this->key))->toBeTrue()
-            ->and($_SERVER)->not->toHaveKey('ABONEMEN_MASTER_KEY')
-            ->and($_ENV)->not->toHaveKey('ABONEMEN_MASTER_KEY');
+        (new CryptoServiceProvider(app()))->register();
+
+        // Nothing has resolved the loader yet.
+        expect($_SERVER)->not->toHaveKey('ABONEMEN_MASTER_KEY')
+            ->and($_ENV)->not->toHaveKey('ABONEMEN_MASTER_KEY')
+            ->and($request->server->has('ABONEMEN_MASTER_KEY'))->toBeFalse()
+            ->and(app(MasterKeyLoader::class)->key()->equals($this->key))->toBeTrue();
     });
 });
 
@@ -146,6 +153,18 @@ describe('without a usable key', function () {
             ->assertSee('The master key cannot be used');
 
         Log::shouldHaveReceived('error')->withArgs(fn (string $message): bool => str_contains($message, 'absent.key'));
+    });
+
+    it('logs an unusable key once an hour, not on every request', function () {
+        Log::spy();
+        useLoader(new MasterKeyLoader(null, "{$this->dir}/absent.key"));
+
+        $this->get('/')->assertServiceUnavailable();
+        $this->get('/')->assertServiceUnavailable();
+        $this->travel(61)->minutes();
+        $this->get('/')->assertServiceUnavailable();
+
+        Log::shouldHaveReceived('error')->twice();
     });
 
     it('keeps the health check answering', function () {

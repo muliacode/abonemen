@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\File;
 use ParagonIE\CipherSweet\Backend\BoringCrypto;
 use ParagonIE\CipherSweet\Backend\Key\SymmetricKey;
 use Tests\Support\Crypto\EncryptedNote;
+use Tests\Support\Crypto\EncryptedNoteTraitsReversed;
 use Tests\Support\Crypto\TestKeys;
 use Tests\Support\Leaks\Canary;
 use Tests\Support\Leaks\LeakScanner;
@@ -69,6 +70,40 @@ it('makes the ULID, household and key version before insert', function () {
     $note->save();
 
     expect(EncryptedNote::query()->findOrFail($note->id)->title)->toBe('Spotify');
+});
+
+it('refuses to save a field encrypted before household_id was set to another household', function () {
+    $note = new EncryptedNote(['title' => 'Spotify', 'household_id' => NOTES_B]);
+
+    expect(fn () => $note->save())->toThrow(RuntimeException::class, 'set household_id before encrypted fields')
+        ->and(DB::table('encrypted_notes')->count())->toBe(0);
+
+    // The other way round works.
+    $ok = new EncryptedNote(['household_id' => NOTES_B, 'title' => 'Spotify']);
+    $ok->save();
+    inHousehold(NOTES_B);
+    TestKeys::forget();
+
+    expect(EncryptedNote::query()->findOrFail($ok->id)->title)->toBe('Spotify');
+});
+
+it('refuses to set a field on a row loaded without its household or key version', function (array $columns) {
+    $note = EncryptedNote::create(['title' => 'Old', 'amount' => '1.00']);
+    app(DataKeyRing::class)->createHousehold(NOTES_A);
+    $partial = EncryptedNote::query()->select($columns)->findOrFail($note->id);
+
+    expect(fn () => $partial->amount = '2.00')->toThrow(RuntimeException::class, 'before setting the encrypted field amount')
+        ->and(EncryptedNote::query()->findOrFail($note->id)->title)->toBe('Old');
+})->with([
+    'without key_version' => [['id', 'household_id', 'title']],
+    'without household_id' => [['id', 'key_version', 'title']],
+]);
+
+it('gives a row with only null fields a key version, whatever the trait order', function () {
+    $note = EncryptedNoteTraitsReversed::create(['title' => null]);
+
+    expect($note->household_id)->toBe(NOTES_A)
+        ->and($note->key_version)->toBe(1);
 });
 
 it('refuses to encrypt without a household', function () {
