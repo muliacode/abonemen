@@ -6,7 +6,7 @@ use SodiumException;
 
 /**
  * Wraps a data key with the master key: XChaCha20-Poly1305 (IETF) with a
- * random 24-byte nonce. The associated data names the key's id, owner and
+ * random 24-byte nonce, under the wrapping key derived from the master key. The associated data names the key's id, owner and
  * version, so a wrapped key only unwraps for the row it was made for.
  *
  * Stored form: "v1:" followed by base64 of nonce || ciphertext || tag. The
@@ -38,7 +38,7 @@ final class KeyWrap
     ): string {
         $nonce ??= random_bytes(self::NONCE_BYTES);
 
-        $sealed = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt($dataKey, $associatedData, $nonce, $masterKey->bytes());
+        $sealed = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt($dataKey, $associatedData, $nonce, $masterKey->wrappingKey());
 
         return self::PREFIX.sodium_bin2base64($nonce.$sealed, SODIUM_BASE64_VARIANT_ORIGINAL);
     }
@@ -67,7 +67,7 @@ final class KeyWrap
             substr($decoded, self::NONCE_BYTES),
             $associatedData,
             substr($decoded, 0, self::NONCE_BYTES),
-            $masterKey->bytes(),
+            $masterKey->wrappingKey(),
         );
 
         if ($plaintext === false) {
