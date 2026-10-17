@@ -5,7 +5,6 @@ namespace App\Console\Commands\Crypto;
 use App\Actions\Crypto\CreateMasterKeyFile;
 use App\Support\Crypto\InvalidMasterKey;
 use App\Support\Crypto\MasterKeyLoader;
-use App\Support\Crypto\MasterKeyStatus;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -18,10 +17,18 @@ class GenerateMasterKeyCommand extends Command
     {
         $path = $loader->filePath();
 
-        if ($path === null) {
-            $this->components->error($loader->status() !== MasterKeyStatus::Missing
+        // With both set the app refuses to start, and a second, different key
+        // would make it ambiguous which one wraps the data keys.
+        if ($loader->usesEnvironment()) {
+            $this->components->error($path === null
                 ? 'The master key comes from ABONEMEN_MASTER_KEY; there is no file to create.'
-                : 'Set ABONEMEN_MASTER_KEY_FILE to the path of the key file first.');
+                : 'ABONEMEN_MASTER_KEY is set, so no key file was created. Use one form: unset ABONEMEN_MASTER_KEY or ABONEMEN_MASTER_KEY_FILE.');
+
+            return self::FAILURE;
+        }
+
+        if ($path === null) {
+            $this->components->error('Set ABONEMEN_MASTER_KEY_FILE to the path of the key file first.');
 
             return self::FAILURE;
         }
