@@ -1,11 +1,12 @@
 <?php
 
+use App\Support\Crypto\Logging\RedactSensitiveData;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
 use Monolog\Processor\PsrLogMessageProcessor;
 
-return [
+$logging = [
 
     /*
     |--------------------------------------------------------------------------
@@ -138,3 +139,14 @@ return [
     ],
 
 ];
+
+// Every channel, including any added later, redacts sensitive data (SEC-11).
+// A stack runs the processors of its channels, so it gets no tap of its own.
+$logging['channels'] = array_map(
+    fn (array $channel): array => data_get($channel, 'driver') === 'stack'
+        ? $channel
+        : [...$channel, 'tap' => [...(array) data_get($channel, 'tap', []), RedactSensitiveData::class]],
+    $logging['channels'],
+);
+
+return $logging;
