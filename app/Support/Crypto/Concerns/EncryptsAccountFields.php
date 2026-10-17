@@ -2,10 +2,10 @@
 
 namespace App\Support\Crypto\Concerns;
 
+use App\Support\Crypto\Transformations\CaseFolded;
 use Illuminate\Database\Eloquent\Model;
 use ParagonIE\CipherSweet\BlindIndex;
 use ParagonIE\CipherSweet\EncryptedRow;
-use ParagonIE\CipherSweet\Transformation\Lowercase;
 use ReflectionClass;
 use Spatie\LaravelCipherSweet\Concerns\UsesCipherSweet;
 
@@ -36,13 +36,20 @@ trait EncryptsAccountFields
     /**
      * Spatie encrypts on "saving", but HasUlids only sets the key on
      * "creating", which comes later. Without this, a new row's fields would be
-     * bound to an empty id. Booted before UsesCipherSweet, so it runs first.
+     * bound to an empty id. Booted before UsesCipherSweet, so it runs first;
+     * a model that has to check its plaintext before saving, such as for a
+     * unique email, does so in beforeEncrypting().
      */
     protected static function bootEncryptsAccountFields(): void
     {
         static::saving(function (Model $model): void {
             if ($model->getKey() === null) {
                 $model->setAttribute($model->getKeyName(), $model->newUniqueId());
+            }
+
+            // The last moment the fields still hold plaintext.
+            if (method_exists($model, 'beforeEncrypting')) {
+                $model->beforeEncrypting();
             }
         });
     }
@@ -61,7 +68,7 @@ trait EncryptsAccountFields
                 // on every sign-in.
                 $encryptedRow->addBlindIndex(
                     $column,
-                    new BlindIndex($index, [new Lowercase], self::BLIND_INDEX_BITS, true),
+                    new BlindIndex($index, [new CaseFolded], self::BLIND_INDEX_BITS, true),
                 );
             }
         }
