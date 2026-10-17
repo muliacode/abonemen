@@ -302,28 +302,30 @@ These differ from the design today and are tracked:
 
 ## 9. References
 
-| Key | Reference |
-| --- | --- |
-| [BN2000] | M. Bellare and C. Namprempre, "Authenticated Encryption: Relations among Notions and Analysis of the Generic Composition Paradigm", ASIACRYPT 2000 (LNCS 1976); J. Cryptology 21(4), 2008, doi:10.1007/s00145-008-9026-x. https://eprint.iacr.org/2000/025 |
-| [NRS2014] | C. Namprempre, P. Rogaway and T. Shrimpton, "Reconsidering Generic Composition", EUROCRYPT 2014. https://eprint.iacr.org/2014/206 |
-| [ROG2002] | P. Rogaway, "Authenticated-Encryption with Associated-Data", ACM CCS 2002, doi:10.1145/586110.586125. https://www.cs.ucdavis.edu/~rogaway/papers/ad.pdf |
-| [RS2006] | P. Rogaway and T. Shrimpton, "A Provable-Security Treatment of the Key-Wrap Problem", EUROCRYPT 2006 (LNCS 4004); full version "Deterministic Authenticated-Encryption". https://eprint.iacr.org/2006/221 |
-| [DJB-XSALSA] | D. J. Bernstein, "Extending the Salsa20 nonce", 2011. https://cr.yp.to/snuffle/xsalsa-20110204.pdf |
-| [XCHACHA] | S. Arciszewski, "XChaCha: eXtended-nonce ChaCha and AEAD_XChaCha20_Poly1305", draft-irtf-cfrg-xchacha-03, January 2020 (expired Internet-Draft). https://datatracker.ietf.org/doc/draft-irtf-cfrg-xchacha/03/ |
-| [RFC8439] | Y. Nir and A. Langley, "ChaCha20 and Poly1305 for IETF Protocols", RFC 8439, 2018. https://www.rfc-editor.org/rfc/rfc8439 |
-| [RFC7748] | A. Langley, M. Hamburg and S. Turner, "Elliptic Curves for Security", RFC 7748, 2016. https://www.rfc-editor.org/rfc/rfc7748 |
-| [RFC7693] | M-J. Saarinen (ed.) and J-P. Aumasson, "The BLAKE2 Cryptographic Hash and Message Authentication Code (MAC)", RFC 7693, 2015. https://www.rfc-editor.org/rfc/rfc7693 |
-| [RFC5869] | H. Krawczyk and P. Eronen, "HMAC-based Extract-and-Expand Key Derivation Function (HKDF)", RFC 5869, 2010. https://www.rfc-editor.org/rfc/rfc5869 |
-| [RFC9106] | A. Biryukov, D. Dinu, D. Khovratovich and S. Josefsson, "Argon2 Memory-Hard Function for Password Hashing and Proof-of-Work Applications", RFC 9106, 2021. https://www.rfc-editor.org/rfc/rfc9106 |
-| [LS-SB] | libsodium documentation, "Sealed boxes". https://doc.libsodium.org/public-key_cryptography/sealed_boxes |
-| [LS-SS] | libsodium documentation, "Encrypted streams and file encryption" (secretstream). https://doc.libsodium.org/secret-key_cryptography/secretstream |
-| [LS-GH] | libsodium documentation, "Generic hashing" (BLAKE2b). https://doc.libsodium.org/hashing/generic_hashing |
-| [LS-AUTH] | libsodium source, `crypto_auth.h`: `crypto_auth_PRIMITIVE "hmacsha512256"`. https://github.com/jedisct1/libsodium/blob/master/src/libsodium/include/sodium/crypto_auth.h |
-| [LS-KDF] | libsodium documentation, "Key derivation". https://doc.libsodium.org/key_derivation |
-| [CS] | Paragon Initiative Enterprises, CipherSweet (documentation and source, ISC licence). https://ciphersweet.paragonie.com, https://github.com/paragonie/ciphersweet |
-| [CS-BI] | CipherSweet, "Blind Index Planning". https://ciphersweet.paragonie.com/php/blind-index-planning |
-| [PIE-2017] | Paragon Initiative Enterprises, "Building Searchable Encrypted Databases with PHP and SQL", 2017. https://paragonie.com/blog/2017/05/building-searchable-encrypted-databases-with-php-and-sql |
-| [NIST-38F] | M. Dworkin, "Recommendation for Block Cipher Modes of Operation: Methods for Key Wrapping", NIST SP 800-38F, 2012. https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-38F.pdf |
-| [NIST-88] | NIST SP 800-88 Rev. 2, "Guidelines for Media Sanitization" (cryptographic erase), 2025; supersedes Rev. 1. https://csrc.nist.gov/pubs/sp/800/88/r2/final |
-| [OWASP-CS] | OWASP Cheat Sheet Series, "Cryptographic Storage Cheat Sheet". https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html |
-| [OWASP-KM] | OWASP Cheat Sheet Series, "Key Management Cheat Sheet". https://cheatsheetseries.owasp.org/cheatsheets/Key_Management_Cheat_Sheet.html |
+"Quoted text checked" means the passage this document relies on was read in the source itself (for code, in the library's source). "Bibliographic details only" means the title, authors and venue were confirmed but the passage was not read in full; the claims resting on those are standard results, and are worth checking against the paper before relying on them in an audit.
+
+| Key | Reference | Checked |
+| --- | --- | --- |
+| [BN2000] | M. Bellare and C. Namprempre, "Authenticated Encryption: Relations among Notions and Analysis of the Generic Composition Paradigm", ASIACRYPT 2000 (LNCS 1976); J. Cryptology 21(4), 2008, doi:10.1007/s00145-008-9026-x. https://eprint.iacr.org/2000/025 | Bibliographic details only |
+| [NRS2014] | C. Namprempre, P. Rogaway and T. Shrimpton, "Reconsidering Generic Composition", EUROCRYPT 2014. https://eprint.iacr.org/2014/206 | Bibliographic details only |
+| [ROG2002] | P. Rogaway, "Authenticated-Encryption with Associated-Data", ACM CCS 2002, doi:10.1145/586110.586125. https://www.cs.ucdavis.edu/~rogaway/papers/ad.pdf | Bibliographic details only |
+| [RS2006] | P. Rogaway and T. Shrimpton, "A Provable-Security Treatment of the Key-Wrap Problem", EUROCRYPT 2006 (LNCS 4004); full version "Deterministic Authenticated-Encryption". https://eprint.iacr.org/2006/221 | Bibliographic details only |
+| [DJB-XSALSA] | D. J. Bernstein, "Extending the Salsa20 nonce", 2011. https://cr.yp.to/snuffle/xsalsa-20110204.pdf | Bibliographic details only |
+| [XCHACHA] | S. Arciszewski, "XChaCha: eXtended-nonce ChaCha and AEAD_XChaCha20_Poly1305", draft-irtf-cfrg-xchacha-03, January 2020 (expired Internet-Draft). https://datatracker.ietf.org/doc/draft-irtf-cfrg-xchacha/03/ | Quoted text checked |
+| [RFC8439] | Y. Nir and A. Langley, "ChaCha20 and Poly1305 for IETF Protocols", RFC 8439, 2018. https://www.rfc-editor.org/rfc/rfc8439 | Bibliographic details only |
+| [RFC7748] | A. Langley, M. Hamburg and S. Turner, "Elliptic Curves for Security", RFC 7748, 2016. https://www.rfc-editor.org/rfc/rfc7748 | Bibliographic details only |
+| [RFC7693] | M-J. Saarinen (ed.) and J-P. Aumasson, "The BLAKE2 Cryptographic Hash and Message Authentication Code (MAC)", RFC 7693, 2015. https://www.rfc-editor.org/rfc/rfc7693 | Quoted text checked |
+| [RFC5869] | H. Krawczyk and P. Eronen, "HMAC-based Extract-and-Expand Key Derivation Function (HKDF)", RFC 5869, 2010. https://www.rfc-editor.org/rfc/rfc5869 | Bibliographic details only |
+| [RFC9106] | A. Biryukov, D. Dinu, D. Khovratovich and S. Josefsson, "Argon2 Memory-Hard Function for Password Hashing and Proof-of-Work Applications", RFC 9106, 2021. https://www.rfc-editor.org/rfc/rfc9106 | Bibliographic details only |
+| [LS-SB] | libsodium documentation, "Sealed boxes". https://doc.libsodium.org/public-key_cryptography/sealed_boxes | Quoted text checked |
+| [LS-SS] | libsodium documentation, "Encrypted streams and file encryption" (secretstream). https://doc.libsodium.org/secret-key_cryptography/secretstream | Quoted text checked |
+| [LS-GH] | libsodium documentation, "Generic hashing" (BLAKE2b). https://doc.libsodium.org/hashing/generic_hashing | Quoted text checked |
+| [LS-AUTH] | libsodium source, `crypto_auth.h`: `crypto_auth_PRIMITIVE "hmacsha512256"`. https://github.com/jedisct1/libsodium/blob/master/src/libsodium/include/sodium/crypto_auth.h | Quoted text checked |
+| [LS-KDF] | libsodium documentation, "Key derivation". https://doc.libsodium.org/key_derivation | Quoted text checked |
+| [CS] | Paragon Initiative Enterprises, CipherSweet (documentation and source, ISC licence). https://ciphersweet.paragonie.com, https://github.com/paragonie/ciphersweet | Quoted text checked |
+| [CS-BI] | CipherSweet, "Blind Index Planning". https://ciphersweet.paragonie.com/php/blind-index-planning | Bibliographic details only |
+| [PIE-2017] | Paragon Initiative Enterprises, "Building Searchable Encrypted Databases with PHP and SQL", 2017. https://paragonie.com/blog/2017/05/building-searchable-encrypted-databases-with-php-and-sql | Bibliographic details only |
+| [NIST-38F] | M. Dworkin, "Recommendation for Block Cipher Modes of Operation: Methods for Key Wrapping", NIST SP 800-38F, 2012. https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-38F.pdf | Bibliographic details only |
+| [NIST-88] | NIST SP 800-88 Rev. 2, "Guidelines for Media Sanitization" (cryptographic erase), 2025; supersedes Rev. 1. https://csrc.nist.gov/pubs/sp/800/88/r2/final | Bibliographic details only |
+| [OWASP-CS] | OWASP Cheat Sheet Series, "Cryptographic Storage Cheat Sheet". https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html | Quoted text checked |
+| [OWASP-KM] | OWASP Cheat Sheet Series, "Key Management Cheat Sheet". https://cheatsheetseries.owasp.org/cheatsheets/Key_Management_Cheat_Sheet.html | Quoted text checked |
