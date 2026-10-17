@@ -7,6 +7,12 @@ use LogicException;
 /**
  * The master key (MK): 32 random bytes that wrap every data key.
  *
+ * The master key itself goes into one algorithm only, HKDF-SHA384, which
+ * derives a separate key for each use. Using one key in two different
+ * algorithms is something no security proof covers, and weak key separation
+ * is how sound primitives have been broken in practice (Paterson, Scarlata and
+ * Truong, "Three Lessons From Threema", USENIX Security 2023).
+ *
  * It never enters the database, the config cache, logs or error pages. The
  * object hides its bytes from var_dump(), print_r() and stack traces, and it
  * cannot be serialised, so it cannot end up in a queued job or a cache entry.
@@ -36,9 +42,20 @@ final class MasterKey
         return new self(random_bytes(self::BYTES));
     }
 
-    public function bytes(): string
+    /**
+     * The key that wraps data keys (KeyWrap).
+     */
+    public function wrappingKey(): string
     {
-        return $this->bytes;
+        return $this->subkey('key-wrap', SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_KEYBYTES);
+    }
+
+    /**
+     * The key that authenticates the stored recovery public key (RecoveryKeyStore).
+     */
+    public function recoveryPublicKeyMacKey(): string
+    {
+        return $this->subkey('recovery-public-key', SODIUM_CRYPTO_AUTH_KEYBYTES);
     }
 
     public function toBase64(): string
@@ -49,6 +66,14 @@ final class MasterKey
     public function equals(self $other): bool
     {
         return hash_equals($this->bytes, $other->bytes);
+    }
+
+    /**
+     * @param  positive-int  $length
+     */
+    private function subkey(string $purpose, int $length): string
+    {
+        return hash_hkdf('sha384', $this->bytes, $length, "abonemen:master-key:{$purpose}");
     }
 
     /**

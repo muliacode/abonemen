@@ -111,6 +111,15 @@ describe('the key object', function () {
             ->and(fn () => serialize($this->key))->toThrow(LogicException::class);
     });
 
+    it('derives a separate key for each use with HKDF-SHA384, and never hands out its own bytes', function () {
+        // Pinned values, checked against HKDF from Python's cryptography package.
+        $key = MasterKey::fromBase64(base64_encode(implode('', array_map(chr(...), range(0, 31)))));
+
+        expect(bin2hex($key->wrappingKey()))->toBe('b4c5ac8795b1a803a2ea4ab82f66a0828efa09f35a14de0259120908bfab2c0f')
+            ->and(bin2hex($key->recoveryPublicKeyMacKey()))->toBe('b4f90bbf51a56ff1c6a1f71505c26cb4fbdbb2165648109b509fe3442bee256a')
+            ->and(method_exists($key, 'bytes'))->toBeFalse();
+    });
+
     it('never enters the configuration, so config:cache cannot write it to disk', function () {
         $configured = (string) json_encode(config()->all());
 
@@ -201,7 +210,7 @@ describe('logs and error pages', function () {
         expect($page)->toContain('Something went wrong after loading the key.')
             ->and($log)->toContain('Something went wrong after loading the key.');
 
-        foreach ([$this->key->toBase64(), substr($this->key->toBase64(), 0, 12), $this->key->bytes()] as $form) {
+        foreach ([$this->key->toBase64(), substr($this->key->toBase64(), 0, 12), base64_decode($this->key->toBase64())] as $form) {
             expect($page)->not->toContain($form)
                 ->and($log)->not->toContain($form);
         }

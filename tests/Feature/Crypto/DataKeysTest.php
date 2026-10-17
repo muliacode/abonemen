@@ -59,8 +59,8 @@ describe('known-answer vectors', function () {
     });
 
     // Pinned values: changing them breaks every stored key. They were checked
-    // against an independent XChaCha20-Poly1305 implementation (HChaCha20 plus
-    // ChaCha20-Poly1305 from Python's cryptography package).
+    // against an independent implementation: HKDF-SHA384 for the wrapping key,
+    // then HChaCha20 plus ChaCha20-Poly1305, from Python's cryptography package.
     it('encodes the associated data as length-prefixed parts', function () {
         $aad = KeyWrap::associatedData('01JAAAAAAAAAAAAAAAAAAAAAAA', 'household', '01JBBBBBBBBBBBBBBBBBBBBBBB', 1);
 
@@ -76,7 +76,7 @@ describe('known-answer vectors', function () {
     it('wraps a known key to a known value, and back', function () {
         $masterKey = MasterKey::fromBase64(base64_encode(bytesFrom(0, 32)));
         $aad = KeyWrap::associatedData('01JAAAAAAAAAAAAAAAAAAAAAAA', 'household', '01JBBBBBBBBBBBBBBBBBBBBBBB', 1);
-        $expected = 'v1:QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZX9BgnU/TFXzGn3a2Vg7FLvaKLn/cnbGWtUgjHfjU5Ha/2GJy8p286bPR+0joPfFxy';
+        $expected = 'v1:QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXU3T5naqtMu6EnkEStqLrrLgre/YS/jDHfprUOpACNXk+xYyJVTpDMxZ2Z99HZsa4';
 
         expect(KeyWrap::wrap($masterKey, bytesFrom(32, 32), $aad, bytesFrom(64, 24)))->toBe($expected)
             ->and(KeyWrap::unwrap($masterKey, $expected, $aad))->toBe(bytesFrom(32, 32));
