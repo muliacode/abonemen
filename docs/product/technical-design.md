@@ -49,7 +49,7 @@ The stack is mainstream Laravel and Vue, with one deliberate addition: [CipherSw
 | Field encryption | `spatie/laravel-ciphersweet` for account-level fields and their blind indexes; a small cast on `paragonie/ciphersweet`'s multi-tenant mode for household fields. Both use libsodium (XChaCha20-Poly1305, BLAKE2b blind indexes) | Spatie's package covers the common case (one key, `whereBlind`, unique rules) but its key provider has no tenant context, so household fields use the multi-tenant mode it is built on (*spike*) |
 | File and backup encryption | Logos: libsodium secretstream (XChaCha20-Poly1305). Backups: `spatie/laravel-backup` with AES-256 zip encryption | Secretstream encrypts large files in authenticated chunks; laravel-backup handles archiving, AES-256 and retention |
 | Passwords | Argon2id via Laravel's `Hash`; bcrypt fallback when PHP lacks Argon2 | PRD ACC-02; some shared hosts build PHP without Argon2 |
-| Auth backend | Laravel Fortify (sign-in, reset, verification, TOTP, recovery codes); `laravel/passkeys` with `@laravel/passkeys` for passkeys | Headless, works with Inertia; both first-party (*spike*: passkeys alongside Fortify) |
+| Auth backend | Laravel Fortify (sign-in, reset, verification, TOTP, recovery codes, passkeys); `laravel/passkeys`, which Fortify depends on and configures, with `@laravel/passkeys` in the browser | Headless, works with Inertia; both first-party ([spike 2](../spikes/2-passkeys.md)) |
 | Roles and permissions | spatie/laravel-permission with its teams feature, one team per household | Household-scoped roles now; granular permissions after 1.0 become configuration, not a redesign |
 | OIDC | Laravel Socialite with a generic OpenID Connect provider | PRD ACC-03, beta phase |
 | Money | `brick/money` and `brick/math` | Exact decimal arithmetic and ISO 4217 data (MON-05) |
@@ -183,7 +183,7 @@ A user signs in once and may belong to several households; each request runs in 
 
 - **Passwords** through Laravel Fortify, hashed with Argon2id. Paste and password managers are always allowed (WCAG 3.3.8).
 - **Second factor:** TOTP with ten one-time recovery codes, or a passkey. The TOTP secret and codes are stored under the GDK, not `APP_KEY`, by overriding Fortify's two-factor storage.
-- **Passkeys** (WebAuthn, beta phase) work as a second factor or as passwordless sign-in, through the first-party `laravel/passkeys` package and its `@laravel/passkeys` browser helper.
+- **Passkeys** (WebAuthn, beta phase) work as a second factor or as passwordless sign-in, through the first-party `laravel/passkeys` package and its `@laravel/passkeys` browser helper. Fortify's `Features::passkeys()` provides passwordless sign-in. Fortify's two-factor challenge only knows TOTP, so a passkey as second factor is our own step: a password sign-in asks for the second factor when the user has a passkey, and the challenge accepts only that user's own passkeys ([spike 2](../spikes/2-passkeys.md)). WebAuthn needs a domain name, so passkeys are not available when Abonemen is reached by IP address.
 - **OIDC** (beta phase) through Socialite. Accounts link only on a verified email. Auto-create and "disable password login" are admin settings, also settable by environment variable.
 - **Rate limits:** 5 sign-in attempts per minute per email and IP, then an increasing lockout and an email to the account owner. Reset and invite requests: 3 per hour per email (SEC-08).
 
@@ -489,7 +489,7 @@ Fifteen architecture decisions are recorded; short spikes confirm three of them 
 | 8 | Own SVG chart components with table twins | Chart.js, ECharts | Accepted |
 | 9 | Frankfurter v2 as the exchange-rate source | Fixer (needs a key) | Accepted (PRD) |
 | 10 | FrankenPHP as the container web server | nginx with php-fpm and a process supervisor | Proposed, spike 3 |
-| 11 | First-party `laravel/passkeys` for passkeys | `laragear/webauthn`, archived in May 2026 in favour of it | Accepted, spike 2 checks Fortify |
+| 11 | First-party `laravel/passkeys` for passkeys, through Fortify's passkey feature | `laragear/webauthn`, archived in May 2026 in favour of it | Accepted, [spike 2](../spikes/2-passkeys.md) |
 | 12 | `spatie/laravel-backup` for backups, 30-day retention, own restore command | Own backup code | Accepted |
 | 13 | `@muliacode/ui`: a brand-neutral component library for all Muliacode apps, built as v2 of muliacode/design-system (v1 kept on its own branch) | An Abonemen-only library; a package inside the Abonemen repository | Accepted |
 | 14 | spatie/laravel-permission with teams for household roles; own table for per-subscription grants | A hand-written role column and checks | Accepted |
@@ -498,7 +498,7 @@ Fifteen architecture decisions are recorded; short spikes confirm three of them 
 ### Spikes before building
 
 - [ ] **1. Encryption:** `spatie/laravel-ciphersweet` with a custom key provider that supplies the GDK, plus a multi-tenant CipherSweet cast with per-household HDKs and row-bound associated data. Decrypt 500 subscriptions in under 100 ms, leaving room in the 300 ms budget (NFR-02). Include storing Fortify's TOTP secret under the GDK.
-- [ ] **2. Passkeys:** `laravel/passkeys` alongside Fortify and Inertia v3, as second factor and passwordless sign-in.
+- [x] **2. Passkeys:** `laravel/passkeys` alongside Fortify and Inertia v3, as second factor and passwordless sign-in. [Outcome](../spikes/2-passkeys.md): both flows work in Chromium and Firefox.
 - [ ] **3. Container:** FrankenPHP image on amd64 and arm64, non-root, read-only root file system.
 - [ ] **4. Shared hosting:** cron mode on a real shared host: queue drains in time, Argon2 and AES-256 zip support available, document root set to `public/`.
 - [ ] **5. Translations:** `laravel-vue-i18n` working with Inertia v3 and five locales.
