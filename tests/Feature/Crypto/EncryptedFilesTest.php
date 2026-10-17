@@ -4,6 +4,7 @@ use App\Actions\Crypto\CreateGlobalDataKey;
 use App\Models\Scopes\HouseholdScope;
 use App\Models\StoredFile;
 use App\Models\User;
+use App\Support\Crypto\DataKeyMaterial;
 use App\Support\Crypto\DataKeyRing;
 use App\Support\Crypto\FileDecryptionFailed;
 use App\Support\Crypto\FileVault;
@@ -38,6 +39,14 @@ function freshFile(string $id): StoredFile
 }
 
 describe('the vault', function () {
+    it('derives each file key from the household key with HKDF-SHA384', function () {
+        // Pinned value, checked against HKDF from Python's cryptography package.
+        $householdKey = new DataKeyMaterial(implode('', array_map(chr(...), range(0, 31))), 1);
+
+        expect(bin2hex(FileVault::fileKey($householdKey, '01JAFILEAAAAAAAAAAAAAAAAAA')))
+            ->toBe('7d246fb984db0e5425b5fda04f65d2c2c99c595dc0fbe903f5aec699e69b5ee1');
+    });
+
     it('encrypts and decrypts files of any size', function (string $contents) {
         $file = $this->vault->store(FILES_A, $contents, 'application/octet-stream');
         $onDisk = Storage::disk(FileVault::DISK)->get($file->path);
