@@ -21,10 +21,7 @@ final class Canaries
      * them. The leak test accepts these leaks, and fails as soon as one stops
      * leaking, so the entry has to be removed with the fix.
      */
-    public const PLAINTEXT_UNTIL_FIXED = [
-        'users.name' => '#22',
-        'users.email' => '#22',
-    ];
+    public const PLAINTEXT_UNTIL_FIXED = [];
 
     /**
      * @return list<Canary>
