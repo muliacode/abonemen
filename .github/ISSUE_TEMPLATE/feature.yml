@@ -1,0 +1,45 @@
+name: Feature request
+description: Suggest something new or a change to how Abonemen works.
+labels: ["type: feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before you start, please check the [product concept](https://github.com/muliacode/abonemen/blob/main/docs/product/concept.md) and the [requirements](https://github.com/muliacode/abonemen/blob/main/docs/product/requirements.md): some ideas are already planned, and some are left out on purpose (for example bank connections).
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe the situation and what is hard today, rather than a solution.
+      placeholder: When a trial ends I only find out after I have been charged.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you have considered
+    validations:
+      required: false
+  - type: input
+    id: requirement
+    attributes:
+      label: Related requirement ID (optional)
+      description: Such as SUB-03, if one in the requirements fits.
+    validations:
+      required: false
+  - type: checkboxes
+    id: principles
+    attributes:
+      label: Principles
+      description: Abonemen is privacy-first and accessible to everyone.
+      options:
+        - label: This does not need telemetry, a third-party service or access to my bank account.
+          required: false
+        - label: I would like to help build or test this.
+          required: false

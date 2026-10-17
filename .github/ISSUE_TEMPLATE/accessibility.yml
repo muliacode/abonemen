@@ -1,0 +1,75 @@
+name: Accessibility problem
+description: Something is hard or impossible to use with a keyboard, screen reader, zoom, high contrast or other assistive technology.
+labels: ["accessibility"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you. Reports from people who use assistive technology every day are the most useful feedback this project gets.
+
+        You do not need to know WCAG or any technical terms. Describe what you tried to do and what got in the way, in your own words.
+  - type: textarea
+    id: barrier
+    attributes:
+      label: What got in the way?
+      description: What were you trying to do, and what happened instead?
+      placeholder: I tried to add a subscription, but my screen reader did not say which field had an error.
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Where in Abonemen?
+      description: The page or screen, or its address.
+      placeholder: Add subscription form
+    validations:
+      required: true
+  - type: checkboxes
+    id: how
+    attributes:
+      label: How were you using Abonemen?
+      description: Tick all that apply. Leave them all unticked if you are not sure.
+      options:
+        - label: Keyboard only
+        - label: Screen reader
+        - label: Zoom or a large text size
+        - label: High contrast or forced colours (for example Windows contrast themes)
+        - label: Dark mode
+        - label: Voice control
+        - label: Switch access
+        - label: Small screen or phone
+        - label: Reduced motion
+  - type: textarea
+    id: tools
+    attributes:
+      label: Which tools and versions?
+      description: If you know them. For example the screen reader, browser and operating system.
+      placeholder: NVDA 2026.2, Firefox 140, Windows 11
+    validations:
+      required: false
+  - type: dropdown
+    id: impact
+    attributes:
+      label: How much does this affect you?
+      options:
+        - I cannot do the task at all
+        - I can do it, but it is hard or slow
+        - It is annoying, but I can work around it
+        - I am not sure
+    validations:
+      required: false
+  - type: input
+    id: wcag
+    attributes:
+      label: WCAG success criterion (optional)
+      description: Only if you happen to know it. This is never required.
+      placeholder: 3.3.1 Error identification
+    validations:
+      required: false
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Screenshots, recordings or screen reader output help, but are not needed. Remove any personal data first.
+    validations:
+      required: false
