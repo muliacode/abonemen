@@ -8,3 +8,4 @@ Short proofs of concept from the [technical design](../product/technical-design.
 | [2. Passkeys with Fortify and Inertia v3](2-passkeys.md) | [#13](https://github.com/muliacode/abonemen/issues/13) | ADR 11 holds: Fortify integrates `laravel/passkeys`; a passkey as second factor is our own step |
 | [3. FrankenPHP container image](3-container.md) | [#14](https://github.com/muliacode/abonemen/issues/14) | ADR 10 accepted: under 200 MB on amd64 and arm64, runs non-root with a read-only root and every capability dropped |
 | [4. Cron mode on shared hosting](4-shared-hosting.md) | [#15](https://github.com/muliacode/abonemen/issues/15) | Kit ready and dry run passed; the real-host run is still to do |
+| [5. Translations with laravel-vue-i18n](5-translations.md) | [#16](https://github.com/muliacode/abonemen/issues/16) | Design holds: plurals agree on server and client in all five locales; no reload on switching |
