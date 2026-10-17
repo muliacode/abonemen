@@ -1,0 +1,70 @@
+name: Bug report
+description: Something does not work as it should.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Found a security problem? Please do not report it here: follow [SECURITY.md](https://github.com/muliacode/abonemen/blob/main/SECURITY.md) instead.
+
+        Problems with screen readers, keyboard use, zoom, contrast or other assistive technology have their own [accessibility form](https://github.com/muliacode/abonemen/issues/new?template=accessibility.yml).
+
+        Never paste real subscription data, email addresses, keys or backups into an issue.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe what went wrong.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The smallest set of steps that shows the problem.
+      placeholder: |
+        1. Go to …
+        2. Select …
+        3. See …
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Shown on the admin screen, or the commit you built from.
+    validations:
+      required: false
+  - type: dropdown
+    id: install
+    attributes:
+      label: How do you run Abonemen?
+      options:
+        - Shared hosting
+        - Docker
+        - Kubernetes
+        - Local development
+        - I don't know
+    validations:
+      required: false
+  - type: input
+    id: environment
+    attributes:
+      label: Browser and operating system
+      placeholder: Firefox 140 on Windows 11
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Remove any personal data first. Logs are rendered as code.
+      render: text
+    validations:
+      required: false
