@@ -286,7 +286,7 @@ All background work runs through Laravel's scheduler and a database-backed queue
 * * * * * php /path/to/abonemen/artisan schedule:run >> /dev/null 2>&1
 ```
 
-In "cron mode" (shared hosting) the scheduler also drains the queue each minute with `queue:work --stop-when-empty --max-time=50`, guarded by `withoutOverlapping`. In Docker and Kubernetes a long-running `schedule:work` and `queue:work` take over, and cron mode is off.
+In "cron mode" (shared hosting) the scheduler also drains the queue each minute with `queue:work --stop-when-empty --max-time=50`, guarded by `withoutOverlapping` and started with `runInBackground()`, so a long drain does not delay the minute's other tasks. In Docker and Kubernetes a long-running `schedule:work` and `queue:work` take over, and cron mode is off.
 
 ### Scheduled tasks
 
@@ -500,7 +500,7 @@ Fifteen architecture decisions are recorded; short spikes confirm three of them 
 - [ ] **1. Encryption:** `spatie/laravel-ciphersweet` with a custom key provider that supplies the GDK, plus a multi-tenant CipherSweet cast with per-household HDKs and row-bound associated data. Decrypt 500 subscriptions in under 100 ms, leaving room in the 300 ms budget (NFR-02). Include storing Fortify's TOTP secret under the GDK.
 - [ ] **2. Passkeys:** `laravel/passkeys` alongside Fortify and Inertia v3, as second factor and passwordless sign-in.
 - [ ] **3. Container:** FrankenPHP image on amd64 and arm64, non-root, read-only root file system.
-- [ ] **4. Shared hosting:** cron mode on a real shared host: queue drains in time, Argon2 and AES-256 zip support available, document root set to `public/`.
+- [ ] **4. Shared hosting:** cron mode on a real shared host: queue drains in time, Argon2 and AES-256 zip support available, document root set to `public/`. [Kit and dry run](../spikes/4-shared-hosting.md) done: 100 jobs drain in one cron run in a stock `php:8.3-apache`; the real-host run is still to do.
 - [ ] **5. Translations:** `laravel-vue-i18n` working with Inertia v3 and five locales.
 
 ### Open questions
