@@ -7,5 +7,6 @@
 | [Technical design](product/technical-design.md) | How it is built: architecture, encryption and keys, data model, security, deployment, testing, decisions |
 | [Design system](design/design-system/README.md) | Brand book, tokens, the Abonemen theme for NL Design System Utrecht components, component guidelines, icons |
 | [Wireframes](design/wireframes/README.md) | Every screen and its states, plus the screen map |
+| [Spikes](spikes/README.md) | Outcomes of the proofs of concept that confirmed or changed a decision |
 
 Issues refer to requirement IDs (such as SUB-03) from the requirements document and to screens by their image name in `design/wireframes`.
