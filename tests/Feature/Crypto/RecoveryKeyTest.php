@@ -12,6 +12,7 @@ use App\Support\Crypto\KeyWrap;
 use App\Support\Crypto\MasterKeyLoader;
 use App\Support\Crypto\RecoveryKeyMissing;
 use App\Support\Crypto\RecoveryKeyStore;
+use App\Support\Crypto\RecoveryKeyTampered;
 use App\Support\Crypto\RecoverySecret;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Support\Crypto\TestKeys;
@@ -126,6 +127,38 @@ describe('setting up the recovery key', function () {
 
     it('refuses a public key of the wrong size', function () {
         expect(fn () => app(RecoveryKeyStore::class)->install('short'))->toThrow(LogicException::class);
+    });
+});
+
+describe('a replaced recovery public key', function () {
+    beforeEach(function () {
+        TestKeys::installRecoveryKey();
+        TestKeys::forget();
+        $this->attacker = RecoverySecret::generate();
+    });
+
+    it('is refused, so no data key is sealed to it', function () {
+        // An attacker who can write to the database swaps in their own key,
+        // keeping the stored format.
+        Setting::query()->whereKey(RecoveryKeyStore::SETTING)->update([
+            'value' => 'v1:'.base64_encode($this->attacker->publicKey()).'.'.base64_encode(random_bytes(SODIUM_CRYPTO_AUTH_BYTES)),
+        ]);
+
+        expect(fn () => app(DataKeyRing::class)->createHousehold('01JAHOUSEHOLDAAAAAAAAAAAAA'))->toThrow(RecoveryKeyTampered::class)
+            ->and(DataKey::query()->count())->toBe(0);
+    });
+
+    it('is refused when written under another master key', function () {
+        Setting::query()->whereKey(RecoveryKeyStore::SETTING)->delete();
+        (new RecoveryKeyStore(new MasterKeyLoader(base64_encode(random_bytes(32)), null)))->install($this->attacker->publicKey());
+
+        expect(fn () => app(RecoveryKeyStore::class)->publicKey())->toThrow(RecoveryKeyTampered::class);
+    });
+
+    it('is refused without a MAC', function () {
+        Setting::query()->whereKey(RecoveryKeyStore::SETTING)->update(['value' => base64_encode($this->attacker->publicKey())]);
+
+        expect(fn () => app(RecoveryKeyStore::class)->publicKey())->toThrow(RecoveryKeyTampered::class);
     });
 });
 
