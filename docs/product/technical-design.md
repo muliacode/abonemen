@@ -502,7 +502,7 @@ Fifteen architecture decisions are recorded; short spikes confirm three of them 
 - [x] **1. Encryption:** `spatie/laravel-ciphersweet` with a custom key provider that supplies the GDK, plus a multi-tenant CipherSweet cast with per-household HDKs and row-bound associated data. Decrypt 500 subscriptions in under 100 ms, leaving room in the 300 ms budget (NFR-02). Include storing Fortify's TOTP secret under the GDK. [Outcome](../spikes/1-ciphersweet.md): done in about 30 ms with a faster backend.
 - [x] **2. Passkeys:** `laravel/passkeys` alongside Fortify and Inertia v3, as second factor and passwordless sign-in. [Outcome](../spikes/2-passkeys.md): both flows work in Chromium and Firefox.
 - [x] **3. Container:** FrankenPHP image on amd64 and arm64, non-root, read-only root file system. [Outcome](../spikes/3-container.md): under 200 MB on both, runs with every capability dropped.
-- [ ] **4. Shared hosting:** cron mode on a real shared host: queue drains in time, Argon2 and AES-256 zip support available, document root set to `public/`.
+- [ ] **4. Shared hosting:** cron mode on a real shared host: queue drains in time, Argon2 and AES-256 zip support available, document root set to `public/`. [Kit and dry run](../spikes/4-shared-hosting.md) done: 100 jobs drain in one cron run in a stock `php:8.3-apache`; the real-host run is still to do.
 - [ ] **5. Translations:** `laravel-vue-i18n` working with Inertia v3 and five locales.
 
 ### Open questions
