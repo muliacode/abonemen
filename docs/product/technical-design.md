@@ -358,6 +358,7 @@ Charts are our own small SVG components: no chart library, which keeps the bundl
 ### Languages and formatting
 
 - Laravel's `lang/{locale}.json` files are the single source for both server and Vue, read in Vue through `laravel-vue-i18n`. Launch locales: nl, en, id, fr, de (NFR-09).
+- The server picks the locale (the session's choice, then `Accept-Language`) and shares it as an Inertia page prop. Vue installs `laravel-vue-i18n` with it in Inertia's `withApp` hook, loads each language as its own chunk, and follows the prop after every visit, so switching language needs no full page load. Plurals follow Laravel's per-locale rules on both sides; a shared fixture tests that server and client agree ([spike 5](../spikes/5-translations.md)).
 - Numbers, money and dates use `Intl` in the user's locale. Amounts carry visually hidden context where needed, so a screen reader says "12 euro 99 per month" (A11Y-09).
 - Each page sets `lang` on `html`; text in another language gets its own `lang` attribute.
 
@@ -501,7 +502,7 @@ Fifteen architecture decisions are recorded; short spikes confirm three of them 
 - [ ] **2. Passkeys:** `laravel/passkeys` alongside Fortify and Inertia v3, as second factor and passwordless sign-in.
 - [ ] **3. Container:** FrankenPHP image on amd64 and arm64, non-root, read-only root file system.
 - [ ] **4. Shared hosting:** cron mode on a real shared host: queue drains in time, Argon2 and AES-256 zip support available, document root set to `public/`.
-- [ ] **5. Translations:** `laravel-vue-i18n` working with Inertia v3 and five locales.
+- [x] **5. Translations:** `laravel-vue-i18n` working with Inertia v3 and five locales. [Outcome](../spikes/5-translations.md): plurals agree on server and client in all five; switching needs no reload.
 
 ### Open questions
 
