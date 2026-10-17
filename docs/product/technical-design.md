@@ -411,7 +411,7 @@ One codebase ships three ways from the same release pipeline; they differ only i
 |  | Shared hosting | Docker | Kubernetes |
 | --- | --- | --- | --- |
 | Artifact | Release zip with `vendor/` and built assets | One image, amd64 and arm64 | Helm chart using the same image |
-| Web server | The host's Apache or nginx, document root set to `public/` | FrankenPHP, Caddy built in (*spike*) | FrankenPHP behind the cluster ingress |
+| Web server | The host's Apache or nginx, document root set to `public/` | FrankenPHP, Caddy built in; non-root on :8080, read-only root file system | FrankenPHP behind the cluster ingress |
 | Background work | One cron entry, cron mode | `schedule:work` and `queue:work` in the container | Same, in the single pod |
 | Data | `storage/` outside the web root | Volume at `/data` | Persistent volume, `ReadWriteOnce`, `Recreate` strategy, 1 replica |
 | Master key | File outside the web root, path in `.env` | Docker secret via `ABONEMEN_MASTER_KEY_FILE` | Kubernetes Secret mounted as a file |
@@ -488,7 +488,7 @@ Fifteen architecture decisions are recorded; short spikes confirm three of them 
 | 7 | Database queue, drained by the scheduler in cron mode | Redis, which shared hosting rarely offers | Accepted |
 | 8 | Own SVG chart components with table twins | Chart.js, ECharts | Accepted |
 | 9 | Frankfurter v2 as the exchange-rate source | Fixer (needs a key) | Accepted (PRD) |
-| 10 | FrankenPHP as the container web server | nginx with php-fpm and a process supervisor | Proposed, spike 3 |
+| 10 | FrankenPHP as the container web server | nginx with php-fpm and a process supervisor | Accepted, [spike 3](../spikes/3-container.md) |
 | 11 | First-party `laravel/passkeys` for passkeys | `laragear/webauthn`, archived in May 2026 in favour of it | Accepted, spike 2 checks Fortify |
 | 12 | `spatie/laravel-backup` for backups, 30-day retention, own restore command | Own backup code | Accepted |
 | 13 | `@muliacode/ui`: a brand-neutral component library for all Muliacode apps, built as v2 of muliacode/design-system (v1 kept on its own branch) | An Abonemen-only library; a package inside the Abonemen repository | Accepted |
@@ -499,7 +499,7 @@ Fifteen architecture decisions are recorded; short spikes confirm three of them 
 
 - [ ] **1. Encryption:** `spatie/laravel-ciphersweet` with a custom key provider that supplies the GDK, plus a multi-tenant CipherSweet cast with per-household HDKs and row-bound associated data. Decrypt 500 subscriptions in under 100 ms, leaving room in the 300 ms budget (NFR-02). Include storing Fortify's TOTP secret under the GDK.
 - [ ] **2. Passkeys:** `laravel/passkeys` alongside Fortify and Inertia v3, as second factor and passwordless sign-in.
-- [ ] **3. Container:** FrankenPHP image on amd64 and arm64, non-root, read-only root file system.
+- [x] **3. Container:** FrankenPHP image on amd64 and arm64, non-root, read-only root file system. [Outcome](../spikes/3-container.md): under 200 MB on both, runs with every capability dropped.
 - [ ] **4. Shared hosting:** cron mode on a real shared host: queue drains in time, Argon2 and AES-256 zip support available, document root set to `public/`.
 - [ ] **5. Translations:** `laravel-vue-i18n` working with Inertia v3 and five locales.
 
