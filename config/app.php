@@ -82,6 +82,12 @@ return [
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
+    // SPIKE (#15): cron (shared hosting) or daemon (containers).
+    'run_mode' => env('ABONEMEN_RUN_MODE', 'cron'),
+
+    // SPIKE (#15): token for the shared-hosting check page; empty disables it.
+    'spike_token' => env('SPIKE_TOKEN'),
+
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 
     /*

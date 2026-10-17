@@ -1,0 +1,74 @@
+name: spike shared hosting
+
+# SPIKE (#15): dry run of the shared-hosting kit in the stock php:8.3-apache
+# image, which is about as bare as a basic shared host. Runs only for the
+# spike branch, which is never merged.
+on:
+  push:
+    branches:
+      - spike/15-shared-hosting
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dry-run:
+    name: Kit in php:8.3-apache
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: ./.github/actions/setup-php
+
+      - name: Install production dependencies, as make-zip.sh does
+        run: composer install --no-dev --optimize-autoloader --no-interaction
+
+      - name: Start Apache with public/ as document root
+        run: |
+          sed -i 's/^SPIKE_TOKEN=.*//; s/^ABONEMEN_RUN_MODE=.*//' .env
+          printf 'SPIKE_TOKEN=s3cret\nABONEMEN_RUN_MODE=cron\nAPP_URL=http://localhost:8080\n' >> .env
+          touch database/database.sqlite
+          chmod -R a+rwX storage bootstrap/cache database
+          docker run -d --name host -p 8080:80 -v "$PWD":/var/www/html \
+            -e APACHE_DOCUMENT_ROOT=/var/www/html/public php:8.3-apache \
+            sh -c "sed -ri 's!/var/www/html!\${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf && sed -ri 's!AllowOverride None!AllowOverride All!' /etc/apache2/apache2.conf && a2enmod rewrite > /dev/null && apache2-foreground"
+          for _ in $(seq 1 20); do curl -s -o /dev/null http://localhost:8080/up && break; sleep 1; done
+          docker exec host php -v | head -1
+
+      - name: Server check (CLI)
+        run: |
+          docker exec -u www-data host php artisan spike:server-check --no-network | tee check.txt || true
+          grep -q 'missing: gd, intl, zip' check.txt
+          grep -E 'Argon2id passwords +\| OK' check.txt
+          grep -E 'libsodium +\| OK' check.txt
+
+      - name: Check page and document root
+        run: |
+          docker exec -u www-data host php artisan migrate --force
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/spike/check)" = 404
+          curl -fsS 'http://localhost:8080/spike/check?token=s3cret' > page.html
+          grep -A2 'Document root is public/' page.html | grep -q '>OK<'
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/.env)" = 404
+          test "$(curl -s -o /dev/null -w '%{http_code}' --path-as-is http://localhost:8080/../.env)" != 200
+
+      - name: Cron mode drains 100 jobs within 3 runs
+        run: |
+          docker exec -u www-data host php artisan spike:queue-fill 100 --ms=500
+          for run in 1 2 3; do
+            start=$(date +%s)
+            docker exec -u www-data host php artisan schedule:run > /dev/null
+            echo "cron run ${run}: $(( $(date +%s) - start )) s"
+          done
+          docker exec -u www-data host php artisan spike:queue-report | tee report.txt
+          grep -q '100 of 100 jobs done' report.txt
+
+      - name: Apache log
+        if: ${{ always() }}
+        run: docker logs host 2>&1 | tail -40 || true
