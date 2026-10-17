@@ -148,7 +148,7 @@ CipherSweet's stock `BoringCrypto` backend spends most of its time in PHP (a pur
 
 The plain columns are what the scheduler needs without decrypting anything. They do reveal patterns (how many subscriptions, when payments fall). That trade-off is accepted and listed in the threat model.
 
-**Search and totals.** A household holds hundreds of rows, not millions, so lists, search, sorting and totals decrypt the household's rows in PHP and work in memory. Only two lookups need a blind index: user email at sign-in and invite email at acceptance. Both use a CipherSweet blind index under the GDK, truncated to 32 bits, so matches are confirmed by decrypting the candidates.
+**Search and totals.** A household holds hundreds of rows, not millions, so lists, search, sorting and totals decrypt the household's rows in PHP and work in memory. Only two lookups need a blind index: user email at sign-in and invite email at acceptance. Both use a CipherSweet blind index under the GDK, truncated to 32 bits, so matches are confirmed by decrypting the candidates. The index uses CipherSweet's fast hash (keyed BLAKE2b) rather than its default Argon2id: its key is derived from the GDK, and whoever holds that can decrypt the emails directly, so a slow hash would only cost memory and time on every sign-in. Sign-in goes through `EncryptedEmailUserProvider`, which looks the email up this way. Index and comparison both fold case and Unicode form (`CaseFolded`: trim, NFC, `mb_strtolower`), so `Änne@` and `änne@` are the same address. No database index can keep encrypted emails unique, so the `User` model checks before every save that changes an email, and a lookup that ever finds two accounts with one address signs in neither. Account rows are decrypted whole when loaded, unlike household fields; they are few.
 
 ### Files and backups
 
@@ -166,7 +166,7 @@ The plain columns are what the scheduler needs without decrypting anything. They
 
 ### Plaintext handling
 
-Decrypted values exist only in memory during a request or job. Queued jobs carry IDs, never plaintext. Encrypted attributes are hidden from model serialisation and logs, and the exception handler redacts them (SEC-11). Decrypted data sent to the browser is limited to what the current page shows.
+Decrypted values exist only in memory during a request or job. Nothing may key a table by a sensitive value in plaintext: Laravel's `password_reset_tokens` uses the email as its key, so that table is not created; password reset (#31) keys its tokens by user id or the blind index instead. Queued jobs carry IDs, never plaintext. Encrypted attributes are hidden from model serialisation and logs, and the exception handler redacts them (SEC-11). Decrypted data sent to the browser is limited to what the current page shows.
 
 ### What this protects against
 
@@ -223,13 +223,13 @@ The REST API (API-01, 1.0) uses Laravel Sanctum personal access tokens with `rea
 
 ## Data model
 
-About two dozen application tables, all keyed by ULIDs (`users` too, unlike Laravel's default, and spatie's `blind_indexes` table uses ULID morphs), all with a `household_id` except the instance-level ones. Encrypted columns are `TEXT` holding CipherSweet ciphertext; money inside them is a decimal string such as `"15.99"`, never a float. Laravel's own tables (`sessions`, `cache`, `jobs`, `failed_jobs`, `personal_access_tokens`) and `spatie/laravel-permission`'s tables (`roles`, `permissions` and their pivots, with `household_id` as the team column) are standard.
+About two dozen application tables, all keyed by ULIDs (`users` too, unlike Laravel's default, and spatie's `blind_indexes` table uses ULID morphs and holds the email blind indexes of `users` and `invites`), all with a `household_id` except the instance-level ones. Encrypted columns are `TEXT` holding CipherSweet ciphertext; money inside them is a decimal string such as `"15.99"`, never a float. Laravel's own tables (`sessions`, `cache`, `jobs`, `failed_jobs`, `personal_access_tokens`) and `spatie/laravel-permission`'s tables (`roles`, `permissions` and their pivots, with `household_id` as the team column) are standard.
 
 | Table | Holds | Encrypted columns | Main plain columns |
 | --- | --- | --- | --- |
 | `households` | One household | `name`, `budget_amount` | `main_currency`, `timezone`, `key_version` |
 | `data_keys` | Wrapped GDK and HDKs | (wrapped key material) | `owner_type` (`global` or `household`), `owner_id` (`instance` for the GDK), `version`, `wrapped_mk`, `wrapped_rk`, `status`; unique on owner and version |
-| `users` | Accounts | `email`, `name`, `two_factor_secret`, `two_factor_recovery_codes` | `email_bidx`, `password`, `locale`, `theme`, `upcoming_window_days` (default 30), `email_verified_at` |
+| `users` | Accounts | `email`, `name`, `two_factor_secret`, `two_factor_recovery_codes` | `password`, `locale`, `theme`, `upcoming_window_days` (default 30), `email_verified_at` |
 | `household_user` | Membership | none | `household_id`, `user_id`; roles live in the permission tables |
 | `invites` | Pending invites | `email` | `email_bidx`, `token_hash`, `role`, `expires_at`, `accepted_at` |
 | `members` | People paid for | `name` | `user_id` (nullable), `sort` |
