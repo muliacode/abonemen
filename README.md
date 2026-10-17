@@ -38,7 +38,10 @@ You need PHP 8.3 or newer, Composer and the Node version in [`.nvmrc`](.nvmrc).
 composer setup      # install dependencies, create .env, migrate, build assets
 composer dev        # run the server, queue worker and Vite
 composer ci:check   # the checks CI runs: lint, types and tests
+npm run test:e2e    # Playwright and axe on every page; run `npm run build` first
 ```
+
+The end-to-end tests need the Playwright browsers once: `npx playwright install --with-deps`.
 
 ## Contributing and security
 
