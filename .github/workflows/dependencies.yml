@@ -1,0 +1,117 @@
+name: dependencies
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  schedule:
+    # Daily, so a new advisory against an unchanged lock file is noticed too.
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependencies-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  composer-audit:
+    name: Composer audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          coverage: none
+
+      # Fails on high and critical advisories; abandoned packages are reported.
+      - name: Audit the lock file
+        run: composer audit --locked --abandoned=report --ignore-severity=low --ignore-severity=medium
+
+  npm-audit:
+    name: npm audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+
+      - name: Audit the lock file
+        run: npm audit --audit-level=high
+
+  licences:
+    name: Licence check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # No scripts run: only the installed packages' metadata is needed.
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist --no-scripts
+          npm ci --ignore-scripts
+
+      - name: Test the licence checker
+        run: node --test .github/scripts/check-licences.test.mjs
+
+      - name: Check every dependency's licence against the EUPL-1.2
+        run: node .github/scripts/check-licences.mjs
+
+  # The check to mark as required.
+  dependencies-passed:
+    name: Dependency checks passed
+    if: ${{ always() }}
+    needs: [composer-audit, npm-audit, licences]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check the results of every job
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Job results: $RESULTS"
+          for result in $RESULTS; do
+            if [[ "$result" != "success" ]]; then
+              echo "::error::At least one dependency check did not succeed."
+              exit 1
+            fi
+          done

@@ -1,0 +1,55 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "config:recommended",
+        "helpers:pinGitHubActionDigestsToSemver",
+        ":dependencyDashboard",
+        ":maintainLockFilesMonthly"
+    ],
+    "description": "Grouped, weekly updates so one maintainer can keep up. Security fixes skip the schedule.",
+    "timezone": "Europe/Amsterdam",
+    "schedule": ["before 6am on monday"],
+    "labels": ["dependencies"],
+    "prConcurrentLimit": 5,
+    "prHourlyLimit": 2,
+    "minimumReleaseAge": "3 days",
+    "vulnerabilityAlerts": {
+        "enabled": true,
+        "labels": ["dependencies", "security"],
+        "schedule": ["at any time"],
+        "minimumReleaseAge": null
+    },
+    "packageRules": [
+        {
+            "description": "One pull request for all minor and patch updates of Composer packages.",
+            "matchManagers": ["composer"],
+            "matchUpdateTypes": ["minor", "patch"],
+            "groupName": "Composer minor and patch updates"
+        },
+        {
+            "description": "One pull request for all minor and patch updates of npm packages.",
+            "matchManagers": ["npm"],
+            "matchUpdateTypes": ["minor", "patch"],
+            "groupName": "npm minor and patch updates"
+        },
+        {
+            "description": "Keep vite aliased to the Vite+ core of the same version as vite-plus.",
+            "matchManagers": ["npm"],
+            "matchPackageNames": ["vite-plus", "@voidzero-dev/vite-plus-core"],
+            "groupName": "Vite+",
+            "rangeStrategy": "pin"
+        },
+        {
+            "description": "Actions stay pinned to commit SHAs with a version comment; minor, patch and digest updates are grouped.",
+            "matchManagers": ["github-actions"],
+            "matchUpdateTypes": ["minor", "patch", "digest", "pinDigest"],
+            "groupName": "GitHub Actions"
+        },
+        {
+            "description": "The PHP and Node versions are a deliberate choice (PHP 8.3 minimum, Node from .nvmrc).",
+            "matchDepNames": ["php", "node"],
+            "matchUpdateTypes": ["major", "minor"],
+            "enabled": false
+        }
+    ]
+}
