@@ -11,7 +11,11 @@ const baseUrl = process.env.BASE_URL ?? 'http://localhost:8100';
 const email = process.env.EMAIL;
 const password = process.env.PASSWORD;
 
-const options = new firefox.Options().addArguments('-headless');
+const options = new firefox.Options()
+    .addArguments('-headless')
+    // Firefox's built-in software authenticator, in case the WebDriver one is not wired up.
+    .setPreference('security.webauth.webauthn_enable_softtoken', true)
+    .setPreference('security.webauth.webauthn_enable_usbtoken', false);
 const driver = await new Builder().forBrowser('firefox').setFirefoxOptions(options).build();
 
 async function waitForPath(path) {
@@ -56,7 +60,14 @@ try {
 
     await (await byLabel('Name for the new passkey')).sendKeys('Virtual authenticator');
     await (await button('Add a passkey')).click();
-    await driver.wait(until.elementLocated(By.xpath("//li[normalize-space()='Virtual authenticator']")), 10_000);
+    await driver.wait(
+        until.elementLocated(By.xpath("//li[normalize-space()='Virtual authenticator'] | //*[@role='alert']")),
+        70_000,
+    );
+    const alerts = await driver.findElements(By.css('[role=alert]'));
+    if (alerts.length > 0) {
+        throw new Error(`Registration failed: ${await alerts[0].getText()}`);
+    }
     console.log('ok: registered a passkey');
     await signOut();
 
