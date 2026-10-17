@@ -12,9 +12,10 @@ use LogicException;
  * It is authenticated with the master key, though. Every new data key is sealed
  * to it, so someone who could swap it for a key of their own, for example
  * through an SQL injection that writes, could unseal every data key made after
- * that. The stored value carries a MAC under a key derived from the master key,
- * and a public key that fails it is refused. Recovering under a new master key
- * (#140) must store the public key again under that key.
+ * that. The stored value carries a MAC under a key derived from the master key
+ * (MasterKey::recoveryPublicKeyMacKey), and a public key that fails it is
+ * refused. Recovering under a new master key (#140) must store the public key
+ * again under that key.
  *
  * Stored form: "v1:" base64(public key) "." base64(HMAC-SHA512-256 tag).
  */
@@ -98,6 +99,6 @@ final class RecoveryKeyStore
 
     private function macKey(): string
     {
-        return sodium_crypto_generichash('abonemen:recovery-public-key', $this->masterKey->key()->bytes(), SODIUM_CRYPTO_AUTH_KEYBYTES);
+        return $this->masterKey->key()->recoveryPublicKeyMacKey();
     }
 }

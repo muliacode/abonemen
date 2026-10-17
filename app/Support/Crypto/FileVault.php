@@ -34,7 +34,7 @@ final class FileVault
         $file->id = $file->newUniqueId();
         $key = $this->ring->household($householdId);
 
-        [$state, $header] = sodium_crypto_secretstream_xchacha20poly1305_init_push($this->fileKey($key, $file->id));
+        [$state, $header] = sodium_crypto_secretstream_xchacha20poly1305_init_push(self::fileKey($key, $file->id));
         $encrypted = self::MAGIC.$header;
         $chunks = str_split($contents, self::CHUNK) ?: [''];
         $last = count($chunks) - 1;
@@ -92,7 +92,7 @@ final class FileVault
         $key = $this->ring->household($file->household_id, $file->key_version);
         $state = sodium_crypto_secretstream_xchacha20poly1305_init_pull(
             substr($encrypted, strlen(self::MAGIC), $headerBytes),
-            $this->fileKey($key, $file->id),
+            self::fileKey($key, $file->id),
         );
 
         $plaintext = '';
@@ -126,16 +126,18 @@ final class FileVault
     }
 
     /**
-     * One key per file: keyed BLAKE2b over the file's ULID, with the household
-     * data key as the key.
+     * One key per file, derived from the household data key and the file's
+     * ULID with HKDF-SHA384: the same KDF CipherSweet uses on that key, so the
+     * household key goes into one algorithm only. The label starts with
+     * "abonemen:", which none of CipherSweet's labels do.
      */
-    private function fileKey(DataKeyMaterial $householdKey, string $fileId): string
+    public static function fileKey(DataKeyMaterial $householdKey, string $fileId): string
     {
         if ($fileId === '') {
             throw new RuntimeException('A file needs its ULID before it is encrypted.');
         }
 
-        return sodium_crypto_generichash("abonemen:file:{$fileId}", $householdKey->bytes(), SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_KEYBYTES);
+        return hash_hkdf('sha384', $householdKey->bytes(), SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_KEYBYTES, "abonemen:file:{$fileId}");
     }
 
     private function disk(): Filesystem
