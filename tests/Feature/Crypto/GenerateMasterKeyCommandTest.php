@@ -53,6 +53,16 @@ it('needs ABONEMEN_MASTER_KEY_FILE', function () {
         ->assertFailed();
 });
 
+it('creates no second key when ABONEMEN_MASTER_KEY is also set', function () {
+    app()->instance(MasterKeyLoader::class, new MasterKeyLoader(MasterKey::generate()->toBase64(), $this->path));
+
+    $this->artisan('abonemen:keys:generate-master')
+        ->expectsOutputToContain('ABONEMEN_MASTER_KEY is set')
+        ->assertFailed();
+
+    expect(file_exists($this->path))->toBeFalse();
+});
+
 it('has nothing to create when the key comes from the environment', function () {
     app()->instance(MasterKeyLoader::class, new MasterKeyLoader(MasterKey::generate()->toBase64(), null));
 

@@ -123,6 +123,10 @@ final class DataKeyRing
         $row->wrapped_rk = KeySeal::seal($this->recoveryKey->publicKey(), $key->bytes(), $associatedData);
         $row->save();
 
+        // The new key is now the newest one: a cached "latest" would otherwise
+        // keep handing out the version it replaces.
+        $this->unwrapped["{$ownerType}\0{$ownerId}\0latest"] = $key;
+
         return $this->unwrapped["{$ownerType}\0{$ownerId}\0{$version}"] = $key;
     }
 }
