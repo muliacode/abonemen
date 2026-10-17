@@ -126,6 +126,70 @@ Unwrapped keys exist only in memory for one request or job (`DataKeyRing`). The 
 
 Each subsection follows one kind of data from the moment it enters the app to the moment it is stored, and back.
 
+The overview shows where each kind of data goes and which key protects it on the way. Plaintext and unwrapped keys exist only in memory, for one request or job.
+
+```mermaid
+flowchart TB
+    KEYS[("data_keys table<br/>GDK and HDKs, wrapped by the MK<br/>and sealed to the RK")]
+    REQ["Request<br/>validated input"]
+    UP["Upload<br/>logo"]
+    RING["DataKeyRing<br/>unwraps with the MK wrapping key"]
+    CAST["Encrypted cast<br/>household fields"]
+    ACC["EncryptsAccountFields<br/>email, name"]
+    VAULT["FileVault<br/>uploads"]
+    REG["DecryptedValues<br/>every plaintext seen"]
+    DB[("Database<br/>brng: ciphertext<br/>32-bit email index")]
+    DISK[("encrypted disk<br/>ABF1 secretstream files")]
+    LOG[("Logs and failed_jobs")]
+
+    KEYS --> RING
+    RING -- "HDK, HKDF per<br/>table and column" --> CAST
+    RING -- "GDK, HKDF per<br/>column and index" --> ACC
+    RING -- "HDK, HKDF<br/>per file" --> VAULT
+    REQ --> CAST
+    REQ --> ACC
+    UP --> VAULT
+    CAST -- "BoringCrypto<br/>AAD: row and household" --> DB
+    ACC -- "BoringCrypto, AAD: row<br/>plus blind index" --> DB
+    VAULT -- "secretstream<br/>64 KiB chunks" --> DISK
+    CAST -.-> REG
+    ACC -.-> REG
+    REG -. "scrubs messages<br/>and exceptions" .-> LOG
+
+    classDef rest fill:#eef2ff,stroke:#4f46e5
+    classDef memory fill:#fff7ed,stroke:#ea580c
+    classDef input fill:#f0fdf4,stroke:#16a34a
+    class KEYS,DB,DISK,LOG rest
+    class RING,CAST,ACC,VAULT,REG memory
+    class REQ,UP input
+```
+
+Green: input. Orange: in memory, for one request or job only. Blue: at rest.
+
+Writing and reading one household field, step by step (section 3.1):
+
+```mermaid
+sequenceDiagram
+    participant C as Controller
+    participant M as Model and Encrypted cast
+    participant R as DataKeyRing
+    participant H as HouseholdCipher
+    participant D as Database
+
+    C->>M: set name = "Netflix"
+    M->>M: new row: make ULID, take household and newest key version
+    M->>R: household key (household, version)
+    R->>D: load wrapped HDK
+    D-->>R: v1: nonce, ciphertext, tag
+    R->>R: unwrap with the MK wrapping key, checking id, owner and version
+    R-->>M: HDK, kept in memory for this request only
+    M->>H: encrypt(value, table, column, AAD: ULID and household)
+    H->>H: field key = HKDF-SHA384(HDK, table, column)
+    H-->>M: brng: ciphertext
+    M->>D: INSERT ULID, household_id, key_version, ciphertext
+    Note over C,D: Reading reverses this, and only when the field is read. The MAC over the row and household is checked first, so a ciphertext moved to another row, column or household fails.
+```
+
 ### 3.1 Household fields
 
 **What:**
