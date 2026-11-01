@@ -14,6 +14,8 @@ These are deliberate exclusions, to stop them creeping in.
 
 **MVP**
 - Households, Members, Users and Invites, with the roles Owner, Editor and Viewer.
+- A minimal Instance Admin: first-run setup, open or closed registration (closed by default), Household and User administration, and a connections page.
+- The email connection and its two-level switch (Instance Admin makes it available, an Owner turns it on for the Household).
 - Subscriptions with every status, Price changes, Commitments, Categories and Payment methods.
 - Dashboard and list, email Reminders to the Holder and Owners, totals grouped by currency.
 - JSON and CSV export.
@@ -23,7 +25,12 @@ These are deliberate exclusions, to stop them creeping in.
 - Calendar and personal calendar feed, statistics and Budgets.
 - Exchange rates, web push, passkeys, TOTP and OIDC.
 - Activity log, and account and Household deletion.
+- API tokens, each bound to one User in one Household with read or write scope.
+- Logos: upload, and the website icon fetched as a connection.
+- ntfy as a notification channel, alongside email and web push.
+- Platform-wide encrypted backup and restore, first-run key setup with a forced recovery-key step, and password-reset mode.
 
 **After 1.0**
 - Custom roles per Household (including renaming Owner), built on the scoped Permissions defined in 1.0.
 - A module system, importers, the hosted service and zero-knowledge mode.
+- Telegram and Discord notification channels, and logo search (SearXNG, SerpApi), as modules.

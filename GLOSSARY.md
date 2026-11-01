@@ -118,7 +118,7 @@ A monthly amount in the Household's main currency for the whole Household, one C
 A notice about an upcoming or overdue event: upcoming payment, cancel-by deadline, trial ending, resuming, or (Recorded mode only) an overdue Payment.
 
 **Needs action**:
-The dashboard list of Trials ending or cancel-by dates approaching, Paused Subscriptions about to resume, Cancelled Subscriptions about to end, overdue Due Payments (Recorded mode), and payment dates long past with nothing happening (Projected mode). Nothing else.
+The dashboard list of Trials ending or cancel-by dates approaching, Paused Subscriptions about to resume, Cancelled Subscriptions about to end, overdue Due Payments (Recorded mode), and Subscriptions that do not renew automatically whose payment date has passed. Nothing else.
 
 **Follow**:
 A standing request by a User to receive Reminders for the whole Household, one Member, or one Subscription. Possible only for what that User can see.
