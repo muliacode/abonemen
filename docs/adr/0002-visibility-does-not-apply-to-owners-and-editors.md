@@ -1,0 +1,3 @@
+# Visibility hides Subscriptions from Viewers and Contributors only
+
+A Subscription can be restricted, but Owners and Editors (the roles with the "see Restricted Subscriptions" Permission) always see everything, because they must be able to manage the whole Household. A gift Subscription therefore cannot be hidden from an Editor; the Household would have to make that person a Contributor. Everything a User sees (totals, calendar, exports, Reminders, Follows) is computed only from what they may see. The alternative, hiding from anyone including Editors, would make totals and management unreliable.
