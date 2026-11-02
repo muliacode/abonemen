@@ -1,0 +1,142 @@
+<?php
+
+namespace App\Billing;
+
+use DateTimeImmutable;
+use InvalidArgumentException;
+
+final readonly class Cycle
+{
+    public function __construct(
+        public int $count,
+        public CycleUnit $unit,
+    ) {
+        if ($count < 1) {
+            throw new InvalidArgumentException('A cycle repeats at least every 1 unit.');
+        }
+    }
+
+    /**
+     * Get the date of the given payment, counting the start date as payment 0.
+     *
+     * Every date is worked out from the start date, never from the previous
+     * payment, so a clamped month end does not drift the later dates.
+     */
+    public function dateOf(DateTimeImmutable $start, int $occurrence): DateTimeImmutable
+    {
+        if ($occurrence < 0) {
+            throw new InvalidArgumentException('There is no payment before the start date.');
+        }
+
+        $steps = $occurrence * $this->count;
+
+        return match ($this->unit) {
+            CycleUnit::Day => $start->modify("+{$steps} days"),
+            CycleUnit::Week => $start->modify('+'.($steps * 7).' days'),
+            CycleUnit::Month => $this->addMonths($start, $steps),
+            CycleUnit::Year => $this->addMonths($start, $steps * 12),
+        };
+    }
+
+    /**
+     * Spread the price of one payment over the cycle to a cost per month.
+     *
+     * A year has 12 months, 52 weeks and 365 days.
+     */
+    public function monthlyEquivalent(Money $price): Money
+    {
+        return match ($this->unit) {
+            CycleUnit::Day => $price->times(365, 12 * $this->count),
+            CycleUnit::Week => $price->times(52, 12 * $this->count),
+            CycleUnit::Month => $price->times(1, $this->count),
+            CycleUnit::Year => $price->times(1, 12 * $this->count),
+        };
+    }
+
+    /**
+     * Get the first payment that falls on or after the given date.
+     */
+    public function firstOnOrAfter(DateTimeImmutable $start, DateTimeImmutable $date): DateTimeImmutable
+    {
+        if ($date <= $start) {
+            return $start;
+        }
+
+        $occurrence = $this->estimateOccurrenceNear($start, $date);
+
+        while ($this->dateOf($start, $occurrence) < $date) {
+            $occurrence++;
+        }
+
+        while ($occurrence > 0 && $this->dateOf($start, $occurrence - 1) >= $date) {
+            $occurrence--;
+        }
+
+        return $this->dateOf($start, $occurrence);
+    }
+
+    /**
+     * Count the payments dated from the first date up to, but not including, the last.
+     */
+    public function paymentsInRange(DateTimeImmutable $start, DateTimeImmutable $from, DateTimeImmutable $until): int
+    {
+        $count = 0;
+        $first = $this->firstOnOrAfter($start, $from);
+
+        for ($occurrence = $this->occurrenceOf($start, $first); $this->dateOf($start, $occurrence) < $until; $occurrence++) {
+            $count++;
+        }
+
+        return $count;
+    }
+
+    /**
+     * Find which payment, counting the start date as 0, falls on the given payment date.
+     */
+    private function occurrenceOf(DateTimeImmutable $start, DateTimeImmutable $paymentDate): int
+    {
+        $occurrence = $this->estimateOccurrenceNear($start, $paymentDate);
+
+        while ($this->dateOf($start, $occurrence) < $paymentDate) {
+            $occurrence++;
+        }
+
+        while ($occurrence > 0 && $this->dateOf($start, $occurrence - 1) >= $paymentDate) {
+            $occurrence--;
+        }
+
+        return $occurrence;
+    }
+
+    /**
+     * Guess how many payments lie between the start and the date, close enough to search from.
+     */
+    private function estimateOccurrenceNear(DateTimeImmutable $start, DateTimeImmutable $date): int
+    {
+        $days = $start->diff($date)->days;
+
+        $months = ((int) $date->format('Y') - (int) $start->format('Y')) * 12
+            + (int) $date->format('n') - (int) $start->format('n');
+
+        return max(0, match ($this->unit) {
+            CycleUnit::Day => intdiv($days, $this->count),
+            CycleUnit::Week => intdiv($days, 7 * $this->count),
+            CycleUnit::Month => intdiv($months, $this->count),
+            CycleUnit::Year => intdiv($months, 12 * $this->count),
+        });
+    }
+
+    /**
+     * Move a date by whole months, keeping its day of the month or the last day if the month is shorter.
+     */
+    private function addMonths(DateTimeImmutable $start, int $months): DateTimeImmutable
+    {
+        $total = (int) $start->format('Y') * 12 + ((int) $start->format('n') - 1) + $months;
+        $year = intdiv($total, 12);
+        $month = $total % 12 + 1;
+
+        $day = min((int) $start->format('j'), (int) (new DateTimeImmutable(sprintf('%04d-%02d-01', $year, $month)))->format('t'));
+
+        return $start->setDate($year, $month, $day);
+    }
+}
