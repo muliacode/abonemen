@@ -10,6 +10,7 @@ readonly class UserHousehold
         public string $name,
         public ?string $role,
         public ?string $roleLabel,
+        public bool $canManage = false,
         public ?bool $isCurrent = null,
     ) {
         //

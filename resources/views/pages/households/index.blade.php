@@ -40,15 +40,15 @@ new #[Title('Households')] class extends Component {
                         <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ $household->roleLabel }}</flux:text>
                     </div>
 
-                    <flux:tooltip :content="$household->role === 'owner' ? __('Edit household') : __('View household')">
+                    <flux:tooltip :content="$household->canManage ? __('Edit household') : __('View household')">
                         <flux:button
                             variant="ghost"
                             size="sm"
-                            :icon="$household->role === 'owner' ? 'pencil' : 'eye'"
+                            :icon="$household->canManage ? 'pencil' : 'eye'"
                             :href="route('households.edit', $household->ulid)"
-                            :aria-label="$household->role === 'owner' ? __('Edit household') : __('View household')"
+                            :aria-label="$household->canManage ? __('Edit household') : __('View household')"
                             wire:navigate
-                            :data-test="$household->role === 'owner' ? 'household-edit-button' : 'household-view-button'"
+                            :data-test="$household->canManage ? 'household-edit-button' : 'household-view-button'"
                         />
                     </flux:tooltip>
                 </div>

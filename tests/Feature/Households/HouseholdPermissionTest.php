@@ -109,6 +109,42 @@ class HouseholdPermissionTest extends TestCase
         $this->assertFalse(Gate::forUser($stranger)->allows('writeData', $household));
     }
 
+    public function test_a_role_without_a_member_in_the_household_grants_nothing(): void
+    {
+        [$user, $household] = $this->userWithRole(HouseholdRole::Owner);
+
+        $household->members()->where('user_id', $user->id)->delete();
+
+        $this->assertFalse(Gate::forUser($user)->allows('view', $household));
+        $this->assertFalse(Gate::forUser($user)->allows('update', $household));
+        $this->assertFalse(Gate::forUser($user)->allows('writeData', $household));
+        $this->assertNull($user->householdRole($household));
+    }
+
+    public function test_the_owner_role_carries_every_ability_at_full_scope(): void
+    {
+        [$owner, $household] = $this->userWithRole(HouseholdRole::Owner);
+
+        foreach (HouseholdPermission::cases() as $permission) {
+            $scope = $permission->isScoped() ? PermissionScope::All : null;
+
+            $this->assertTrue(
+                $owner->hasHouseholdPermission($household, $permission, $scope),
+                "Owner is missing {$permission->named($scope)}",
+            );
+        }
+    }
+
+    public function test_giving_a_user_a_new_role_replaces_the_old_one(): void
+    {
+        [$user, $household] = $this->userWithRole(HouseholdRole::Owner);
+
+        $user->assignHouseholdRole($household, HouseholdRole::Viewer);
+
+        $this->assertSame(HouseholdRole::Viewer, $user->householdRole($household));
+        $this->assertFalse(Gate::forUser($user)->allows('update', $household));
+    }
+
     /**
      * @return array{0: User, 1: Household}
      */

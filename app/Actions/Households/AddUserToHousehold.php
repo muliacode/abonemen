@@ -11,16 +11,15 @@ use Illuminate\Support\Facades\DB;
 class AddUserToHousehold
 {
     /**
-     * Make the user part of the household through a member, with the given role.
-     *
-     * Without a member, a new one carrying the user's name is created.
+     * Make the user part of the household through a new member carrying their name, with the given role.
      */
-    public function handle(Household $household, User $user, HouseholdRole $role, ?Member $member = null): Member
+    public function handle(Household $household, User $user, HouseholdRole $role): Member
     {
-        return DB::transaction(function () use ($household, $user, $role, $member) {
-            $member ??= $household->members()->create(['name' => $user->name]);
-
-            $member->update(['user_id' => $user->id]);
+        return DB::transaction(function () use ($household, $user, $role) {
+            $member = $household->members()->create([
+                'name' => $user->name,
+                'user_id' => $user->id,
+            ]);
 
             $user->assignHouseholdRole($household, $role);
 

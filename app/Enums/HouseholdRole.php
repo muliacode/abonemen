@@ -31,11 +31,10 @@ enum HouseholdRole: string
     public function permissions(): array
     {
         return match ($this) {
-            self::Owner => [
-                HouseholdPermission::ManageHousehold->named(),
-                HouseholdPermission::ReadData->named(PermissionScope::All),
-                HouseholdPermission::WriteData->named(PermissionScope::All),
-            ],
+            self::Owner => array_map(
+                fn (HouseholdPermission $permission) => $permission->named($permission->isScoped() ? PermissionScope::All : null),
+                HouseholdPermission::cases(),
+            ),
             self::Editor => [
                 HouseholdPermission::ReadData->named(PermissionScope::All),
                 HouseholdPermission::WriteData->named(PermissionScope::All),

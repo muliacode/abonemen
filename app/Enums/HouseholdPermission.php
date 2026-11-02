@@ -13,6 +13,17 @@ enum HouseholdPermission: string
     case WriteData = 'data.write';
 
     /**
+     * Determine if the ability comes in scopes (all, own, visible).
+     */
+    public function isScoped(): bool
+    {
+        return match ($this) {
+            self::ManageHousehold => false,
+            self::ReadData, self::WriteData => true,
+        };
+    }
+
+    /**
      * Get the stored permission name, with its scope if it has one.
      */
     public function named(?PermissionScope $scope = null): string

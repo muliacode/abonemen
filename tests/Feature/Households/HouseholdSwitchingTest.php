@@ -109,6 +109,8 @@ class HouseholdSwitchingTest extends TestCase
             ->get(route('households.index'))
             ->assertOk()
             ->assertSeeInOrder(['Home', 'Owner', 'Parents', 'Viewer'])
+            ->assertSee('data-test="household-edit-button"', false)
+            ->assertSee('data-test="household-view-button"', false)
             ->assertDontSee('Strangers');
     }
 

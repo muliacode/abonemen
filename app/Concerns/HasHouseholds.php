@@ -101,24 +101,28 @@ trait HasHouseholds
      */
     public function householdRole(Household $household): ?HouseholdRole
     {
-        return $this->inHousehold($household, function () {
-            foreach (HouseholdRole::cases() as $role) {
-                if ($this->hasRole($role->value)) {
-                    return $role;
-                }
-            }
-
+        if (! $this->belongsToHousehold($household)) {
             return null;
-        });
+        }
+
+        $names = $this->inHousehold($household, fn () => $this->getRoleNames());
+
+        return HouseholdRole::tryFrom((string) $names->first(fn (string $name) => HouseholdRole::tryFrom($name) !== null));
     }
 
     /**
      * Get the scopes at which the user holds the given permission in the household.
      *
+     * A role only counts while the user still has a member in the household.
+     *
      * @return list<PermissionScope>
      */
     public function householdPermissionScopes(Household $household, HouseholdPermission $permission): array
     {
+        if (! $this->belongsToHousehold($household)) {
+            return [];
+        }
+
         return $this->inHousehold($household, fn () => array_values(array_filter(
             PermissionScope::cases(),
             fn (PermissionScope $scope) => $this->checkPermissionTo($permission->named($scope)),
@@ -133,17 +137,18 @@ trait HasHouseholds
      */
     public function hasHouseholdPermission(Household $household, HouseholdPermission $permission, ?PermissionScope $scope = null): bool
     {
-        return $this->inHousehold($household, fn () => $this->checkPermissionTo($permission->named($scope)));
+        return $this->belongsToHousehold($household)
+            && $this->inHousehold($household, fn () => $this->checkPermissionTo($permission->named($scope)));
     }
 
     /**
-     * Give the user a role in the given household.
+     * Give the user a role in the given household, replacing any role they had there.
      */
     public function assignHouseholdRole(Household $household, HouseholdRole|string $role): void
     {
         $name = $role instanceof HouseholdRole ? $role->value : $role;
 
-        $this->inHousehold($household, fn () => $this->assignRole($name));
+        $this->inHousehold($household, fn () => $this->syncRoles([$name]));
     }
 
     /**
@@ -173,6 +178,7 @@ trait HasHouseholds
             name: $household->name,
             role: $role?->value,
             roleLabel: $role?->label(),
+            canManage: $this->hasHouseholdPermission($household, HouseholdPermission::ManageHousehold),
             isCurrent: $this->isCurrentHousehold($household),
         );
     }
