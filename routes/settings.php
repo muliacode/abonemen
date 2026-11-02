@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Middleware\EnsureTeamMembership;
+use App\Http\Middleware\EnsureHouseholdMembership;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -24,18 +24,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         )
         ->name('security.edit');
 
-    Route::livewire('settings/teams', 'pages::teams.index')->name('teams.index');
+    Route::livewire('settings/households', 'pages::households.index')->name('households.index');
 
-    Route::middleware(EnsureTeamMembership::class)->group(function () {
-        Route::livewire('settings/teams/{team}', 'pages::teams.edit')->name('teams.edit');
+    Route::middleware(EnsureHouseholdMembership::class)->group(function () {
+        Route::livewire('settings/households/{household}', 'pages::households.edit')->name('households.edit');
     });
 });
 
-/* @chisel-passkeys */
 Route::get('.well-known/passkey-endpoints', function () {
     return response()->json([
         'enroll' => route('security.edit'),
         'manage' => route('security.edit'),
     ]);
 })->name('well-known.passkeys');
-/* @end-chisel-passkeys */

@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Enums\TeamRole;
-use App\Models\Team;
+use App\Enums\HouseholdRole;
+use App\Models\Household;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -32,29 +32,19 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
-            /* @chisel-2fa */
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
-            /* @end-chisel-2fa */
         ];
     }
 
     /**
-     * Configure the model factory.
+     * Put the user in a household of their own with the given role.
      */
-    public function configure(): static
+    public function withHousehold(HouseholdRole $role = HouseholdRole::Owner): static
     {
-        return $this->afterCreating(function ($user) {
-            $team = Team::factory()->personal()->create([
-                'name' => $user->name."'s Team",
-            ]);
-
-            $team->members()->attach($user, [
-                'role' => TeamRole::Owner->value,
-            ]);
-
-            $user->switchTeam($team);
+        return $this->afterCreating(function (User $user) use ($role) {
+            Household::factory()->withUser($user, $role)->create();
         });
     }
 
@@ -68,7 +58,6 @@ class UserFactory extends Factory
         ]);
     }
 
-    /* @chisel-2fa */
     /**
      * Indicate that the model has two-factor authentication configured.
      */
@@ -80,5 +69,4 @@ class UserFactory extends Factory
             'two_factor_confirmed_at' => now(),
         ]);
     }
-    /* @end-chisel-2fa */
 }

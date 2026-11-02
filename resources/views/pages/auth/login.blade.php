@@ -5,13 +5,7 @@
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
 
-        @if ($teamInvitation)
-            <x-team-invitation-alert :invitation="$teamInvitation" :action="__('Log in')" />
-        @endif
-
-        {{-- @chisel-passkeys --}}
         <x-passkey-verify />
-        {{-- @end-chisel-passkeys --}}
 
         <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-6">
             @csrf
@@ -57,17 +51,15 @@
             </div>
         </form>
 
-        {{-- @chisel-registration --}}
         <div class="space-x-1 text-sm text-center rtl:space-x-reverse text-zinc-600 dark:text-zinc-400">
             <span>{{ __('Don\'t have an account?') }}</span>
             <flux:link
-                :href="$teamInvitation ? route('register', ['invitation' => $teamInvitation['code']]) : route('register')"
+                :href="route('register')"
                 data-test="register-link"
                 wire:navigate
             >
                 {{ __('Sign up') }}
             </flux:link>
         </div>
-        {{-- @end-chisel-registration --}}
     </div>
 </x-layouts::auth>
