@@ -22,7 +22,7 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->withHousehold()->create();
 
         $response = $this->post(route('login.store'), [
             'email' => $user->email,
@@ -31,14 +31,24 @@ class AuthenticationTest extends TestCase
 
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect(route('dashboard', absolute: false));
+            ->assertRedirect("/{$user->currentHousehold->ulid}/dashboard");
 
         $this->assertAuthenticated();
     }
 
-    public function test_passkey_login_response_redirects_to_the_current_team_dashboard(): void
+    public function test_users_without_a_household_are_sent_to_the_households_page_after_login(): void
     {
         $user = User::factory()->create();
+
+        $this->post(route('login.store'), [
+            'email' => $user->email,
+            'password' => 'password',
+        ])->assertRedirect(route('households.index', absolute: false));
+    }
+
+    public function test_passkey_login_response_redirects_to_the_current_household_dashboard(): void
+    {
+        $user = User::factory()->withHousehold()->create();
 
         $request = Request::create(route('login', absolute: false), 'GET', server: [
             'HTTP_ACCEPT' => 'application/json',
@@ -49,7 +59,7 @@ class AuthenticationTest extends TestCase
         $jsonResponse = app(PasskeyLoginResponse::class)->toResponse($request);
 
         $this->assertSame(
-            route('dashboard', ['current_team' => $user->personalTeam()->slug]),
+            route('dashboard', ['current_household' => $user->currentHousehold->ulid]),
             $jsonResponse->getData()->redirect,
         );
     }

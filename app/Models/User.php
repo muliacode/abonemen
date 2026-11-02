@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Concerns\HasTeams;
+use App\Concerns\HasHouseholds;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -27,20 +27,19 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
  * @property string|null $remember_token
- * @property int|null $current_team_id
+ * @property int|null $current_household_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read Team|null $currentTeam
- * @property-read Collection<int, Team> $ownedTeams
- * @property-read Collection<int, Membership> $teamMemberships
- * @property-read Collection<int, Team> $teams
+ * @property-read Household|null $currentHousehold
+ * @property-read Collection<int, Household> $households
+ * @property-read Collection<int, Member> $members
  */
-#[Fillable(['name', 'email', 'password', 'current_team_id'])]
+#[Fillable(['name', 'email', 'password', 'current_household_id'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasTeams, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+    use HasFactory, HasHouseholds, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     /**
      * Get the attributes that should be cast.
