@@ -24,7 +24,7 @@ new #[Title('Language settings')] class extends Component {
     public function updateLanguage(): void
     {
         $validated = $this->validate([
-            'locale' => ['required', 'string', Rule::in(Locale::codes())],
+            'locale' => ['required', Rule::enum(Locale::class)],
         ]);
 
         Auth::user()->update(['locale' => $validated['locale']]);

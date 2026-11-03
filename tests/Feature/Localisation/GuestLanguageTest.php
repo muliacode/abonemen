@@ -60,7 +60,7 @@ class GuestLanguageTest extends TestCase
             ->assertSee('Huishoudens');
     }
 
-    public function test_a_new_account_starts_in_the_language_it_was_registered_in(): void
+    public function test_a_new_user_starts_in_the_language_they_registered_in(): void
     {
         $this->withHeader('Accept-Language', 'de')
             ->post(route('register.store'), [
@@ -73,7 +73,7 @@ class GuestLanguageTest extends TestCase
         $this->assertSame(Locale::German, User::whereEmail('sanne@example.com')->sole()->locale);
     }
 
-    public function test_a_new_account_registered_in_an_unsupported_language_gets_the_default(): void
+    public function test_a_new_user_registered_in_an_unsupported_language_gets_the_default(): void
     {
         $this->withHeader('Accept-Language', 'ja')
             ->post(route('register.store'), [

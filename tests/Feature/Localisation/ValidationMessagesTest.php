@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Localisation;
 
+use App\Models\Household;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -39,6 +40,32 @@ class ValidationMessagesTest extends TestCase
             'Indonesian' => ['id', 'mata uang utama', 'zona waktu'],
             'French' => ['fr', 'devise principale', 'fuseau horaire'],
             'German' => ['de', 'Hauptwährung', 'Zeitzone'],
+        ];
+    }
+
+    #[DataProvider('currencyNames')]
+    public function test_currencies_are_named_in_the_users_language(string $locale, string $usDollar): void
+    {
+        app()->setLocale($locale);
+
+        $user = User::factory()->create();
+        $household = Household::factory()->withUser($user)->create();
+
+        Livewire::actingAs($user)->test('create-household-modal')->assertSee($usDollar);
+        Livewire::actingAs($user)->test('pages::households.edit', ['household' => $household])->assertSee($usDollar);
+    }
+
+    /**
+     * @return array<string, array{0: string, 1: string}>
+     */
+    public static function currencyNames(): array
+    {
+        return [
+            'Dutch' => ['nl', 'Amerikaanse dollar'],
+            'Indonesian' => ['id', 'Dolar Amerika Serikat'],
+            'French' => ['fr', 'dollar des États-Unis'],
+            'German' => ['de', 'US-Dollar'],
+            'English' => ['en', 'US Dollar'],
         ];
     }
 

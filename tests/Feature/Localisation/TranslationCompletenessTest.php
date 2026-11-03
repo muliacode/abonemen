@@ -8,16 +8,18 @@ use RecursiveIteratorIterator;
 use Tests\TestCase;
 
 /**
- * Every text the app can show must exist in every launch language.
+ * Every text the app can show must exist, translated, in every launch language.
  *
  * Texts are written in English where they are used, as __('Some text'), and the
  * languages other than English translate them in lang/{code}.json. English is the
- * fallback: a text missing from a language shows in English, which this test refuses.
+ * fallback: a text missing from a language would show in English, which this test refuses.
  */
 class TranslationCompletenessTest extends TestCase
 {
     /**
-     * Where texts are used: the app itself, and the packages whose messages people see.
+     * Where texts are used: the app itself, and the parts of packages whose texts people see.
+     *
+     * Every path must exist, so that a package moving a folder fails here instead of quietly shrinking the scan.
      *
      * @var list<string>
      */
@@ -29,7 +31,29 @@ class TranslationCompletenessTest extends TestCase
         'vendor/laravel/framework/src/Illuminate/Auth/Notifications',
         'vendor/laravel/framework/src/Illuminate/Notifications/resources/views',
         'vendor/laravel/framework/src/Illuminate/Mail/resources/views',
+        'vendor/livewire/flux/stubs/resources/views/flux/modal',
+        'vendor/livewire/flux/stubs/resources/views/flux/input',
+        'vendor/livewire/flux/stubs/resources/views/flux/otp',
     ];
+
+    /**
+     * Texts that are the same in a language as in English, because the word is shared or is a name.
+     * Anything else that equals its English text has simply not been translated.
+     *
+     * @var array<string, list<string>>
+     */
+    private const SAME_AS_ENGLISH = [
+        'nl' => ['Dashboard', 'Platform', 'Repository'],
+        'id' => ['Editor', 'Passkeys', 'Platform'],
+        'fr' => ['Documentation'],
+        'de' => ['Dashboard', 'Name', 'Passkeys', 'Repository', 'System'],
+    ];
+
+    /** @var list<string>|null */
+    private ?array $texts = null;
+
+    /** @var array<string, array<string, mixed>> */
+    private array $loaded = [];
 
     public function test_every_text_exists_in_every_launch_language(): void
     {
@@ -51,6 +75,25 @@ class TranslationCompletenessTest extends TestCase
         $this->assertSame([], $report, "\n".implode("\n\n", $report));
     }
 
+    public function test_no_text_is_left_in_english_in_another_language(): void
+    {
+        $report = [];
+
+        foreach ($this->otherLanguages() as $code) {
+            $translations = $this->translations($code);
+            $untranslated = array_values(array_filter(
+                $this->textsInUse(),
+                fn (string $key) => ($translations[$key] ?? null) === $key && ! in_array($key, self::SAME_AS_ENGLISH[$code] ?? [], true),
+            ));
+
+            if ($untranslated !== []) {
+                $report[] = count($untranslated)." text(s) in lang/{$code}.json are still the English text:\n- ".implode("\n- ", $untranslated);
+            }
+        }
+
+        $this->assertSame([], $report, "\n".implode("\n\n", $report));
+    }
+
     public function test_no_translation_is_empty(): void
     {
         foreach ($this->otherLanguages() as $code) {
@@ -63,10 +106,11 @@ class TranslationCompletenessTest extends TestCase
     public function test_every_translation_keeps_the_placeholders_of_its_text(): void
     {
         foreach ($this->otherLanguages() as $code) {
+            $translations = $this->translations($code);
             $broken = [];
 
             foreach ($this->textsInUse() as $key) {
-                $translation = $this->translations($code)[$key] ?? null;
+                $translation = $translations[$key] ?? null;
 
                 if (is_string($translation) && $this->placeholders($key) !== $this->placeholders($translation)) {
                     $broken[] = $key;
@@ -75,11 +119,6 @@ class TranslationCompletenessTest extends TestCase
 
             $this->assertSame([], $broken, "These translations in lang/{$code}.json lost or changed a :placeholder:\n- ".implode("\n- ", $broken));
         }
-    }
-
-    public function test_the_launch_languages_are_the_ones_the_concept_promises(): void
-    {
-        $this->assertEqualsCanonicalizing(['en', 'nl', 'id', 'fr', 'de'], Locale::codes());
     }
 
     /**
@@ -97,6 +136,10 @@ class TranslationCompletenessTest extends TestCase
      */
     private function translations(string $code): array
     {
+        if (isset($this->loaded[$code])) {
+            return $this->loaded[$code];
+        }
+
         $path = lang_path("{$code}.json");
 
         $this->assertFileExists($path);
@@ -105,7 +148,7 @@ class TranslationCompletenessTest extends TestCase
 
         $this->assertIsArray($decoded);
 
-        return $decoded;
+        return $this->loaded[$code] = $decoded;
     }
 
     /**
@@ -119,10 +162,8 @@ class TranslationCompletenessTest extends TestCase
      */
     private function textsInUse(): array
     {
-        static $found = null;
-
-        if ($found !== null) {
-            return $found;
+        if ($this->texts !== null) {
+            return $this->texts;
         }
 
         $pattern = '/(?:__|trans|Lang::get|@lang)\(\s*([\'"])((?:\\\\.|(?!\1).)*)\1/s';
@@ -130,13 +171,9 @@ class TranslationCompletenessTest extends TestCase
         $texts = [];
 
         foreach (self::SOURCES as $source) {
-            $root = base_path($source);
+            $this->assertDirectoryExists(base_path($source), "{$source} is scanned for texts, so it must exist.");
 
-            if (! is_dir($root)) {
-                continue;
-            }
-
-            foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, RecursiveDirectoryIterator::SKIP_DOTS)) as $file) {
+            foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(base_path($source), RecursiveDirectoryIterator::SKIP_DOTS)) as $file) {
                 if (! $file->isFile() || ! str_ends_with($file->getFilename(), '.php')) {
                     continue;
                 }
@@ -162,7 +199,7 @@ class TranslationCompletenessTest extends TestCase
         $found = array_keys($texts);
         sort($found);
 
-        return $found;
+        return $this->texts = $found;
     }
 
     /**

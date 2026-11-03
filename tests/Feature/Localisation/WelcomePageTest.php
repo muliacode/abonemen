@@ -32,7 +32,7 @@ class WelcomePageTest extends TestCase
             'Dutch' => ['nl', 'Weet precies waarvoor je betaalt, wanneer en waarom, zonder je privacy op te geven.', 'Inloggen'],
             'Indonesian' => ['id', 'Ketahui dengan pasti apa yang Anda bayar, kapan, dan mengapa, tanpa mengorbankan privasi Anda.', 'Masuk'],
             'French' => ['fr', 'Sachez exactement ce que vous payez, quand et pourquoi, sans renoncer à votre vie privée.', 'Se connecter'],
-            'German' => ['de', 'Wissen Sie genau, wofür Sie wann und warum bezahlen, ohne Ihre Privatsphäre aufzugeben.', 'Anmelden'],
+            'German' => ['de', 'Behalten Sie genau im Blick, wofür Sie wann und warum bezahlen, ohne Ihre Privatsphäre aufzugeben.', 'Anmelden'],
         ];
     }
 

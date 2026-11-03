@@ -13,6 +13,7 @@ use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -60,7 +61,6 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         return [
             'name' => ProtectedAttribute::class.':platform',
             'email' => ProtectedAttribute::class.':platform,email_index',
-            'locale' => Locale::class,
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
@@ -83,6 +83,21 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     public function getEmailForPasswordReset(): string
     {
         return $this->email_index;
+    }
+
+    /**
+     * The language the user chose.
+     *
+     * A stored value the app is no longer available in reads as no choice, so it can never lock the user out.
+     *
+     * @return Attribute<Locale|null, Locale|string|null>
+     */
+    protected function locale(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?string $value) => $value === null ? null : Locale::tryFrom($value),
+            set: fn (Locale|string|null $value) => $value instanceof Locale ? $value->value : $value,
+        );
     }
 
     /**

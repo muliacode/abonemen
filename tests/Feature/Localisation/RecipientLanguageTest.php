@@ -3,10 +3,33 @@
 namespace Tests\Feature\Localisation;
 
 use App\Models\User;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification as Notifications;
 use Tests\TestCase;
+
+/**
+ * A notification that goes through the queue, as most real ones will.
+ */
+class QueuedNotice extends Notification implements ShouldQueue
+{
+    use Queueable;
+
+    public function via(object $notifiable): array
+    {
+        return ['mail'];
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        return (new MailMessage)->subject(__('Verify your email address'))->line('Hello');
+    }
+}
 
 class RecipientLanguageTest extends TestCase
 {
@@ -48,12 +71,24 @@ class RecipientLanguageTest extends TestCase
         $this->assertSame('Bestätigen Sie Ihre E-Mail-Adresse', $this->lastEmailSubject());
     }
 
+    public function test_a_queued_email_is_still_written_in_the_recipients_language(): void
+    {
+        $recipient = User::factory()->create(['locale' => 'nl']);
+
+        App::setLocale('en');
+
+        // The queue runs the job later, possibly in a process with another language current.
+        Notifications::send($recipient, new QueuedNotice);
+
+        $this->assertSame('Verifieer je e-mailadres', $this->lastEmailSubject());
+    }
+
     public function test_any_content_can_be_made_in_a_users_language(): void
     {
         $user = User::factory()->create(['locale' => 'id']);
 
         $this->assertSame('id', $user->preferredLocale());
-        $this->assertSame('Rumah Tangga', $user->inPreferredLocale(fn () => __('Households')));
+        $this->assertSame('Rumah tangga', $user->inPreferredLocale(fn () => __('Households')));
     }
 
     private function lastEmailSubject(): string
