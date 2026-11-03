@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Casts\ProtectedAttribute;
-use App\Concerns\HasProtectedAttributes;
+use App\Concerns\HasWaitingProtectedValues;
 use App\Contracts\HoldsWaitingProtectedValues;
 use Database\Factories\HouseholdFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -30,7 +30,7 @@ use Illuminate\Support\Str;
 class Household extends Model implements HoldsWaitingProtectedValues
 {
     /** @use HasFactory<HouseholdFactory> */
-    use HasFactory, HasProtectedAttributes;
+    use HasFactory, HasWaitingProtectedValues;
 
     /**
      * Bootstrap the model and its traits.

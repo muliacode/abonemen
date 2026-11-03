@@ -2,7 +2,7 @@
 
 namespace App\Auth;
 
-use App\Protection\BlindIndex;
+use App\Support\BlindIndex;
 use Illuminate\Auth\EloquentUserProvider;
 
 /**

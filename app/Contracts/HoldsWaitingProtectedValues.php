@@ -5,7 +5,7 @@ namespace App\Contracts;
 /**
  * A model that can keep a protected value in memory until it knows which Household's key seals it.
  *
- * Use the HasProtectedAttributes trait to implement it.
+ * Use the HasWaitingProtectedValues trait to implement it.
  */
 interface HoldsWaitingProtectedValues
 {

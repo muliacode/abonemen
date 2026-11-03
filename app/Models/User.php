@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Casts\ProtectedAttribute;
 use App\Concerns\HasHouseholds;
-use App\Protection\BlindIndex;
+use App\Support\BlindIndex;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;

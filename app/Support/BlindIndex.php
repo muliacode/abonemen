@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Protection;
+namespace App\Support;
 
 /**
  * A keyed fingerprint of a value, so it can be found again by exact match without storing it readable.

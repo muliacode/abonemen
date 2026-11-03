@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Protection;
+namespace App\Support;
 
+use App\Exceptions\ProtectionException;
 use App\Models\Household;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Encryption\Encrypter;

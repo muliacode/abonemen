@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Casts\ProtectedAttribute;
-use App\Concerns\HasProtectedAttributes;
+use App\Concerns\HasWaitingProtectedValues;
 use App\Contracts\HoldsWaitingProtectedValues;
 use Database\Factories\MemberFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -26,7 +26,7 @@ use Illuminate\Support\Carbon;
 class Member extends Model implements HoldsWaitingProtectedValues
 {
     /** @use HasFactory<MemberFactory> */
-    use HasFactory, HasProtectedAttributes;
+    use HasFactory, HasWaitingProtectedValues;
 
     /**
      * Get the attributes that should be cast.

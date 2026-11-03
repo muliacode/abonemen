@@ -3,10 +3,10 @@
 namespace App\Casts;
 
 use App\Contracts\HoldsWaitingProtectedValues;
+use App\Exceptions\ProtectionException;
 use App\Models\Household;
-use App\Protection\BlindIndex;
-use App\Protection\KeyRing;
-use App\Protection\ProtectionException;
+use App\Support\BlindIndex;
+use App\Support\KeyRing;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Contracts\Database\Eloquent\ComparesCastableAttributes;
 use Illuminate\Database\Eloquent\Model;
@@ -89,7 +89,7 @@ final class ProtectedAttribute implements CastsAttributes, ComparesCastableAttri
 
         if ($this->householdNotKnownYet($model)) {
             if (! $model instanceof HoldsWaitingProtectedValues) {
-                throw new LogicException(class_basename($model).' must implement HoldsWaitingProtectedValues (use HasProtectedAttributes) to hold protected attributes.');
+                throw new LogicException(class_basename($model).' must implement HoldsWaitingProtectedValues (use HasWaitingProtectedValues) to hold protected attributes.');
             }
 
             $model->holdWaitingProtectedValue($key, $value);

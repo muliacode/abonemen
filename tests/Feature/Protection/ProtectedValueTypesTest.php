@@ -3,9 +3,10 @@
 namespace Tests\Feature\Protection;
 
 use App\Casts\ProtectedAttribute;
-use App\Concerns\HasProtectedAttributes;
+use App\Concerns\HasWaitingProtectedValues;
 use App\Contracts\HoldsWaitingProtectedValues;
 use App\Models\Household;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -18,7 +19,7 @@ use Tests\TestCase;
  */
 class ProtectedThing extends Model implements HoldsWaitingProtectedValues
 {
-    use HasProtectedAttributes;
+    use HasWaitingProtectedValues;
 
     protected $table = 'protected_things';
 
@@ -32,6 +33,23 @@ class ProtectedThing extends Model implements HoldsWaitingProtectedValues
             'price_minor' => ProtectedAttribute::class.':household,,int',
             'details' => ProtectedAttribute::class.':household,,json',
         ];
+    }
+}
+
+/**
+ * A Household-scoped model that forgot to opt in to holding values until its Household is known.
+ */
+class ForgetfulThing extends Model
+{
+    protected $table = 'protected_things';
+
+    protected $guarded = [];
+
+    public $timestamps = false;
+
+    protected function casts(): array
+    {
+        return ['details' => ProtectedAttribute::class.':household,,json'];
     }
 }
 
@@ -93,6 +111,23 @@ class ProtectedValueTypesTest extends TestCase
 
         $this->assertNull(ProtectedThing::sole()->price_minor);
         $this->assertNull(ProtectedThing::sole()->details);
+    }
+
+    public function test_a_household_model_that_cannot_hold_values_yet_says_how_to_fix_it(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('must implement HoldsWaitingProtectedValues');
+
+        // Filled before household_id is known, which only a model that can hold the value may do.
+        new ForgetfulThing(['details' => ['url' => 'x'], 'household_id' => 1]);
+    }
+
+    public function test_a_platform_model_never_needs_to_hold_values(): void
+    {
+        $user = User::factory()->create(['name' => 'Sanne Visser']);
+
+        $this->assertNotInstanceOf(HoldsWaitingProtectedValues::class, $user);
+        $this->assertSame('Sanne Visser', $user->fresh()->name);
     }
 
     public function test_a_value_of_the_wrong_type_is_refused(): void

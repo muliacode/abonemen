@@ -16,12 +16,12 @@ use Illuminate\Database\Eloquent\Model;
  * Until then the stored attribute stays null, so a save that skips model events
  * fails on the empty column instead of writing the value readable.
  */
-trait HasProtectedAttributes
+trait HasWaitingProtectedValues
 {
     /** @var array<string, string> Values waiting for their Household, by attribute. */
     private array $waitingProtectedValues = [];
 
-    protected static function bootHasProtectedAttributes(): void
+    protected static function bootHasWaitingProtectedValues(): void
     {
         static::saving(function (Model $model) {
             if (! $model instanceof HoldsWaitingProtectedValues) {

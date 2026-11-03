@@ -3,7 +3,7 @@
 namespace App\Providers;
 
 use App\Auth\ProtectedUserProvider;
-use App\Protection\KeyRing;
+use App\Support\KeyRing;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Auth;
