@@ -3,8 +3,15 @@
 namespace App\Billing;
 
 use DateTimeImmutable;
+use DateTimeZone;
 use InvalidArgumentException;
 
+/**
+ * How often a Subscription is paid: every N days, weeks, months or years.
+ *
+ * Payment dates are calendar dates. Any time of day or time zone on a date
+ * that is passed in is ignored, and the dates that come back are midnight UTC.
+ */
 final readonly class Cycle
 {
     public function __construct(
@@ -28,6 +35,7 @@ final readonly class Cycle
             throw new InvalidArgumentException('There is no payment before the start date.');
         }
 
+        $start = self::calendarDate($start);
         $steps = $occurrence * $this->count;
 
         return match ($this->unit) {
@@ -58,8 +66,36 @@ final readonly class Cycle
      */
     public function firstOnOrAfter(DateTimeImmutable $start, DateTimeImmutable $date): DateTimeImmutable
     {
+        return $this->dateOf($start, $this->firstOccurrenceOnOrAfter(self::calendarDate($start), self::calendarDate($date)));
+    }
+
+    /**
+     * Count the payments dated from the first date up to, but not including, the last.
+     *
+     * For a Commitment this is the number of payments left inside it: from the date
+     * the Subscription ends up to the commitment end date, whose own payment starts
+     * the next term.
+     */
+    public function paymentsInRange(DateTimeImmutable $start, DateTimeImmutable $from, DateTimeImmutable $until): int
+    {
+        [$start, $from, $until] = [self::calendarDate($start), self::calendarDate($from), self::calendarDate($until)];
+
+        $payments = 0;
+
+        for ($occurrence = $this->firstOccurrenceOnOrAfter($start, $from); $this->dateOf($start, $occurrence) < $until; $occurrence++) {
+            $payments++;
+        }
+
+        return $payments;
+    }
+
+    /**
+     * Find which payment, counting the start date as 0, is the first on or after the date.
+     */
+    private function firstOccurrenceOnOrAfter(DateTimeImmutable $start, DateTimeImmutable $date): int
+    {
         if ($date <= $start) {
-            return $start;
+            return 0;
         }
 
         $occurrence = $this->estimateOccurrenceNear($start, $date);
@@ -69,39 +105,6 @@ final readonly class Cycle
         }
 
         while ($occurrence > 0 && $this->dateOf($start, $occurrence - 1) >= $date) {
-            $occurrence--;
-        }
-
-        return $this->dateOf($start, $occurrence);
-    }
-
-    /**
-     * Count the payments dated from the first date up to, but not including, the last.
-     */
-    public function paymentsInRange(DateTimeImmutable $start, DateTimeImmutable $from, DateTimeImmutable $until): int
-    {
-        $count = 0;
-        $first = $this->firstOnOrAfter($start, $from);
-
-        for ($occurrence = $this->occurrenceOf($start, $first); $this->dateOf($start, $occurrence) < $until; $occurrence++) {
-            $count++;
-        }
-
-        return $count;
-    }
-
-    /**
-     * Find which payment, counting the start date as 0, falls on the given payment date.
-     */
-    private function occurrenceOf(DateTimeImmutable $start, DateTimeImmutable $paymentDate): int
-    {
-        $occurrence = $this->estimateOccurrenceNear($start, $paymentDate);
-
-        while ($this->dateOf($start, $occurrence) < $paymentDate) {
-            $occurrence++;
-        }
-
-        while ($occurrence > 0 && $this->dateOf($start, $occurrence - 1) >= $paymentDate) {
             $occurrence--;
         }
 
@@ -138,5 +141,13 @@ final readonly class Cycle
         $day = min((int) $start->format('j'), (int) (new DateTimeImmutable(sprintf('%04d-%02d-01', $year, $month)))->format('t'));
 
         return $start->setDate($year, $month, $day);
+    }
+
+    /**
+     * Keep only the calendar date of a moment, as midnight UTC.
+     */
+    private static function calendarDate(DateTimeImmutable $moment): DateTimeImmutable
+    {
+        return new DateTimeImmutable($moment->format('Y-m-d'), new DateTimeZone('UTC'));
     }
 }

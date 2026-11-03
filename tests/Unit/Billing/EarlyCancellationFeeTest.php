@@ -5,6 +5,7 @@ namespace Tests\Unit\Billing;
 use App\Billing\EarlyCancellationFee;
 use App\Billing\Money;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class EarlyCancellationFeeTest extends TestCase
@@ -48,11 +49,28 @@ class EarlyCancellationFeeTest extends TestCase
         $this->assertSame(0, EarlyCancellationFee::percentageOfRemainingPayments(100)->cost(Money::parse('59.99', 'EUR'), 0)->minor);
     }
 
-    public function test_a_percentage_must_be_between_zero_and_one_hundred(): void
+    public function test_zero_percent_costs_nothing(): void
+    {
+        $this->assertSame(0, EarlyCancellationFee::percentageOfRemainingPayments(0)->cost(Money::parse('59.99', 'EUR'), 6)->minor);
+    }
+
+    #[DataProvider('invalidPercentages')]
+    public function test_a_percentage_must_be_between_zero_and_one_hundred(int $percent): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        EarlyCancellationFee::percentageOfRemainingPayments(101);
+        EarlyCancellationFee::percentageOfRemainingPayments($percent);
+    }
+
+    /**
+     * @return array<string, array{0: int}>
+     */
+    public static function invalidPercentages(): array
+    {
+        return [
+            'below zero' => [-1],
+            'above one hundred' => [101],
+        ];
     }
 
     public function test_the_number_of_remaining_payments_cannot_be_negative(): void

@@ -9,19 +9,6 @@ use PHPUnit\Framework\TestCase;
 
 class MoneyTest extends TestCase
 {
-    private function assertThrowsInvalid(callable $callback): void
-    {
-        try {
-            $callback();
-        } catch (InvalidArgumentException) {
-            $this->addToAssertionCount(1);
-
-            return;
-        }
-
-        $this->fail('Expected an InvalidArgumentException.');
-    }
-
     public function test_a_decimal_price_becomes_integer_minor_units_with_its_currency(): void
     {
         $price = Money::parse('15.99', 'EUR');
@@ -80,10 +67,23 @@ class MoneyTest extends TestCase
         $this->assertSame('EUR', $money->currency);
     }
 
-    public function test_minor_units_cannot_be_negative_or_in_an_unknown_currency(): void
+    #[DataProvider('invalidMinorAmounts')]
+    public function test_minor_units_cannot_be_negative_or_in_an_unknown_currency(int $minor, string $currency): void
     {
-        $this->assertThrowsInvalid(fn () => Money::ofMinor(-1, 'EUR'));
-        $this->assertThrowsInvalid(fn () => Money::ofMinor(100, 'XXL'));
+        $this->expectException(InvalidArgumentException::class);
+
+        Money::ofMinor($minor, $currency);
+    }
+
+    /**
+     * @return array<string, array{0: int, 1: string}>
+     */
+    public static function invalidMinorAmounts(): array
+    {
+        return [
+            'negative' => [-1, 'EUR'],
+            'unknown currency' => [100, 'XXL'],
+        ];
     }
 
     public function test_multiplying_by_a_fraction_rounds_half_a_minor_unit_up(): void
@@ -94,10 +94,29 @@ class MoneyTest extends TestCase
         $this->assertSame(1, Money::ofMinor(4, 'EUR')->times(1, 4)->minor);
     }
 
-    public function test_multiplying_needs_a_non_negative_numerator_and_a_positive_denominator(): void
+    public function test_multiplying_by_zero_gives_nothing(): void
     {
-        $this->assertThrowsInvalid(fn () => Money::ofMinor(100, 'EUR')->times(-1, 2));
-        $this->assertThrowsInvalid(fn () => Money::ofMinor(100, 'EUR')->times(1, 0));
+        $this->assertSame(0, Money::ofMinor(100, 'EUR')->times(0, 5)->minor);
+    }
+
+    #[DataProvider('invalidFractions')]
+    public function test_multiplying_needs_a_non_negative_numerator_and_a_positive_denominator(int $numerator, int $denominator): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        Money::ofMinor(100, 'EUR')->times($numerator, $denominator);
+    }
+
+    /**
+     * @return array<string, array{0: int, 1: int}>
+     */
+    public static function invalidFractions(): array
+    {
+        return [
+            'negative numerator' => [-1, 2],
+            'zero denominator' => [1, 0],
+            'negative denominator' => [1, -2],
+        ];
     }
 
     public function test_a_fraction_is_rejected_for_a_currency_without_minor_units(): void

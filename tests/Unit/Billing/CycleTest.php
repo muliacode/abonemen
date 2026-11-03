@@ -6,6 +6,7 @@ use App\Billing\Cycle;
 use App\Billing\CycleUnit;
 use App\Billing\Money;
 use DateTimeImmutable;
+use DateTimeZone;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -190,6 +191,61 @@ class CycleTest extends TestCase
 
         // 15 Mar and 15 Apr are the only payments before 1 May; nothing exists before the start.
         $this->assertSame(2, $cycle->paymentsInRange($start, new DateTimeImmutable('2026-01-01'), new DateTimeImmutable('2026-05-01')));
+    }
+
+    public function test_dates_are_calendar_dates_whatever_the_time_of_day(): void
+    {
+        $cycle = new Cycle(1, CycleUnit::Month);
+
+        // 29 Feb at noon still counts as 29 Feb, the day the 31 Jan cycle lands on.
+        $this->assertSame('2024-02-29', $this->firstOnOrAfter($cycle, '2024-01-31 00:00', '2024-02-29 12:00'));
+        $this->assertSame('2024-02-29', $this->firstOnOrAfter($cycle, '2024-01-31 23:45', '2024-02-29 00:00'));
+    }
+
+    public function test_dates_are_calendar_dates_whatever_the_time_zone(): void
+    {
+        $cycle = new Cycle(1, CycleUnit::Day);
+        $amsterdam = new DateTimeZone('Europe/Amsterdam');
+
+        // Amsterdam moves its clocks forward at 02:00 on 31 March 2024, so 02:30 that day does not exist.
+        $this->assertSame('2024-03-31', $cycle->dateOf(new DateTimeImmutable('2024-03-30 02:30', $amsterdam), 1)->format('Y-m-d'));
+
+        // 1 June in Amsterdam at 00:30 is still 31 May in UTC, but the calendar date is 1 June.
+        $this->assertSame(
+            3,
+            (new Cycle(1, CycleUnit::Month))->paymentsInRange(
+                new DateTimeImmutable('2024-03-01 00:30', $amsterdam),
+                new DateTimeImmutable('2024-03-01', new DateTimeZone('UTC')),
+                new DateTimeImmutable('2024-06-01 00:30', $amsterdam),
+            ),
+        );
+    }
+
+    public function test_the_first_payment_on_or_after_a_date_works_for_daily_cycles_every_n_days(): void
+    {
+        $cycle = new Cycle(10, CycleUnit::Day);
+
+        // Payments: 20 Feb, 2 Mar, 12 Mar, 22 Mar.
+        $this->assertSame('2026-03-12', $this->firstOnOrAfter($cycle, '2026-02-20', '2026-03-03'));
+        $this->assertSame('2026-03-12', $this->firstOnOrAfter($cycle, '2026-02-20', '2026-03-12'));
+        $this->assertSame('2026-03-22', $this->firstOnOrAfter($cycle, '2026-02-20', '2026-03-13'));
+    }
+
+    public function test_payments_in_range_counts_every_n_days_and_every_n_months(): void
+    {
+        // 20 Feb, 2 Mar, 12 Mar, 22 Mar fall in [20 Feb, 1 Apr).
+        $this->assertSame(4, (new Cycle(10, CycleUnit::Day))->paymentsInRange(
+            new DateTimeImmutable('2026-02-20'),
+            new DateTimeImmutable('2026-02-20'),
+            new DateTimeImmutable('2026-04-01'),
+        ));
+
+        // Every 3 months from 30 Nov: 28 Feb 2027, 30 May 2027, 30 Aug 2027 are in (1 Jan, 1 Sep 2027).
+        $this->assertSame(3, (new Cycle(3, CycleUnit::Month))->paymentsInRange(
+            new DateTimeImmutable('2026-11-30'),
+            new DateTimeImmutable('2027-01-01'),
+            new DateTimeImmutable('2027-09-01'),
+        ));
     }
 
     public function test_a_cycle_must_repeat_at_least_every_one_unit(): void
