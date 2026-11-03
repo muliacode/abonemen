@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use App\Casts\ProtectedAttribute;
+use App\Concerns\HasProtectedAttributes;
 use Database\Factories\HouseholdFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,10 +25,11 @@ use Illuminate\Support\Str;
  * @property-read Collection<int, Member> $members
  */
 #[Fillable(['name', 'main_currency', 'timezone'])]
+#[Hidden(['data_key'])]
 class Household extends Model
 {
     /** @use HasFactory<HouseholdFactory> */
-    use HasFactory;
+    use HasFactory, HasProtectedAttributes;
 
     /**
      * Bootstrap the model and its traits.
@@ -37,6 +41,18 @@ class Household extends Model
         static::creating(function (Household $household) {
             $household->ulid ??= (string) Str::ulid();
         });
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'name' => ProtectedAttribute::class,
+        ];
     }
 
     /**

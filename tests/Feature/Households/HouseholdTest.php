@@ -27,16 +27,16 @@ class HouseholdTest extends TestCase
             ->call('createHousehold')
             ->assertHasNoErrors();
 
-        $household = Household::where('name', 'Home')->sole();
+        $household = Household::sole();
 
+        $this->assertSame('Home', $household->name);
         $this->assertSame('EUR', $household->main_currency);
         $this->assertSame('Europe/Amsterdam', $household->timezone);
 
-        $this->assertDatabaseHas('members', [
-            'household_id' => $household->id,
-            'user_id' => $user->id,
-            'name' => 'Sanne',
-        ]);
+        $member = $household->members()->sole();
+
+        $this->assertSame('Sanne', $member->name);
+        $this->assertSame($user->id, $member->user_id);
 
         $this->assertSame(HouseholdRole::Owner, $user->householdRole($household));
         $this->assertTrue(Gate::forUser($user)->allows('update', $household));
@@ -54,9 +54,10 @@ class HouseholdTest extends TestCase
             ->set('mainCurrency', 'USD')
             ->set('timezone', 'America/New_York')
             ->call('createHousehold')
-            ->assertRedirect(route('dashboard', ['current_household' => Household::where('name', 'Second home')->sole()->ulid]));
+            ->assertRedirect(route('dashboard', ['current_household' => Household::latest('id')->first()->ulid]));
 
-        $this->assertTrue($user->fresh()->isCurrentHousehold(Household::where('name', 'Second home')->sole()));
+        $this->assertSame('Second home', Household::latest('id')->first()->name);
+        $this->assertTrue($user->fresh()->isCurrentHousehold(Household::latest('id')->first()));
         $this->assertFalse($user->fresh()->isCurrentHousehold($previous));
     }
 

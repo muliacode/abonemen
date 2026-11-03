@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Casts\ProtectedAttribute;
+use App\Concerns\HasProtectedAttributes;
 use Database\Factories\MemberFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -23,7 +25,19 @@ use Illuminate\Support\Carbon;
 class Member extends Model
 {
     /** @use HasFactory<MemberFactory> */
-    use HasFactory;
+    use HasFactory, HasProtectedAttributes;
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'name' => ProtectedAttribute::class,
+        ];
+    }
 
     /**
      * Get the household this member belongs to.

@@ -2,7 +2,11 @@
 
 namespace App\Providers;
 
+use App\Auth\ProtectedUserProvider;
+use App\Protection\KeyRing;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
@@ -15,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(KeyRing::class);
     }
 
     /**
@@ -24,6 +28,20 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureProtectedUsers();
+    }
+
+    /**
+     * Look users up by the blind index of their encrypted email, and keep plain emails out of reset tokens.
+     */
+    protected function configureProtectedUsers(): void
+    {
+        Auth::provider('protected', fn ($app, array $config) => new ProtectedUserProvider($app['hash'], $config['model']));
+
+        ResetPassword::createUrlUsing(fn ($notifiable, string $token) => url(route('password.reset', [
+            'token' => $token,
+            'email' => $notifiable->email,
+        ], false)));
     }
 
     /**

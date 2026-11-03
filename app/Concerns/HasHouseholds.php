@@ -9,6 +9,7 @@ use App\Enums\PermissionScope;
 use App\Models\Household;
 use App\Models\Member;
 use Closure;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -158,9 +159,7 @@ trait HasHouseholds
      */
     public function toUserHouseholds(): Collection
     {
-        return $this->households()
-            ->orderByRaw('LOWER(households.name)')
-            ->get()
+        return $this->householdsByName($this->households()->get())
             ->map(fn (Household $household) => $this->toUserHousehold($household))
             ->values();
     }
@@ -188,10 +187,24 @@ trait HasHouseholds
      */
     public function fallbackHousehold(?Household $excluding = null): ?Household
     {
-        return $this->households()
-            ->when($excluding, fn ($query) => $query->where('households.id', '!=', $excluding->id))
-            ->orderByRaw('LOWER(households.name)')
-            ->first();
+        return $this->householdsByName(
+            $this->households()
+                ->when($excluding, fn ($query) => $query->where('households.id', '!=', $excluding->id))
+                ->get(),
+        )->first();
+    }
+
+    /**
+     * Sort households by name, ignoring case.
+     *
+     * Names are stored encrypted, so the database cannot order them: this is done in memory.
+     *
+     * @param  EloquentCollection<int, Household>  $households
+     * @return Collection<int, Household>
+     */
+    protected function householdsByName(EloquentCollection $households): Collection
+    {
+        return $households->sortBy(fn (Household $household) => mb_strtolower($household->name), SORT_STRING)->values();
     }
 
     /**

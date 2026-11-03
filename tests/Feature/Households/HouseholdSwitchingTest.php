@@ -114,6 +114,33 @@ class HouseholdSwitchingTest extends TestCase
             ->assertDontSee('Strangers');
     }
 
+    public function test_the_households_page_lists_households_alphabetically_although_names_are_stored_encrypted(): void
+    {
+        $user = User::factory()->create();
+
+        // Created out of order, with mixed case: the stored ciphertext has no alphabetical order.
+        $names = ['mango', 'Cherry', 'banana', 'Zebra', 'apple', 'Quince', 'Date', 'fig'];
+        foreach ($names as $name) {
+            Household::factory()->withUser($user)->create(['name' => $name]);
+        }
+
+        $this->actingAs($user)
+            ->get(route('households.index'))
+            ->assertOk()
+            ->assertSeeInOrder(['apple', 'banana', 'Cherry', 'Date', 'fig', 'mango', 'Quince', 'Zebra']);
+    }
+
+    public function test_leaving_a_household_falls_back_to_the_alphabetically_first_other_household(): void
+    {
+        $user = User::factory()->create();
+        foreach (['mango', 'Cherry', 'banana', 'Zebra', 'apple'] as $name) {
+            Household::factory()->withUser($user)->create(['name' => $name]);
+        }
+        $current = Household::factory()->withUser($user)->create(['name' => 'Aardvark']);
+
+        $this->assertSame('apple', $user->fallbackHousehold($current)->name);
+    }
+
     public function test_a_user_without_a_household_can_open_the_households_page(): void
     {
         $user = User::factory()->create();
