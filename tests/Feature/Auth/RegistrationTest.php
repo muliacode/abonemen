@@ -41,7 +41,7 @@ class RegistrationTest extends TestCase
             'password_confirmation' => 'password',
         ]);
 
-        $user = User::where('email', 'test@example.com')->sole();
+        $user = User::whereEmail('test@example.com')->sole();
 
         $this->assertDatabaseCount('households', 0);
         $this->assertDatabaseCount('members', 0);

@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Casts\ProtectedAttribute;
+use App\Concerns\HasWaitingProtectedValues;
+use App\Contracts\HoldsWaitingProtectedValues;
 use Database\Factories\MemberFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,10 +23,22 @@ use Illuminate\Support\Carbon;
  * @property-read User|null $user
  */
 #[Fillable(['household_id', 'user_id', 'name'])]
-class Member extends Model
+class Member extends Model implements HoldsWaitingProtectedValues
 {
     /** @use HasFactory<MemberFactory> */
-    use HasFactory;
+    use HasFactory, HasWaitingProtectedValues;
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'name' => ProtectedAttribute::class,
+        ];
+    }
 
     /**
      * Get the household this member belongs to.

@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('households', function (Blueprint $table) {
             $table->id();
             $table->ulid('ulid')->unique();
-            $table->string('name');
+            $table->text('name');
+            $table->text('data_key');
             $table->string('main_currency', 3);
             $table->string('timezone');
             $table->timestamps();
@@ -24,7 +25,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('household_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
-            $table->string('name');
+            $table->text('name');
             $table->timestamps();
 
             $table->unique(['household_id', 'user_id']);
