@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Casts\ProtectedAttribute;
 use App\Concerns\HasProtectedAttributes;
+use App\Contracts\HoldsWaitingProtectedValues;
 use Database\Factories\HouseholdFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -26,7 +27,7 @@ use Illuminate\Support\Str;
  */
 #[Fillable(['name', 'main_currency', 'timezone'])]
 #[Hidden(['data_key'])]
-class Household extends Model
+class Household extends Model implements HoldsWaitingProtectedValues
 {
     /** @use HasFactory<HouseholdFactory> */
     use HasFactory, HasProtectedAttributes;

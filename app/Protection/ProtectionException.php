@@ -28,6 +28,16 @@ final class ProtectionException extends RuntimeException
 
     public static function unreadableValue(): self
     {
-        return new self('A protected value could not be read. It was changed or damaged after it was stored.');
+        return new self('A protected value could not be read. It was changed or damaged after it was stored, or it was protected with a different key (the master key may be the wrong one).');
+    }
+
+    public static function householdKeyNotLoaded(): self
+    {
+        return new self('The Household\'s data key was not loaded with this query, so its protected values cannot be read. Load the whole Household, or include data_key when selecting columns.');
+    }
+
+    public static function unknownHousehold(int $householdId): self
+    {
+        return new self("There is no Household with id {$householdId} to take a data key from.");
     }
 }

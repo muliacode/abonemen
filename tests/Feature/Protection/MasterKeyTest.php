@@ -3,6 +3,7 @@
 namespace Tests\Feature\Protection;
 
 use App\Models\Household;
+use App\Models\Member;
 use App\Models\User;
 use App\Protection\ProtectionException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -67,6 +68,24 @@ class MasterKeyTest extends TestCase
         $this->expectExceptionMessage('does not match');
 
         $this->actingAs($user)->get(route('households.index'));
+    }
+
+    public function test_reading_a_name_from_a_household_loaded_without_its_key_fails_clearly(): void
+    {
+        $household = Household::factory()->create(['name' => 'Home']);
+
+        $this->expectException(ProtectionException::class);
+        $this->expectExceptionMessage('data key was not loaded');
+
+        Household::query()->select('id', 'name')->find($household->id)->name;
+    }
+
+    public function test_protecting_data_for_a_household_that_does_not_exist_fails_clearly(): void
+    {
+        $this->expectException(ProtectionException::class);
+        $this->expectExceptionMessage('no Household with id 9999');
+
+        Member::make(['household_id' => 9999, 'name' => 'Nobody']);
     }
 
     public function test_the_generated_master_key_is_one_the_app_accepts(): void

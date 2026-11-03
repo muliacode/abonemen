@@ -106,23 +106,43 @@ class ProtectedEmailTest extends TestCase
 
         $this->assertStringNotContainsString('sanne', (string) DB::table('password_reset_tokens')->value('email'));
 
-        Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use ($user) {
-            // The link in the email carries the real address, so the reset form can ask for it.
-            $this->assertStringContainsString('email=sanne%40example.com', $notification->toMail($user)->actionUrl);
-
-            $this->post(route('password.update'), [
-                'token' => $notification->token,
-                'email' => 'sanne@example.com',
-                'password' => 'a-new-password',
-                'password_confirmation' => 'a-new-password',
-            ])->assertSessionHasNoErrors();
+        $sent = null;
+        Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use (&$sent) {
+            $sent = $notification;
 
             return true;
         });
 
+        // The link in the email carries the real address, so the reset form can ask for it.
+        $this->assertStringContainsString('email=sanne%40example.com', $sent->toMail($user)->actionUrl);
+
+        $this->post(route('password.update'), [
+            'token' => $sent->token,
+            'email' => 'sanne@example.com',
+            'password' => 'a-new-password',
+            'password_confirmation' => 'a-new-password',
+        ])->assertSessionHasNoErrors();
+
         $this->post(route('login.store'), ['email' => 'sanne@example.com', 'password' => 'a-new-password'])
             ->assertSessionHasNoErrors();
         $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_an_email_typed_into_a_failed_sign_in_is_not_readable_in_the_stored_session(): void
+    {
+        config(['session.driver' => 'database']);
+
+        $this->post(route('login.store'), ['email' => 'nobody@example.com', 'password' => 'wrong-password'])
+            ->assertSessionHasErrors();
+
+        $payloads = DB::table('sessions')->pluck('payload');
+
+        $this->assertNotEmpty($payloads);
+
+        foreach ($payloads as $payload) {
+            // Sessions are stored base64 encoded, which anyone can undo.
+            $this->assertStringNotContainsString('nobody@example.com', base64_decode($payload));
+        }
     }
 
     public function test_users_created_without_model_events_still_get_a_protected_email_and_index(): void

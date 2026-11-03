@@ -48,10 +48,17 @@ final class KeyRing
      */
     public function householdKeyById(int $householdId): string
     {
-        $wrapped = $this->wrappedByHousehold[$householdId]
-            ??= (string) Household::query()->whereKey($householdId)->value('data_key');
+        if (! isset($this->wrappedByHousehold[$householdId])) {
+            $wrapped = Household::query()->whereKey($householdId)->value('data_key');
 
-        return $this->unwrap($wrapped);
+            if (! is_string($wrapped)) {
+                throw ProtectionException::unknownHousehold($householdId);
+            }
+
+            $this->wrappedByHousehold[$householdId] = $wrapped;
+        }
+
+        return $this->unwrap($this->wrappedByHousehold[$householdId]);
     }
 
     /**

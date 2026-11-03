@@ -6,6 +6,7 @@ use App\Models\Household;
 use App\Models\Member;
 use App\Models\User;
 use App\Protection\ProtectionException;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
@@ -43,19 +44,40 @@ class ProtectedHouseholdDataTest extends TestCase
         $this->assertSame('Sanne', $household->members()->sole()->name);
     }
 
-    public function test_each_household_has_its_own_key(): void
+    public function test_saving_without_model_events_never_stores_a_protected_value_in_plaintext(): void
     {
-        $first = Household::factory()->create(['name' => 'Home']);
-        $second = Household::factory()->create(['name' => 'Home']);
+        $household = Household::factory()->create();
 
-        $this->assertNotSame(
-            DB::table('households')->where('id', $first->id)->value('data_key'),
-            DB::table('households')->where('id', $second->id)->value('data_key'),
-        );
-        $this->assertNotSame(
-            DB::table('households')->where('id', $first->id)->value('name'),
-            DB::table('households')->where('id', $second->id)->value('name'),
-        );
+        // The name is set before the household is known, and the saving hook that would seal it is skipped.
+        $member = new Member;
+        $member->name = 'Waiting Person';
+        $member->household_id = $household->id;
+
+        try {
+            $member->saveQuietly();
+        } catch (QueryException) {
+            // Failing closed is fine: the point is that nothing readable reaches the table.
+        }
+
+        $this->assertStringNotContainsString('Waiting Person', json_encode(DB::table('members')->get()));
+    }
+
+    public function test_a_member_created_through_its_household_relation_is_sealed_when_saved(): void
+    {
+        $household = Household::factory()->create();
+
+        $household->members()->create(['name' => 'Waiting Person']);
+
+        $this->assertStringNotContainsString('Waiting Person', (string) DB::table('members')->value('name'));
+        $this->assertSame('Waiting Person', $household->members()->sole()->name);
+    }
+
+    public function test_a_member_still_waiting_for_its_household_reads_back_what_was_set(): void
+    {
+        $member = new Member;
+        $member->name = 'Waiting Person';
+
+        $this->assertSame('Waiting Person', $member->name);
     }
 
     public function test_protected_data_copied_into_another_household_cannot_be_read_there(): void

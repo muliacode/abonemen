@@ -3,11 +3,11 @@
 namespace Tests\Feature\Protection;
 
 use App\Models\Household;
-use App\Models\Member;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -19,7 +19,10 @@ class RawDatabaseTest extends TestCase
     {
         Notification::fake();
 
-        // A person registers, signs in, forgets their password and creates a Household.
+        // Sessions are stored in the database, as on a default install.
+        config(['session.driver' => 'database']);
+
+        // A User registers, forgets their password and creates a Household.
         $this->post(route('register.store'), [
             'name' => 'Sanne',
             'email' => 'sanne.visser@example.com',
@@ -38,7 +41,7 @@ class RawDatabaseTest extends TestCase
             ->call('createHousehold')
             ->assertHasNoErrors();
 
-        // Another household, with people who have no login and one who joins later.
+        // Members without a sign-in, and another Household with its own User.
         $household = Household::sole();
         $household->members()->create(['name' => 'Daan Oosterhuis']);
         $household->members()->create(['name' => 'Kleine Fenna']);
@@ -52,12 +55,18 @@ class RawDatabaseTest extends TestCase
             'Daan Oosterhuis', 'Oosterhuis', 'Kleine Fenna', 'Ayu Wulandari', 'Wulandari',
         ];
 
-        $tables = collect(DB::select("select name from sqlite_master where type = 'table'"))->pluck('name');
+        $tables = array_column(Schema::getTables(), 'name');
 
-        $this->assertNotEmpty($tables);
+        $this->assertContains('sessions', $tables);
+        $this->assertNotEmpty(DB::table('sessions')->get(), 'The scenario should have stored a session.');
 
         foreach ($tables as $table) {
-            $dump = mb_strtolower(json_encode(DB::table($table)->get(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            $rows = DB::table($table)->get()->map(function ($row) use ($table) {
+                // Stored sessions are only base64 encoded, which anyone can undo.
+                return $table === 'sessions' ? (object) [...(array) $row, 'payload' => base64_decode($row->payload)] : $row;
+            });
+
+            $dump = mb_strtolower(json_encode($rows, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
             foreach ($protected as $plaintext) {
                 $this->assertStringNotContainsString(
@@ -69,8 +78,11 @@ class RawDatabaseTest extends TestCase
         }
 
         // And the app still reads it all back.
-        $this->assertSame('Daan Oosterhuis', Member::whereKey($household->members()->get()->firstWhere('name', 'Daan Oosterhuis')->id)->sole()->name);
+        $this->assertEqualsCanonicalizing(
+            ['Sanne', 'Daan Oosterhuis', 'Kleine Fenna'],
+            $household->members()->get()->map->name->all(),
+        );
         $this->assertSame('mark.dekker@example.org', $mark->fresh()->email);
-        $this->assertSame('Sanne', $sanne->fresh()->name);
+        $this->assertSame('sanne.visser@example.com', $sanne->fresh()->email);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Casts\ProtectedAttribute;
 use App\Concerns\HasProtectedAttributes;
+use App\Contracts\HoldsWaitingProtectedValues;
 use Database\Factories\MemberFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,7 +23,7 @@ use Illuminate\Support\Carbon;
  * @property-read User|null $user
  */
 #[Fillable(['household_id', 'user_id', 'name'])]
-class Member extends Model
+class Member extends Model implements HoldsWaitingProtectedValues
 {
     /** @use HasFactory<MemberFactory> */
     use HasFactory, HasProtectedAttributes;
