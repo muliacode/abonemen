@@ -1,10 +1,10 @@
 <?php
 
-namespace Tests\Unit\Billing;
+namespace Tests\Unit\ValueObjects;
 
-use App\Billing\Cycle;
-use App\Billing\CycleUnit;
-use App\Billing\Money;
+use App\Enums\CycleUnit;
+use App\ValueObjects\Cycle;
+use App\ValueObjects\Money;
 use DateTimeImmutable;
 use DateTimeZone;
 use InvalidArgumentException;

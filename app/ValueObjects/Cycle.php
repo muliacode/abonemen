@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Billing;
+namespace App\ValueObjects;
 
+use App\Enums\CycleUnit;
 use DateTimeImmutable;
 use DateTimeZone;
 use InvalidArgumentException;

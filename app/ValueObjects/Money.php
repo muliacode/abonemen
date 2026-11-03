@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Billing;
+namespace App\ValueObjects;
 
 use InvalidArgumentException;
 use Symfony\Component\Intl\Currencies;

@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Unit\Billing;
+namespace Tests\Unit\ValueObjects;
 
-use App\Billing\Money;
+use App\ValueObjects\Money;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
