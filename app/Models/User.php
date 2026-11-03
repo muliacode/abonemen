@@ -53,6 +53,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     protected function casts(): array
     {
         return [
+            'name' => ProtectedAttribute::class.':platform',
             'email' => ProtectedAttribute::class.':platform,email_index',
             'email_verified_at' => 'datetime',
             'password' => 'hashed',

@@ -24,7 +24,7 @@ class RawDatabaseTest extends TestCase
 
         // A User registers, forgets their password and creates a Household.
         $this->post(route('register.store'), [
-            'name' => 'Sanne',
+            'name' => 'Sanne Visser',
             'email' => 'sanne.visser@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
@@ -45,12 +45,13 @@ class RawDatabaseTest extends TestCase
         $household = Household::sole();
         $household->members()->create(['name' => 'Daan Oosterhuis']);
         $household->members()->create(['name' => 'Kleine Fenna']);
-        $mark = User::factory()->create(['name' => 'Mark', 'email' => 'mark.dekker@example.org']);
+        $mark = User::factory()->create(['name' => 'Mark Dekker', 'email' => 'mark.dekker@example.org']);
         $other = Household::factory()->withUser($mark)->create(['name' => 'Appartement Dekker']);
         $other->members()->create(['name' => 'Ayu Wulandari']);
 
         $protected = [
             'sanne.visser', 'sanne.visser@example.com', 'mark.dekker', 'mark.dekker@example.org', 'example.com', 'example.org',
+            'Sanne Visser', 'Visser', 'Mark Dekker',
             'Villa Zonnebloem', 'Zonnebloem', 'Appartement Dekker',
             'Daan Oosterhuis', 'Oosterhuis', 'Kleine Fenna', 'Ayu Wulandari', 'Wulandari',
         ];
@@ -79,10 +80,11 @@ class RawDatabaseTest extends TestCase
 
         // And the app still reads it all back.
         $this->assertEqualsCanonicalizing(
-            ['Sanne', 'Daan Oosterhuis', 'Kleine Fenna'],
+            ['Sanne Visser', 'Daan Oosterhuis', 'Kleine Fenna'],
             $household->members()->get()->map->name->all(),
         );
         $this->assertSame('mark.dekker@example.org', $mark->fresh()->email);
         $this->assertSame('sanne.visser@example.com', $sanne->fresh()->email);
+        $this->assertSame('Mark Dekker', $mark->fresh()->name);
     }
 }
