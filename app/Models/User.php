@@ -4,9 +4,12 @@ namespace App\Models;
 
 use App\Casts\ProtectedAttribute;
 use App\Concerns\HasHouseholds;
+use App\Enums\Locale;
 use App\Support\BlindIndex;
+use Closure;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,6 +19,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Illuminate\Support\Traits\Localizable;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -25,6 +29,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string $name
  * @property string $email
  * @property string $email_index
+ * @property Locale|null $locale
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $two_factor_secret
@@ -38,12 +43,12 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property-read Collection<int, Household> $households
  * @property-read Collection<int, Member> $members
  */
-#[Fillable(['name', 'email', 'password', 'current_household_id'])]
+#[Fillable(['name', 'email', 'password', 'locale', 'current_household_id'])]
 #[Hidden(['email_index', 'password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
-class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
+class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasHouseholds, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+    use HasFactory, HasHouseholds, Localizable, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     /**
      * Get the attributes that should be cast.
@@ -55,6 +60,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return [
             'name' => ProtectedAttribute::class.':platform',
             'email' => ProtectedAttribute::class.':platform,email_index',
+            'locale' => Locale::class,
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
@@ -77,6 +83,29 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function getEmailForPasswordReset(): string
     {
         return $this->email_index;
+    }
+
+    /**
+     * Get the language to use for anything sent to the user, such as emails.
+     *
+     * Without a chosen language, whatever language is current is used.
+     */
+    public function preferredLocale(): ?string
+    {
+        return $this->locale?->value;
+    }
+
+    /**
+     * Run the callback in the user's language, for anything made for them that is not a notification.
+     *
+     * @template TReturn
+     *
+     * @param  Closure(): TReturn  $callback
+     * @return TReturn
+     */
+    public function inPreferredLocale(Closure $callback): mixed
+    {
+        return $this->withLocale($this->preferredLocale(), $callback);
     }
 
     /**

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('email_index', 64)->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('locale', 5)->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
