@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-white dark:bg-zinc-800">
-        <flux:sidebar sticky collapsible="mobile" class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+    <body class="min-h-screen bg-surface">
+        <x-skip-link />
+
+        <flux:sidebar sticky collapsible="mobile" class="border-e border-zinc-200 bg-surface-sunken dark:border-zinc-700">
             <flux:sidebar.header>
                 <x-app-logo :sidebar="true" href="{{ auth()->user()->homeUrl() }}" wire:navigate />
                 <flux:sidebar.collapse class="lg:hidden" />
@@ -12,7 +14,7 @@
 
             <livewire:household-switcher />
 
-            <flux:sidebar.nav>
+            <flux:sidebar.nav :aria-label="__('Main')">
                 <flux:sidebar.group :heading="__('Platform')" class="grid">
                     <flux:sidebar.item icon="home" :href="auth()->user()->homeUrl()" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
@@ -21,16 +23,6 @@
             </flux:sidebar.nav>
 
             <flux:spacer />
-
-            <flux:sidebar.nav>
-                <flux:sidebar.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                    {{ __('Repository') }}
-                </flux:sidebar.item>
-
-                <flux:sidebar.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-                    {{ __('Documentation') }}
-                </flux:sidebar.item>
-            </flux:sidebar.nav>
 
             <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
         </flux:sidebar>
@@ -43,6 +35,7 @@
 
             <flux:dropdown position="top" align="end">
                 <flux:profile
+                    :aria-label="__('User menu')"
                     :initials="auth()->user()->initials()"
                     icon-trailing="chevron-down"
                 />
@@ -93,12 +86,6 @@
         {{ $slot }}
 
         <livewire:create-household-modal />
-
-        @persist('toast')
-            <flux:toast.group>
-                <flux:toast />
-            </flux:toast.group>
-        @endpersist
 
         @fluxScripts
     </body>

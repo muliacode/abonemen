@@ -7,11 +7,14 @@
 
         <form method="POST" action="{{ route('password.update') }}" class="flex flex-col gap-6">
             @csrf
+
+            <x-error-summary />
             <!-- Token -->
             <input type="hidden" name="token" value="{{ request()->route('token') }}">
 
             <!-- Email Address -->
             <flux:input
+                id="email"
                 name="email"
                 value="{{ request('email') }}"
                 :label="__('Email')"
@@ -22,24 +25,24 @@
 
             <!-- Password -->
             <flux:input
+                id="password"
                 name="password"
                 :label="__('Password')"
                 type="password"
                 required
                 autocomplete="new-password"
-                :placeholder="__('Password')"
                 passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
                 viewable
             />
 
             <!-- Confirm Password -->
             <flux:input
+                id="password_confirmation"
                 name="password_confirmation"
                 :label="__('Confirm password')"
                 type="password"
                 required
                 autocomplete="new-password"
-                :placeholder="__('Confirm password')"
                 passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
                 viewable
             />

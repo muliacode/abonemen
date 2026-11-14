@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\Locale;
-use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Title;
@@ -29,6 +28,8 @@ new #[Title('Language settings')] class extends Component {
 
         Auth::user()->update(['locale' => $validated['locale']]);
 
+        session()->flash('confirmation', __('Language updated.', [], $validated['locale']));
+
         $this->redirectRoute('language.edit', navigate: true);
     }
 }; ?>
@@ -36,11 +37,11 @@ new #[Title('Language settings')] class extends Component {
 <section class="w-full">
     @include('partials.settings-heading')
 
-    <flux:heading level="2" class="sr-only">{{ __('Language settings') }}</flux:heading>
-
     <x-pages::settings.layout :heading="__('Language')" :subheading="__('Choose the language Abonemen is shown in, and the language of the emails it sends you')">
         <form wire:submit="updateLanguage" class="space-y-6">
-            <flux:select wire:model="locale" :label="__('Language')" data-test="language-select">
+            <x-error-summary />
+
+            <flux:select id="locale" wire:model="locale" :label="__('Language')" data-test="language-select">
                 @foreach (Locale::cases() as $option)
                     <flux:select.option :value="$option->value" lang="{{ $option->value }}">{{ $option->label() }}</flux:select.option>
                 @endforeach

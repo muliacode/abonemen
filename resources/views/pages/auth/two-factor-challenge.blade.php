@@ -29,22 +29,21 @@
                 },
             }"
         >
-            <div x-show="!showRecoveryInput">
-                <x-auth-header
-                    :title="__('Authentication code')"
-                    :description="__('Enter the authentication code provided by your authenticator application.')"
-                />
-            </div>
-
-            <div x-show="showRecoveryInput">
-                <x-auth-header
-                    :title="__('Recovery code')"
-                    :description="__('Please confirm access to your account by entering one of your emergency recovery codes.')"
-                />
+            <div class="flex w-full flex-col text-center">
+                <x-page-heading>
+                    <span x-show="!showRecoveryInput">{{ __('Authentication code') }}</span>
+                    <span x-show="showRecoveryInput">{{ __('Recovery code') }}</span>
+                </x-page-heading>
+                <flux:subheading>
+                    <span x-show="!showRecoveryInput">{{ __('Enter the authentication code provided by your authenticator application.') }}</span>
+                    <span x-show="showRecoveryInput">{{ __('Please confirm access to your account by entering one of your emergency recovery codes.') }}</span>
+                </flux:subheading>
             </div>
 
             <form method="POST" action="{{ route('two-factor.login.store') }}">
                 @csrf
+
+                <x-error-summary class="mb-5" />
 
                 <div class="space-y-5 text-center">
                     <div x-show="!showRecoveryInput">
@@ -54,7 +53,6 @@
                                 length="6"
                                 name="code"
                                 :label="__('OTP Code')"
-                                label:sr-only
                                 class="mx-auto"
                              />
                         </div>
@@ -64,19 +62,15 @@
                         <div class="my-5">
                             <flux:input
                                 type="text"
+                                id="recovery_code"
                                 name="recovery_code"
+                                :label="__('Recovery code')"
                                 x-ref="recovery_code"
                                 x-bind:required="showRecoveryInput"
                                 autocomplete="one-time-code"
                                 x-model="recovery_code"
                             />
                         </div>
-
-                        @error('recovery_code')
-                            <flux:text color="red">
-                                {{ $message }}
-                            </flux:text>
-                        @enderror
                     </div>
 
                     <flux:button
@@ -89,11 +83,9 @@
                 </div>
 
                 <div class="mt-5 space-x-0.5 text-sm leading-5 text-center">
-                    <span class="opacity-50">{{ __('or you can') }}</span>
-                    <div class="inline font-medium underline cursor-pointer opacity-80">
-                        <span x-show="!showRecoveryInput" @click="toggleInput()">{{ __('login using a recovery code') }}</span>
-                        <span x-show="showRecoveryInput" @click="toggleInput()">{{ __('login using an authentication code') }}</span>
-                    </div>
+                    <span class="text-zinc-600 dark:text-zinc-400">{{ __('or you can') }}</span>
+                    <button type="button" class="inline font-medium underline cursor-pointer" x-show="!showRecoveryInput" @click="toggleInput()">{{ __('login using a recovery code') }}</button>
+                    <button type="button" class="inline font-medium underline cursor-pointer" x-show="showRecoveryInput" @click="toggleInput()">{{ __('login using an authentication code') }}</button>
                 </div>
             </form>
         </div>

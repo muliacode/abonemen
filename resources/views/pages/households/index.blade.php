@@ -21,8 +21,6 @@ new #[Title('Households')] class extends Component {
 <section class="w-full">
     @include('partials.settings-heading')
 
-    <flux:heading level="2" class="sr-only">{{ __('Households') }}</flux:heading>
-
     <x-pages::settings.layout :heading="__('Households')" :subheading="__('The households you belong to')">
         <div class="flex items-center justify-end">
             <flux:modal.trigger name="create-household">
@@ -37,7 +35,7 @@ new #[Title('Households')] class extends Component {
                 <div class="flex items-center justify-between gap-4 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900" data-test="household-row">
                     <div>
                         <div class="font-medium">{{ $household->name }}</div>
-                        <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ $household->roleLabel }}</flux:text>
+                        <flux:text class="text-sm text-muted">{{ $household->roleLabel }}</flux:text>
                     </div>
 
                     <flux:tooltip :content="$household->canManage ? __('Edit household') : __('View household')">
@@ -53,7 +51,7 @@ new #[Title('Households')] class extends Component {
                     </flux:tooltip>
                 </div>
             @empty
-                <flux:text class="py-8 text-center text-zinc-500 dark:text-zinc-400">
+                <flux:text class="py-8 text-center text-muted">
                     {{ __('You don\'t belong to any households yet. Create one to get started.') }}
                 </flux:text>
             @endforelse

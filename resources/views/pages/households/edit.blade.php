@@ -2,7 +2,6 @@
 
 use App\Models\Household;
 use App\Rules\HouseholdSettingRules;
-use Flux\Flux;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -17,6 +16,11 @@ new class extends Component
     public string $mainCurrency = '';
 
     public string $timezone = '';
+
+    /**
+     * The confirmation shown next to the form until the User changes something again.
+     */
+    public ?string $status = null;
 
     public function mount(Household $household): void
     {
@@ -44,7 +48,12 @@ new class extends Component
             'timezone' => $validated['timezone'],
         ]);
 
-        Flux::toast(variant: 'success', text: __('Household updated.'));
+        $this->status = __('Household updated.');
+    }
+
+    public function updated(): void
+    {
+        $this->status = null;
     }
 
     #[Computed]
@@ -66,42 +75,46 @@ new class extends Component
 <section class="w-full">
     @include('partials.settings-heading')
 
-    <flux:heading level="2" class="sr-only">{{ __('Households') }}</flux:heading>
-
     <x-pages::settings.layout :heading="__('Households')" :subheading="__('Manage your household settings')">
         <div class="space-y-6">
             @if ($this->canUpdate)
                 <form wire:submit="updateHousehold" class="space-y-6">
-                    <flux:input wire:model="name" :label="__('Household name')" required data-test="household-name-input" />
+                    <x-error-summary />
 
-                    <flux:select wire:model="mainCurrency" :label="__('Main currency')" required data-test="household-currency-input">
+                    <flux:input id="name" wire:model="name" :label="__('Household name')" required data-test="household-name-input" />
+
+                    <flux:select id="mainCurrency" wire:model="mainCurrency" :label="__('Main currency')" required data-test="household-currency-input">
                         @foreach (Currencies::getNames(app()->getLocale()) as $code => $currencyName)
                             <flux:select.option :value="$code">{{ $code }} – {{ $currencyName }}</flux:select.option>
                         @endforeach
                     </flux:select>
 
-                    <flux:select wire:model="timezone" :label="__('Time zone')" required data-test="household-timezone-input">
+                    <flux:select id="timezone" wire:model="timezone" :label="__('Time zone')" required data-test="household-timezone-input">
                         @foreach (timezone_identifiers_list() as $identifier)
                             <flux:select.option :value="$identifier">{{ $identifier }}</flux:select.option>
                         @endforeach
                     </flux:select>
 
-                    <flux:button variant="primary" type="submit" data-test="household-save-button">
-                        {{ __('Save') }}
-                    </flux:button>
+                    <div class="flex items-center gap-4">
+                        <flux:button variant="primary" type="submit" data-test="household-save-button">
+                            {{ __('Save') }}
+                        </flux:button>
+
+                        <x-status-message :message="$status" />
+                    </div>
                 </form>
             @else
                 <dl class="space-y-4">
                     <div>
-                        <dt class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Household name') }}</dt>
+                        <dt class="text-sm text-muted">{{ __('Household name') }}</dt>
                         <dd class="font-medium">{{ $household->name }}</dd>
                     </div>
                     <div>
-                        <dt class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Main currency') }}</dt>
+                        <dt class="text-sm text-muted">{{ __('Main currency') }}</dt>
                         <dd class="font-medium">{{ $household->main_currency }}</dd>
                     </div>
                     <div>
-                        <dt class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Time zone') }}</dt>
+                        <dt class="text-sm text-muted">{{ __('Time zone') }}</dt>
                         <dd class="font-medium">{{ $household->timezone }}</dd>
                     </div>
                 </dl>
