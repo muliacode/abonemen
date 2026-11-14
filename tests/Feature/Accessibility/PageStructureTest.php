@@ -2,36 +2,16 @@
 
 namespace Tests\Feature\Accessibility;
 
-use App\Models\User;
-use DOMDocument;
 use DOMElement;
-use DOMXPath;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Testing\TestResponse;
-use Laravel\Fortify\Features;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Tests\Concerns\RendersPages;
 use Tests\TestCase;
 
 class PageStructureTest extends TestCase
 {
     use RefreshDatabase;
-
-    /**
-     * Every screen of the application. A new screen is added here, so it is held to the same structure.
-     *
-     * @return array<string, array{string}>
-     */
-    public static function pages(): array
-    {
-        return array_combine(
-            $names = [
-                'welcome', 'login', 'register', 'forgot password', 'reset password', 'two-factor challenge',
-                'verify email', 'confirm password', 'dashboard', 'profile', 'security', 'appearance', 'language',
-                'households', 'household settings',
-            ],
-            array_map(fn (string $name) => [$name], $names),
-        );
-    }
+    use RendersPages;
 
     #[DataProvider('pages')]
     public function test_every_page_starts_with_a_skip_link_to_its_main_landmark(string $page): void
@@ -97,53 +77,5 @@ class PageStructureTest extends TestCase
         $current = $this->render('dashboard')->query('//nav//a[@aria-current="page"]');
 
         $this->assertCount(1, $current);
-    }
-
-    /**
-     * Render the page and hand back a way to query what a browser would parse.
-     */
-    private function render(string $page): DOMXPath
-    {
-        $dom = new DOMDocument;
-
-        libxml_use_internal_errors(true);
-        $dom->loadHTML('<?xml encoding="utf-8" ?>'.$this->visit($page)->assertOk()->getContent());
-        libxml_clear_errors();
-
-        return new DOMXPath($dom);
-    }
-
-    private function visit(string $page): TestResponse
-    {
-        $user = User::factory()->withHousehold()->create();
-
-        return match ($page) {
-            'welcome' => $this->get(route('home')),
-            'login' => $this->get(route('login')),
-            'register' => $this->get(route('register')),
-            'forgot password' => $this->get(route('password.request')),
-            'reset password' => $this->get(route('password.reset', ['token' => 'a-token'])),
-            'two-factor challenge' => $this->twoFactorChallenge(),
-            'verify email' => $this->actingAs(User::factory()->unverified()->create())->get(route('verification.notice')),
-            'confirm password' => $this->actingAs($user)->get(route('password.confirm')),
-            'dashboard' => $this->actingAs($user)->get(route('dashboard')),
-            'profile' => $this->actingAs($user)->get(route('profile.edit')),
-            'security' => $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()])->get(route('security.edit')),
-            'appearance' => $this->actingAs($user)->get(route('appearance.edit')),
-            'language' => $this->actingAs($user)->get(route('language.edit')),
-            'households' => $this->actingAs($user)->get(route('households.index')),
-            'household settings' => $this->actingAs($user)->get(route('households.edit', $user->currentHousehold)),
-        };
-    }
-
-    private function twoFactorChallenge(): TestResponse
-    {
-        $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
-
-        $user = User::factory()->withTwoFactor()->create();
-
-        $this->post(route('login.store'), ['email' => $user->email, 'password' => 'password']);
-
-        return $this->get(route('two-factor.login'));
     }
 }

@@ -24,7 +24,6 @@
                 type="password"
                 required
                 autocomplete="current-password"
-                :placeholder="__('Password')"
                 viewable
             />
 
