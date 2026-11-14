@@ -20,7 +20,7 @@
 
     /*
      * Warm greys. Flux paints its borders, secondary text and dark surfaces from the zinc scale, so this is
-     * where the whole component set takes the warm tint. 100 is the paper, 800 and 900 are the dark surface and paper.
+     * where the whole component set takes the warm tint. 100 is the paper, 800 and 900 are the dark surface and paper. In dark the rail is a lighter ink than the page, as in light it is a darker one, so that the paper tab stands out.
      */
     --color-zinc-50: #faf9f6;
     --color-zinc-100: #f6f4ef;
@@ -31,8 +31,8 @@
     --color-zinc-600: #5a554d;
     --color-zinc-700: #3b3834;
     --color-zinc-800: #242220;
-    --color-zinc-900: #1a1917;
-    --color-zinc-950: #12110f;
+    --color-zinc-900: #151412;
+    --color-zinc-950: #0f0e0d;
 
     /* Flux paints danger buttons red-500 (white on it is 3.8:1) and their hover red-600; both pinned to a red white text can sit on. */
     --color-red-500: #dc2626;
@@ -70,11 +70,11 @@
         --color-accent-content: #b4bdff;
         --color-accent-foreground: #14173a;
 
-        --color-paper: #1a1917;
+        --color-paper: #151412;
         --color-surface: #242220;
-        --color-rail: #12152f;
-        --color-rail-text: #eceaf8;
-        --color-rail-muted: #a9aed4;
+        --color-rail: #3a46a0;
+        --color-rail-text: #f3f2fb;
+        --color-rail-muted: #cdd2f7;
         --color-ink: #efece5;
         --color-muted: #b3ada2;
         --color-accent-wash: #2a2e57;

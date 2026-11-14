@@ -96,6 +96,28 @@ class ColourTokensTest extends TestCase
         ));
     }
 
+    /**
+     * The signature of the shell is the current page as a tab of paper joined to an ink rail. If the rail and the
+     * paper look alike, as they did in dark when both were near-black, the tab has nothing to stand out from.
+     */
+    #[DataProvider('themes')]
+    public function test_the_rail_stands_apart_from_the_paper(string $theme): void
+    {
+        $colours = $this->colours($theme);
+
+        $ratio = $this->contrast($colours['rail'], $colours['paper']);
+
+        $this->assertGreaterThanOrEqual(2.0, $ratio, sprintf('The rail is %.2f:1 against the paper in the %s theme.', $ratio, $theme));
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function themes(): array
+    {
+        return ['light' => ['light'], 'dark' => ['dark']];
+    }
+
     public function test_white_text_on_a_danger_button_is_readable(): void
     {
         $colours = $this->colours('light');

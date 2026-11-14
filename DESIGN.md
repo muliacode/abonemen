@@ -19,11 +19,11 @@ colors:
   control-border: "#857e72"
   focus: "#222a5e"
   border: "#dcd7cd"
-  dark-paper: "#1a1917"
+  dark-paper: "#151412"
   dark-surface: "#242220"
-  dark-rail: "#12152f"
-  dark-rail-text: "#eceaf8"
-  dark-rail-muted: "#a9aed4"
+  dark-rail: "#3a46a0"
+  dark-rail-text: "#f3f2fb"
+  dark-rail-muted: "#cdd2f7"
   dark-ink: "#efece5"
   dark-muted: "#b3ada2"
   dark-accent: "#b4bdff"
@@ -146,7 +146,7 @@ A warm paper ground with white surfaces, one ink blue, and warm greys; red, gree
 - **Accent Wash** (accent-wash): the background of the current item in the settings menu, so the current section is shown by a tint as well as by colour of text.
 
 ### Secondary
-- **Rail Ink** (rail): the sidebar and the mobile top bar. **Rail Text** (rail-text) is the text and icons on it; **Rail Mist** (rail-muted) is secondary text on the rail. In dark the rail is a near-black indigo.
+- **Rail Ink** (rail): the sidebar and the mobile top bar. **Rail Text** (rail-text) is the text and icons on it; **Rail Mist** (rail-muted) is secondary text on the rail. In dark the rail is a lighter ink than the page (a mid indigo, about 2.3:1 against it), as in light it is a darker one, so that the paper tab always has something to stand out from; `ColourTokensTest` requires at least 2:1 in both themes.
 
 ### Neutral
 - **Paper** (paper): the page, and the tab that joins it. **Surface** (surface): white (dark: warm charcoal) for panels and fields that sit on paper.
@@ -161,7 +161,7 @@ A warm paper ground with white surfaces, one ink blue, and warm greys; red, gree
 - **Warning** and **Warning Surface** (warning, warning-surface): a date that needs action, on its amber tint.
 
 ### Flux zinc scale
-Flux reads its borders, secondary text and dark surfaces from the zinc scale, so the scale is replaced with warm greys: 50 #faf9f6, 100 #f6f4ef (the paper), 200 #e9e6df, 300 #dcd7cd, 400 #a8a196, 500 #6b655b, 600 #5a554d, 700 #3b3834, 800 #242220 (dark surface), 900 #1a1917 (dark paper), 950 #12110f. Do not use zinc-400 for text; it fails contrast.
+Flux reads its borders, secondary text and dark surfaces from the zinc scale, so the scale is replaced with warm greys: 50 #faf9f6, 100 #f6f4ef (the paper), 200 #e9e6df, 300 #dcd7cd, 400 #a8a196, 500 #6b655b, 600 #5a554d, 700 #3b3834, 800 #242220 (dark surface), 900 #151412 (dark paper), 950 #0f0e0d. Do not use zinc-400 for text; it fails contrast.
 
 ### Named Rules
 **The Meaning-Only Rule.** Red, green and amber say something happened or needs doing. They are never decoration, and never alone: an icon and words go with them.
