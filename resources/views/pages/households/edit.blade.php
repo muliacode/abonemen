@@ -72,15 +72,17 @@ new class extends Component
         <div class="space-y-6">
             @if ($this->canUpdate)
                 <form wire:submit="updateHousehold" class="space-y-6">
-                    <flux:input wire:model="name" :label="__('Household name')" required data-test="household-name-input" />
+                    <x-error-summary />
 
-                    <flux:select wire:model="mainCurrency" :label="__('Main currency')" required data-test="household-currency-input">
+                    <flux:input id="name" wire:model="name" :label="__('Household name')" required data-test="household-name-input" />
+
+                    <flux:select id="mainCurrency" wire:model="mainCurrency" :label="__('Main currency')" required data-test="household-currency-input">
                         @foreach (Currencies::getNames(app()->getLocale()) as $code => $currencyName)
                             <flux:select.option :value="$code">{{ $code }} – {{ $currencyName }}</flux:select.option>
                         @endforeach
                     </flux:select>
 
-                    <flux:select wire:model="timezone" :label="__('Time zone')" required data-test="household-timezone-input">
+                    <flux:select id="timezone" wire:model="timezone" :label="__('Time zone')" required data-test="household-timezone-input">
                         @foreach (timezone_identifiers_list() as $identifier)
                             <flux:select.option :value="$identifier">{{ $identifier }}</flux:select.option>
                         @endforeach

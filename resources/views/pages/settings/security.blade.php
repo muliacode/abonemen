@@ -173,7 +173,10 @@ new #[Title('Security settings')] class extends Component {
 
     <x-pages::settings.layout :heading="__('Update password')" :subheading="__('Ensure your account is using a long, random password to stay secure')">
         <form method="POST" wire:submit="updatePassword" class="mt-6 space-y-6">
+            <x-error-summary />
+
             <flux:input
+                id="current_password"
                 wire:model="current_password"
                 :label="__('Current password')"
                 type="password"
@@ -182,6 +185,7 @@ new #[Title('Security settings')] class extends Component {
                 viewable
             />
             <flux:input
+                id="password"
                 wire:model="password"
                 :label="__('New password')"
                 type="password"
@@ -191,6 +195,7 @@ new #[Title('Security settings')] class extends Component {
                 viewable
             />
             <flux:input
+                id="password_confirmation"
                 wire:model="password_confirmation"
                 :label="__('Confirm password')"
                 type="password"

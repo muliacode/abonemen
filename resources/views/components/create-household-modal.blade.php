@@ -45,20 +45,22 @@ new class extends Component {
 
 <flux:modal name="create-household" :show="$errors->isNotEmpty()" focusable class="max-w-lg">
     <form wire:submit="createHousehold" class="space-y-6">
+        <x-error-summary prefix="create-household-" />
+
         <div>
             <flux:heading size="lg">{{ __('Create a new household') }}</flux:heading>
             <flux:subheading>{{ __('A household is where you and the people you share costs with keep your subscriptions.') }}</flux:subheading>
         </div>
 
-        <flux:input wire:model="name" :label="__('Household name')" type="text" required autofocus data-test="create-household-name" />
+        <flux:input id="create-household-name" error:id="create-household-error-name" wire:model="name" :label="__('Household name')" type="text" required autofocus data-test="create-household-name" />
 
-        <flux:select wire:model="mainCurrency" :label="__('Main currency')" required data-test="create-household-currency">
+        <flux:select id="create-household-mainCurrency" error:id="create-household-error-mainCurrency" wire:model="mainCurrency" :label="__('Main currency')" required data-test="create-household-currency">
             @foreach (\Symfony\Component\Intl\Currencies::getNames(app()->getLocale()) as $code => $currencyName)
                 <flux:select.option :value="$code">{{ $code }} – {{ $currencyName }}</flux:select.option>
             @endforeach
         </flux:select>
 
-        <flux:select wire:model="timezone" :label="__('Time zone')" required data-test="create-household-timezone">
+        <flux:select id="create-household-timezone" error:id="create-household-error-timezone" wire:model="timezone" :label="__('Time zone')" required data-test="create-household-timezone">
             @foreach (timezone_identifiers_list() as $identifier)
                 <flux:select.option :value="$identifier">{{ $identifier }}</flux:select.option>
             @endforeach

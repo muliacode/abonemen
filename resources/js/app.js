@@ -56,3 +56,48 @@ document.addEventListener('livewire:navigated', () => {
         sidebarObserver.observe(sidebar, { attributes: true });
     }
 });
+
+/**
+ * Flux ties a field's label and description to its control, but not its error message.
+ * Point each control at the message of its own field while there is one.
+ */
+function linkErrorsToControls() {
+    document.querySelectorAll('ui-field').forEach((field) => {
+        const error = field.querySelector('[data-flux-error]');
+        const control = field.querySelector('[data-flux-control]');
+
+        if (!error?.id || !control) {
+            return;
+        }
+
+        const target = control.matches('input, select, textarea') ? control : control.querySelector('input, select, textarea, button') ?? control;
+        const ids = (target.getAttribute('aria-describedby') ?? '').split(' ').filter((id) => id && id !== error.id);
+
+        if (error.textContent.trim() !== '') {
+            ids.push(error.id);
+        }
+
+        if (ids.length > 0) {
+            target.setAttribute('aria-describedby', ids.join(' '));
+        } else {
+            target.removeAttribute('aria-describedby');
+        }
+    });
+}
+
+let errorLinkScheduled = false;
+
+new MutationObserver(() => {
+    if (errorLinkScheduled) {
+        return;
+    }
+
+    errorLinkScheduled = true;
+
+    requestAnimationFrame(() => {
+        errorLinkScheduled = false;
+        linkErrorsToControls();
+    });
+}).observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+
+document.addEventListener('DOMContentLoaded', linkErrorsToControls);

@@ -35,10 +35,18 @@ trait RendersPages
      */
     private function render(string $page): DOMXPath
     {
+        return $this->parse($this->visit($page)->assertOk()->getContent());
+    }
+
+    /**
+     * Parse rendered HTML the way a browser would, tolerating the custom elements of Flux.
+     */
+    private function parse(string $html): DOMXPath
+    {
         $dom = new DOMDocument;
 
         libxml_use_internal_errors(true);
-        $dom->loadHTML('<?xml encoding="utf-8" ?>'.$this->visit($page)->assertOk()->getContent());
+        $dom->loadHTML('<?xml encoding="utf-8" ?>'.$html);
         libxml_clear_errors();
 
         return new DOMXPath($dom);

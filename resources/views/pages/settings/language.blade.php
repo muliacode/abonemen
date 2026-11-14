@@ -40,7 +40,9 @@ new #[Title('Language settings')] class extends Component {
 
     <x-pages::settings.layout :heading="__('Language')" :subheading="__('Choose the language Abonemen is shown in, and the language of the emails it sends you')">
         <form wire:submit="updateLanguage" class="space-y-6">
-            <flux:select wire:model="locale" :label="__('Language')" data-test="language-select">
+            <x-error-summary />
+
+            <flux:select id="locale" wire:model="locale" :label="__('Language')" data-test="language-select">
                 @foreach (Locale::cases() as $option)
                     <flux:select.option :value="$option->value" lang="{{ $option->value }}">{{ $option->label() }}</flux:select.option>
                 @endforeach

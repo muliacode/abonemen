@@ -43,6 +43,8 @@
             <form method="POST" action="{{ route('two-factor.login.store') }}">
                 @csrf
 
+                <x-error-summary class="mb-5" />
+
                 <div class="space-y-5 text-center">
                     <div x-show="!showRecoveryInput">
                         <div class="flex items-center justify-center my-5" x-ref="otp">
@@ -60,6 +62,7 @@
                         <div class="my-5">
                             <flux:input
                                 type="text"
+                                id="recovery_code"
                                 name="recovery_code"
                                 :label="__('Recovery code')"
                                 x-ref="recovery_code"
