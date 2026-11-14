@@ -72,6 +72,44 @@ class PageStructureTest extends TestCase
         $this->assertNotSame('', $html->getAttribute('lang'));
     }
 
+    #[DataProvider('settingsPages')]
+    public function test_a_settings_page_titles_its_section_with_a_visible_heading(string $page): void
+    {
+        $headings = $this->render($page)->query('//h2');
+
+        $this->assertGreaterThan(0, $headings->length, 'The section has a heading under the page heading.');
+
+        foreach ($headings as $heading) {
+            $this->assertStringNotContainsString('sr-only', $heading->getAttribute('class'), 'A heading is for everyone, not only for screen readers.');
+        }
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function settingsPages(): array
+    {
+        return array_intersect_key(self::pages(), array_flip(['profile', 'security', 'appearance', 'language', 'households', 'household settings']));
+    }
+
+    #[DataProvider('pages')]
+    public function test_every_dialog_is_named_by_its_visible_heading(string $page): void
+    {
+        $page = $this->render($page);
+
+        foreach ($page->query('//dialog') as $dialog) {
+            $labelledBy = $dialog->getAttribute('aria-labelledby');
+
+            $this->assertNotSame('', $labelledBy, 'A dialog says what it is for.');
+
+            $heading = $page->query('//*[@id="'.$labelledBy.'"]')->item(0);
+
+            $this->assertNotNull($heading, 'The dialog is named by an element that exists.');
+            $this->assertNotSame('', trim($heading->textContent));
+            $this->assertNotNull($page->query('ancestor::dialog', $heading)->item(0), 'The name comes from inside the dialog.');
+        }
+    }
+
     public function test_the_current_page_is_marked_in_the_sidebar(): void
     {
         $current = $this->render('dashboard')->query('//nav//a[@aria-current="page"]');

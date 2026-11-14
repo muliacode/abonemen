@@ -21,8 +21,6 @@ new #[Title('Households')] class extends Component {
 <section class="w-full">
     @include('partials.settings-heading')
 
-    <flux:heading level="2" class="sr-only">{{ __('Households') }}</flux:heading>
-
     <x-pages::settings.layout :heading="__('Households')" :subheading="__('The households you belong to')">
         <div class="flex items-center justify-end">
             <flux:modal.trigger name="create-household">

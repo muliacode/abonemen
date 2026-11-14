@@ -68,8 +68,6 @@ new class extends Component
 <section class="w-full">
     @include('partials.settings-heading')
 
-    <flux:heading level="2" class="sr-only">{{ __('Households') }}</flux:heading>
-
     <x-pages::settings.layout :heading="__('Households')" :subheading="__('Manage your household settings')">
         <div class="space-y-6">
             @if ($this->canUpdate)

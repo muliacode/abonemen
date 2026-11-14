@@ -170,8 +170,6 @@ new #[Title('Security settings')] class extends Component {
 <section class="w-full">
     @include('partials.settings-heading')
 
-    <flux:heading level="2" class="sr-only">{{ __('Security settings') }}</flux:heading>
-
     <x-pages::settings.layout :heading="__('Update password')" :subheading="__('Ensure your account is using a long, random password to stay secure')">
         <form method="POST" wire:submit="updatePassword" class="mt-6 space-y-6">
             <x-error-summary />
@@ -217,7 +215,7 @@ new #[Title('Security settings')] class extends Component {
 
         @if ($canManageTwoFactor)
             <section class="mt-12">
-                <flux:heading>{{ __('Two-factor authentication') }}</flux:heading>
+                <flux:heading level="2">{{ __('Two-factor authentication') }}</flux:heading>
                 <flux:subheading>{{ __('Manage your two-factor authentication settings') }}</flux:subheading>
 
                 <div class="flex flex-col w-full mx-auto space-y-6 text-sm" wire:cloak>
@@ -262,7 +260,7 @@ new #[Title('Security settings')] class extends Component {
 
         @if ($canManagePasskeys)
             <section class="mt-12">
-                <flux:heading>{{ __('Passkeys') }}</flux:heading>
+                <flux:heading level="2">{{ __('Passkeys') }}</flux:heading>
                 <flux:subheading>{{ __('Manage your passkeys for passwordless sign-in') }}</flux:subheading>
 
                 <div class="mt-6 flex flex-col w-full mx-auto space-y-6 text-sm" wire:cloak>
@@ -318,13 +316,14 @@ new #[Title('Security settings')] class extends Component {
 
     <flux:modal
         name="delete-passkey-modal"
+        aria-labelledby="delete-passkey-heading"
         class="max-w-md md:min-w-md"
         @close="closeDeleteModal"
         wire:model="showDeleteModal"
     >
         <div class="space-y-6">
             <div class="space-y-2">
-                <flux:heading size="lg">{{ __('Remove passkey') }}</flux:heading>
+                <flux:heading id="delete-passkey-heading" level="2" size="lg">{{ __('Remove passkey') }}</flux:heading>
                 <flux:text>
                     {{ __('Are you sure you want to remove the passkey ":name"? You will no longer be able to use it to sign in.', ['name' => $deletingPasskeyName]) }}
                 </flux:text>

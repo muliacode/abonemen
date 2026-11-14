@@ -154,6 +154,7 @@ new class extends Component {
 
 <flux:modal
     name="two-factor-setup-modal"
+    aria-labelledby="two-factor-setup-heading"
     class="max-w-md md:min-w-md"
     @close="closeModal"
 >
@@ -178,7 +179,7 @@ new class extends Component {
                 </div>
 
                 <div class="space-y-2 text-center">
-                    <flux:heading size="lg">{{ $this->modalConfig['title'] }}</flux:heading>
+                    <flux:heading id="two-factor-setup-heading" level="2" size="lg">{{ $this->modalConfig['title'] }}</flux:heading>
                     <flux:text>{{ $this->modalConfig['description'] }}</flux:text>
                 </div>
             </div>

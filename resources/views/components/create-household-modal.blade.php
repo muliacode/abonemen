@@ -42,12 +42,12 @@ new class extends Component {
     }
 }; ?>
 
-<flux:modal name="create-household" :show="$errors->isNotEmpty()" focusable class="max-w-lg">
+<flux:modal name="create-household" aria-labelledby="create-household-heading" :show="$errors->isNotEmpty()" focusable class="max-w-lg">
     <form wire:submit="createHousehold" class="space-y-6">
         <x-error-summary prefix="create-household-" />
 
         <div>
-            <flux:heading size="lg">{{ __('Create a new household') }}</flux:heading>
+            <flux:heading id="create-household-heading" level="2" size="lg">{{ __('Create a new household') }}</flux:heading>
             <flux:subheading>{{ __('A household is where you and the people you share costs with keep your subscriptions.') }}</flux:subheading>
         </div>
 

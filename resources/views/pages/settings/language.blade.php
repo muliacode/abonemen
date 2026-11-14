@@ -37,8 +37,6 @@ new #[Title('Language settings')] class extends Component {
 <section class="w-full">
     @include('partials.settings-heading')
 
-    <flux:heading level="2" class="sr-only">{{ __('Language settings') }}</flux:heading>
-
     <x-pages::settings.layout :heading="__('Language')" :subheading="__('Choose the language Abonemen is shown in, and the language of the emails it sends you')">
         <form wire:submit="updateLanguage" class="space-y-6">
             <x-error-summary />
