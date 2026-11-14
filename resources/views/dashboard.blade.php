@@ -1,20 +1,12 @@
 <x-layouts::app :title="__('Dashboard')">
-    <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
-        <x-page-heading>{{ __('Dashboard') }}</x-page-heading>
+    <x-page-header :title="__('Dashboard')" />
 
-        <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
-            </div>
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
-            </div>
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
-            </div>
-        </div>
-        <div class="relative h-full flex-1 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-            <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
-        </div>
+    {{-- Four surfaces wait here for the real dashboard (#16). --}}
+    <div class="grid gap-5 md:grid-cols-3">
+        <div class="h-44 rounded-xl border border-zinc-300 bg-surface"></div>
+        <div class="h-44 rounded-xl border border-zinc-300 bg-surface"></div>
+        <div class="h-44 rounded-xl border border-zinc-300 bg-surface"></div>
     </div>
+
+    <div class="mt-5 h-96 rounded-xl border border-zinc-300 bg-surface"></div>
 </x-layouts::app>

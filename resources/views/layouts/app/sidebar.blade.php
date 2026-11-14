@@ -3,84 +3,39 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-surface">
+    <body class="min-h-screen bg-paper text-ink antialiased">
         <x-skip-link />
 
-        <flux:sidebar sticky collapsible="mobile" class="border-e border-zinc-200 bg-surface-sunken dark:border-zinc-700">
+        {{-- The rail is the ink of the shell; the current page is a tab of paper joined to the page (see app.css). --}}
+        <flux:sidebar sticky collapsible="mobile" class="[--mark-knock:var(--color-rail)]">
             <flux:sidebar.header>
-                <x-app-logo :sidebar="true" href="{{ auth()->user()->homeUrl() }}" wire:navigate />
+                <x-app-logo href="{{ auth()->user()->homeUrl() }}" wire:navigate class="text-rail-text" />
                 <flux:sidebar.collapse class="lg:hidden" />
             </flux:sidebar.header>
 
             <livewire:household-switcher />
 
             <flux:sidebar.nav :aria-label="__('Main')">
-                <flux:sidebar.group :heading="__('Platform')" class="grid">
-                    <flux:sidebar.item icon="home" :href="auth()->user()->homeUrl()" :current="request()->routeIs('dashboard')" wire:navigate>
-                        {{ __('Dashboard') }}
-                    </flux:sidebar.item>
-                </flux:sidebar.group>
+                <flux:sidebar.item icon="home" :href="auth()->user()->homeUrl()" :current="request()->routeIs('dashboard')" wire:navigate>
+                    {{ __('Dashboard') }}
+                </flux:sidebar.item>
+
+                <flux:sidebar.item icon="adjustments-horizontal" :href="route('profile.edit')" :current="request()->routeIs('profile.edit', 'security.edit', 'appearance.edit', 'language.edit', 'households.*')" wire:navigate>
+                    {{ __('Settings') }}
+                </flux:sidebar.item>
             </flux:sidebar.nav>
 
             <flux:spacer />
 
-            <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
+            <x-user-menu />
         </flux:sidebar>
 
-        <!-- Mobile User Menu -->
-        <flux:header class="lg:hidden">
-            <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
+        <flux:header class="lg:hidden bg-rail text-rail-text [--mark-knock:var(--color-rail)]">
+            <x-app-logo href="{{ auth()->user()->homeUrl() }}" wire:navigate class="text-rail-text" />
 
             <flux:spacer />
 
-            <flux:dropdown position="top" align="end">
-                <flux:profile
-                    :aria-label="__('User menu')"
-                    :initials="auth()->user()->initials()"
-                    icon-trailing="chevron-down"
-                />
-
-                <flux:menu>
-                    <flux:menu.radio.group>
-                        <div class="p-0 text-sm font-normal">
-                            <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
-                                <flux:avatar
-                                    :name="auth()->user()->name"
-                                    :initials="auth()->user()->initials()"
-                                />
-
-                                <div class="grid flex-1 text-start text-sm leading-tight">
-                                    <flux:heading class="truncate">{{ auth()->user()->name }}</flux:heading>
-                                    <flux:text class="truncate">{{ auth()->user()->email }}</flux:text>
-                                </div>
-                            </div>
-                        </div>
-                    </flux:menu.radio.group>
-
-                    <flux:menu.separator />
-
-                    <flux:menu.radio.group>
-                        <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
-                            {{ __('Settings') }}
-                        </flux:menu.item>
-                    </flux:menu.radio.group>
-
-                    <flux:menu.separator />
-
-                    <form method="POST" action="{{ route('logout') }}" class="w-full">
-                        @csrf
-                        <flux:menu.item
-                            as="button"
-                            type="submit"
-                            icon="arrow-right-start-on-rectangle"
-                            class="w-full cursor-pointer"
-                            data-test="logout-button"
-                        >
-                            {{ __('Log out') }}
-                        </flux:menu.item>
-                    </form>
-                </flux:menu>
-            </flux:dropdown>
+            <flux:sidebar.toggle icon="bars-2" inset="right" />
         </flux:header>
 
         {{ $slot }}

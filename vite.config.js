@@ -13,7 +13,7 @@ export default defineConfig({
             ],
             refresh: true,
             fonts: [
-                bunny('Instrument Sans', {
+                bunny('Atkinson Hyperlegible Next', {
                     weights: [400, 500, 600],
                 }),
             ],

@@ -1,17 +1,5 @@
-@props([
-    'sidebar' => false,
-])
-
-@if($sidebar)
-    <flux:sidebar.brand :name="config('app.name', 'Laravel')" {{ $attributes }}>
-        <x-slot name="logo" class="flex aspect-square size-8 items-center justify-center rounded-md bg-accent-content text-accent-foreground">
-            <x-app-logo-icon class="size-5 fill-current text-white dark:text-black" />
-        </x-slot>
-    </flux:sidebar.brand>
-@else
-    <flux:brand :name="config('app.name', 'Laravel')" {{ $attributes }}>
-        <x-slot name="logo" class="flex aspect-square size-8 items-center justify-center rounded-md bg-accent-content text-accent-foreground">
-            <x-app-logo-icon class="size-5 fill-current text-white dark:text-black" />
-        </x-slot>
-    </flux:brand>
-@endif
+{{-- The mark and the name, as the link home. The wrapper sets --mark-knock to the colour behind it. --}}
+<a {{ $attributes->class('flex items-center gap-2.5 rounded-lg px-2 py-1 text-lg font-semibold') }}>
+    <x-app-logo-icon class="size-8 shrink-0" />
+    <span>{{ config('app.name', 'Abonemen') }}</span>
+</a>

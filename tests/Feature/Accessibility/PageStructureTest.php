@@ -138,6 +138,25 @@ class PageStructureTest extends TestCase
         }
     }
 
+    #[DataProvider('appPages')]
+    public function test_an_app_page_opens_with_a_page_header_that_holds_its_heading(string $page): void
+    {
+        $page = $this->render($page);
+
+        $header = $page->query('//main//*[@data-page-header]');
+
+        $this->assertCount(1, $header, 'The page has one page header.');
+        $this->assertCount(1, $page->query('.//h1', $header->item(0)), 'The page heading sits in the page header.');
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function appPages(): array
+    {
+        return array_intersect_key(self::pages(), array_flip(['dashboard', 'profile', 'security', 'appearance', 'language', 'households', 'household settings']));
+    }
+
     public function test_the_current_page_is_marked_in_the_sidebar(): void
     {
         $current = $this->render('dashboard')->query('//nav//a[@aria-current="page"]');
