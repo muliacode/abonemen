@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\Locale;
-use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Title;
@@ -28,6 +27,8 @@ new #[Title('Language settings')] class extends Component {
         ]);
 
         Auth::user()->update(['locale' => $validated['locale']]);
+
+        session()->flash('confirmation', __('Language updated.', [], $validated['locale']));
 
         $this->redirectRoute('language.edit', navigate: true);
     }

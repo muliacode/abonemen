@@ -1,8 +1,8 @@
 <?php
 
 use App\Concerns\ProfileValidationRules;
+use App\Concerns\ReportsStatus;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Computed;
@@ -11,6 +11,7 @@ use Livewire\Component;
 
 new #[Title('Profile settings')] class extends Component {
     use ProfileValidationRules;
+    use ReportsStatus;
 
     public string $name = '';
     public string $email = '';
@@ -41,7 +42,7 @@ new #[Title('Profile settings')] class extends Component {
 
         $user->save();
 
-        Flux::toast(variant: 'success', text: __('Profile updated.'));
+        $this->reportStatus(__('Profile updated.'));
     }
 
     /**
@@ -101,21 +102,18 @@ new #[Title('Profile settings')] class extends Component {
                         </flux:text>
 
                         @if (session('status') === 'verification-link-sent')
-                            <flux:text class="mt-2 font-medium !dark:text-green-400 !text-green-600">
-                                {{ __('A new verification link has been sent to your email address.') }}
-                            </flux:text>
+                            <x-status-message class="mt-2" :message="__('A new verification link has been sent to your email address.')" />
                         @endif
                     </div>
                 @endif
             </div>
 
             <div class="flex items-center gap-4">
-                <div class="flex items-center justify-end">
-                    <flux:button variant="primary" type="submit" class="w-full" data-test="update-profile-button">
-                        {{ __('Save') }}
-                    </flux:button>
-                </div>
+                <flux:button variant="primary" type="submit" data-test="update-profile-button">
+                    {{ __('Save') }}
+                </flux:button>
 
+                <x-status-message :message="$status" />
             </div>
         </form>
 

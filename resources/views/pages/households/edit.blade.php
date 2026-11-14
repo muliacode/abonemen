@@ -1,8 +1,8 @@
 <?php
 
+use App\Concerns\ReportsStatus;
 use App\Models\Household;
 use App\Rules\HouseholdSettingRules;
-use Flux\Flux;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -10,6 +10,8 @@ use Symfony\Component\Intl\Currencies;
 
 new class extends Component
 {
+    use ReportsStatus;
+
     public Household $household;
 
     public string $name = '';
@@ -44,7 +46,7 @@ new class extends Component
             'timezone' => $validated['timezone'],
         ]);
 
-        Flux::toast(variant: 'success', text: __('Household updated.'));
+        $this->reportStatus(__('Household updated.'));
     }
 
     #[Computed]
@@ -88,9 +90,13 @@ new class extends Component
                         @endforeach
                     </flux:select>
 
-                    <flux:button variant="primary" type="submit" data-test="household-save-button">
-                        {{ __('Save') }}
-                    </flux:button>
+                    <div class="flex items-center gap-4">
+                        <flux:button variant="primary" type="submit" data-test="household-save-button">
+                            {{ __('Save') }}
+                        </flux:button>
+
+                        <x-status-message :message="$status" />
+                    </div>
                 </form>
             @else
                 <dl class="space-y-4">

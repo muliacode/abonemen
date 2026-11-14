@@ -2,7 +2,6 @@
 
 use App\Actions\Households\CreateHousehold;
 use App\Rules\HouseholdSettingRules;
-use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -37,7 +36,7 @@ new class extends Component {
 
         $this->reset('name');
 
-        Flux::toast(variant: 'success', text: __('Household created.'));
+        session()->flash('confirmation', __('Household created.'));
 
         $this->redirectRoute('dashboard', ['current_household' => $household->ulid], navigate: true);
     }

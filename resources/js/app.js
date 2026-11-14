@@ -20,7 +20,9 @@ document.addEventListener('livewire:navigated', () => {
             return;
         }
 
-        const target = document.querySelector('[data-page-heading]') ?? document.getElementById('main');
+        // A confirmation waiting on the new page ("Household created.") is read out first.
+        const confirmation = [...document.querySelectorAll('[data-status-message]')].find((message) => message.textContent.trim() !== '');
+        const target = confirmation ?? document.querySelector('[data-page-heading]') ?? document.getElementById('main');
 
         target?.focus();
     });
