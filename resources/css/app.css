@@ -9,53 +9,80 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    /* Atkinson Hyperlegible Next: built so that look-alike characters (I l 1, O 0) cannot be confused. Its zero is slashed. */
+    --font-sans: 'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
-    --color-zinc-50: #fafafa;
-    --color-zinc-100: #f5f5f5;
-    --color-zinc-200: #e5e5e5;
-    --color-zinc-300: #d4d4d4;
-    --color-zinc-400: #a3a3a3;
-    --color-zinc-500: #737373;
-    --color-zinc-600: #525252;
-    --color-zinc-700: #404040;
-    --color-zinc-800: #262626;
-    --color-zinc-900: #171717;
-    --color-zinc-950: #0a0a0a;
+    /* Flat like paper, 10px corners. Only overlays (menus, dialogs) keep a shadow. */
+    --radius-lg: 0.625rem;
+    --radius-xl: 0.75rem;
+    --shadow-xs: none;
+    --shadow-sm: none;
+
+    /*
+     * Warm greys. Flux paints its borders, secondary text and dark surfaces from the zinc scale, so this is
+     * where the whole component set takes the warm tint. 100 is the paper, 800 and 900 are the dark surface and paper. In dark the rail is a lighter ink than the page, as in light it is a darker one, so that the paper tab stands out.
+     */
+    --color-zinc-50: #faf9f6;
+    --color-zinc-100: #f6f4ef;
+    --color-zinc-200: #e9e6df;
+    --color-zinc-300: #dcd7cd;
+    --color-zinc-400: #a8a196;
+    --color-zinc-500: #6b655b;
+    --color-zinc-600: #5a554d;
+    --color-zinc-700: #3b3834;
+    --color-zinc-800: #242220;
+    --color-zinc-900: #151412;
+    --color-zinc-950: #0f0e0d;
 
     /* Flux paints danger buttons red-500 (white on it is 3.8:1) and their hover red-600; both pinned to a red white text can sit on. */
     --color-red-500: #dc2626;
     --color-red-600: #b91c1c;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
-    --color-accent-foreground: var(--color-white);
+    /* The accent is the ink: links, the primary button, the current item. */
+    --color-accent: #2d3b8f;
+    --color-accent-content: #2d3b8f;
+    --color-accent-foreground: #ffffff;
 
     /*
-     * Colour roles. Views use these for state, control edges and focus, never a raw palette colour,
-     * and tests/Unit/ColourTokensTest.php checks each in both themes (WCAG 2.2 AA).
+     * Colour roles. Views use these to say what a colour means, never a raw palette colour, and
+     * tests/Unit/ColourTokensTest.php checks each in both themes (WCAG 2.2 AA).
+     * paper is the page, surface is what sits on it, rail is the ink of the sidebar.
      */
+    --color-paper: #f6f4ef;
     --color-surface: #ffffff;
-    --color-surface-sunken: #fafafa;
-    --color-danger: #b91c1c;
-    --color-success: #166534;
-    --color-muted: #525252;
-    --color-control-border: #737373;
-    --color-focus: #262626;
+    --color-rail: #222a5e;
+    --color-rail-text: #f3f2fb;
+    --color-rail-muted: #b9bee3;
+    --color-ink: #211f1c;
+    --color-muted: #5a554d;
+    --color-accent-wash: #e6e9fa;
+    --color-danger: #a8261d;
+    --color-success: #1d6a3a;
+    --color-warning: #7a4b00;
+    --color-warning-surface: #fbefd3;
+    --color-control-border: #857e72;
+    --color-focus: #222a5e;
 }
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
+        --color-accent: #b4bdff;
+        --color-accent-content: #b4bdff;
+        --color-accent-foreground: #14173a;
 
-        --color-surface: #262626;
-        --color-surface-sunken: #171717;
-        --color-danger: #fca5a5;
-        --color-success: #86efac;
-        --color-muted: #a3a3a3;
-        --color-control-border: #a3a3a3;
+        --color-paper: #151412;
+        --color-surface: #242220;
+        --color-rail: #3a46a0;
+        --color-rail-text: #f3f2fb;
+        --color-rail-muted: #cdd2f7;
+        --color-ink: #efece5;
+        --color-muted: #b3ada2;
+        --color-accent-wash: #2a2e57;
+        --color-danger: #f2a39b;
+        --color-success: #8fd3a6;
+        --color-warning: #f0c36a;
+        --color-warning-surface: #3a2f14;
+        --color-control-border: #8f897d;
         --color-focus: #ffffff;
     }
 }
@@ -67,7 +94,7 @@
     ::before,
     ::backdrop,
     ::file-selector-button {
-        border-color: var(--color-gray-200, currentColor);
+        border-color: var(--color-zinc-300);
     }
 }
 
@@ -79,38 +106,192 @@
     @apply  !mb-0 !leading-tight;
 }
 
-input:focus[data-flux-control],
-textarea:focus[data-flux-control],
-select:focus[data-flux-control] {
-    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
-}
-
 /* The edge of a text field has to be seen against the page (WCAG 1.4.11), which Flux's pale default is not. */
-[data-flux-control]:not([type='checkbox'], [type='radio']) {
+[data-flux-control]:not([type='checkbox'], [type='radio'], ui-checkbox, ui-radio, ui-switch) {
     border-color: var(--color-control-border);
 }
 
 /* One focus ring for everything a keyboard can reach. Elements focused by script (tabindex="-1") style their own. */
-:where(:focus-visible):not([tabindex='-1']) {
+:where(:focus-visible):not([tabindex='-1']),
+input:focus[data-flux-control],
+textarea:focus[data-flux-control],
+select:focus[data-flux-control] {
     outline: 2px solid var(--color-focus);
     outline-offset: 2px;
 }
 
 /*
- * Touch targets. Flux's smallest controls are 24px, which is the floor of WCAG 2.5.8; where a finger is the
- * pointer, controls are at least 44px so that a child or a shaky hand does not hit the wrong one.
+ * Type and targets. 16px is the body, 14px the smallest text (never text-xs), and every control is 44px tall on every
+ * device: bigger targets help older hands and low vision, and this is a household tool used briefly, not all day.
  */
+[data-flux-control]:not([type='checkbox'], [type='radio'], ui-checkbox, ui-radio, ui-switch),
+[data-flux-label],
+[data-flux-button],
+[data-flux-sidebar-item],
+[role='menuitem'] {
+    font-size: 1rem;
+}
+
+[data-flux-control]:not([type='checkbox'], [type='radio'], ui-checkbox, ui-radio, ui-switch),
+[data-flux-button],
+[data-flux-sidebar-item],
+[role='menuitem'] {
+    min-height: 2.75rem;
+}
+
+[data-flux-button] {
+    min-width: 2.75rem;
+}
+
+/* The box of a checkbox and the circle of a radio have to be seen against the page too (WCAG 1.4.11). */
+ui-checkbox:not([data-checked]) > div:first-child,
+:not([data-flux-radio-group-segmented]) > ui-radio:not([data-checked]) > div:first-child {
+    border: 1.5px solid var(--color-control-border);
+}
+
+/* A checkbox or radio row is 44px tall, so its label is as easy to hit as any button; the box itself keeps its size. */
+[data-flux-field]:has(> ui-checkbox, > ui-radio, > ui-switch) {
+    min-height: 2.75rem;
+    align-items: center;
+}
+
 @media (pointer: coarse) {
     button,
-    [data-flux-button],
-    [data-flux-sidebar-item],
-    [role='menuitem'],
-    [data-flux-control]:not([type='checkbox'], [type='radio']) {
+    [role='menuitem'] {
         min-height: 2.75rem;
         min-width: 2.75rem;
     }
 }
 
-/* \[:where(&)\]:size-4 {
-    @apply size-4;
-} */
+[data-flux-main] {
+    padding: 1.5rem;
+}
+
+@media (min-width: 64rem) {
+    [data-flux-main] {
+        padding: 2.5rem;
+    }
+}
+
+/*
+ * The shell. The rail is the ink and the page is the paper; the current destination is a tab of paper that joins the page,
+ * like a divider in a household binder. Everything in the rail reads from the rail-* roles.
+ */
+[data-flux-sidebar],
+[data-flux-header] {
+    background: var(--color-rail);
+    color: var(--color-rail-text);
+    border: 0;
+}
+
+[data-flux-sidebar] {
+    overflow-x: hidden;
+}
+
+[data-flux-sidebar] [data-flux-sidebar-item],
+[data-flux-sidebar] [data-flux-button],
+[data-flux-header] [data-flux-button] {
+    color: var(--color-rail-text);
+    border: 0;
+}
+
+[data-flux-sidebar] [data-flux-sidebar-item] {
+    font-weight: 500;
+}
+
+[data-flux-sidebar] [data-flux-sidebar-item]:hover,
+[data-flux-sidebar] [data-flux-button]:hover,
+[data-flux-header] [data-flux-button]:hover {
+    background: rgb(255 255 255 / 0.1);
+    color: var(--color-rail-text);
+}
+
+[data-flux-sidebar] [data-flux-sidebar-item][data-current] {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-weight: 600;
+    width: calc(100% + 1rem);
+    margin-inline-end: -1rem;
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+}
+
+/* The drawer's close control: ink-on-rail text, and 44px like every control. */
+[data-flux-sidebar-collapse] {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    color: var(--color-rail-text);
+}
+
+[data-flux-sidebar-collapse] svg {
+    color: var(--color-rail-text);
+}
+
+/* A dropdown trigger (the household switcher) fills the rail and truncates a long name instead of widening it. */
+[data-flux-sidebar] ui-dropdown {
+    display: block;
+    min-width: 0;
+}
+
+[data-flux-sidebar] :where(:focus-visible):not([tabindex='-1']),
+[data-flux-header] :where(:focus-visible):not([tabindex='-1']) {
+    outline-color: var(--color-rail-text);
+}
+
+[data-flux-sidebar] [data-flux-sidebar-item][data-current]:focus-visible {
+    outline-color: var(--color-focus);
+    outline-offset: -4px;
+}
+
+/* A secondary button shows its edge, as a text field does. */
+[data-flux-button].bg-white {
+    border-color: var(--color-control-border);
+}
+
+/* The theme choice is a segmented control: 44px items, and the selected one is outlined as well as lighter. */
+[data-flux-radio-group-segmented] {
+    height: 3.25rem;
+}
+
+[data-flux-radio-group-segmented] ui-radio {
+    min-height: 2.75rem;
+    font-size: 1rem;
+}
+
+[data-flux-radio-group-segmented] ui-radio[data-checked] {
+    font-weight: 600;
+    box-shadow: inset 0 0 0 2px var(--color-accent);
+}
+
+/* Headings by level: h2 names a section of the page, h3 a part of a section. */
+h2[data-flux-heading] {
+    font-size: 1.375rem;
+    line-height: 1.3;
+    font-weight: 600;
+    color: var(--color-ink);
+}
+
+h3[data-flux-heading] {
+    font-size: 1.125rem;
+    line-height: 1.4;
+    font-weight: 600;
+    color: var(--color-ink);
+}
+
+[data-flux-subheading] {
+    font-size: 1rem;
+    color: var(--color-muted);
+}
+
+[data-flux-navlist-item] {
+    min-height: 2.75rem;
+    font-size: 1rem;
+}
+
+/* The settings menu is navigation too: the current section is a wash of the accent, not only a colour. */
+[data-flux-navlist] [data-current] {
+    background: var(--color-accent-wash);
+    color: var(--color-accent);
+    font-weight: 600;
+    border-color: transparent;
+}

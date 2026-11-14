@@ -45,6 +45,19 @@ class ColourUsageTest extends TestCase
         $this->assertSame([], $offences, "Pale grey text is below 4.5:1 on white. Use text-muted:\n".implode("\n", $offences));
     }
 
+    public function test_views_do_not_set_text_below_14px(): void
+    {
+        $offences = [];
+
+        foreach ($this->views() as $path => $source) {
+            if (preg_match_all('/(?<![\w:-])text-xs\b|(?<![\w:-])text-\[(?:\d|1[0-3])px\]/', $source, $matches)) {
+                $offences[] = "{$path}: ".implode(', ', array_unique($matches[0]));
+            }
+        }
+
+        $this->assertSame([], $offences, "Secondary text is 14px (text-sm) at the smallest, so that everyone in a Household can read it:\n".implode("\n", $offences));
+    }
+
     /**
      * Our own views, not Flux's, which are overridden one by one when they fail (see docs/accessibility.md).
      *

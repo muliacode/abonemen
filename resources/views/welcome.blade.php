@@ -1,9 +1,14 @@
-<x-layouts::auth :title="config('app.name')">
-    <div class="flex flex-col gap-6">
-        <x-auth-header
-            :title="config('app.name')"
-            :description="__('Know exactly what you pay for, when, and why, without giving up your privacy.')"
-        />
+<x-layouts::auth :title="config('app.name')" :brand="false">
+    <div class="flex flex-col gap-8">
+        <div class="flex flex-col gap-4">
+            <x-app-logo-icon class="mb-2 size-16 text-accent" />
+
+            <x-page-heading>{{ config('app.name') }}</x-page-heading>
+
+            <p class="max-w-[24ch] text-[1.375rem] leading-snug font-medium">
+                {{ __('Know exactly what you pay for, when, and why, without giving up your privacy.') }}
+            </p>
+        </div>
 
         <div class="flex flex-col gap-3">
             @auth

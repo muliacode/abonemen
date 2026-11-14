@@ -21,8 +21,10 @@ so that a third theme can slot in.
 
 - Every layout starts with `<x-skip-link />`, the first focusable element, which jumps to `<main id="main">`.
 - `<flux:main>` renders a real `<main>` (see the overrides). The auth layout wraps its content in `<main id="main">`.
-- A page has exactly one `<h1>`, written with `<x-page-heading>`. Headings below it never skip a level. In settings, the
-  section title is an `<h2>` (`x-pages::settings.layout` renders it).
+- A page has exactly one `<h1>`. A page in the app opens with `<x-page-header :title="..." :description="...">`, which holds the
+  `<h1>`, one line saying what the page is for and, in its `actions` slot, the primary action. Auth screens use
+  `<x-auth-header>`. Headings below it never skip a level. In settings, the section title is an `<h2>` and a part of a
+  section an `<h3>` (`x-pages::settings.layout` renders the `<h2>`).
 - Every `<nav>` has a name (`aria-label`). The current link carries `aria-current="page"` (the `button-or-link` override).
 - After a `wire:navigate` page change, `resources/js/app.js` moves focus to the new page: to a waiting confirmation if
   there is one, otherwise to the `<h1>`, otherwise to `<main>`. Elements that take focus this way have `tabindex="-1"`
@@ -76,18 +78,23 @@ on a timer (WCAG 2.2.1) and Flux's toast has no live region, so a screen reader 
 
 | Role | Use |
 | --- | --- |
+| `bg-paper`, `bg-surface` | the page, and what sits on it (panels, fields) |
+| `bg-rail`, `text-rail-text`, `text-rail-muted` | the sidebar, the ink of the shell |
+| `text-ink`, `text-muted` | text, and secondary text, help text, hints |
+| `text-accent`, `bg-accent`, `bg-accent-wash` | links, the primary button, the current item |
 | `text-danger`, `border-danger` | errors, destructive actions |
 | `text-success` | confirmations |
-| `text-muted` | secondary text, help text, hints |
-| `bg-surface`, `bg-surface-sunken` | the page and the sidebar |
+| `text-warning`, `bg-warning-surface` | a date that needs action |
 | `--color-control-border` | the edge of a text field (set globally) |
 | `--color-focus` | the focus ring (set globally) |
 
 `tests/Unit/ColourTokensTest.php` computes the contrast of every role on every surface in both themes (4.5:1 for text,
 3:1 for control edges and the focus ring). `tests/Unit/ColourUsageTest.php` fails on `text-red-500`, `text-green-600`,
-`text-zinc-400` and the like in views. To add a role, add it to both themes in `app.css` and to `ColourTokensTest::roles()`.
+`text-zinc-400` and the like in views. To add a role, add it to both themes in `app.css` and to `ColourTokensTest`.
 
-Flux paints its danger buttons with the palette's `red-500` (white on it is 3.8:1), so `app.css` pins `--color-red-500` and
+Flux paints its borders, secondary text and dark surfaces from the zinc scale, so `app.css` replaces that scale with warm
+greys (the whole component set takes the tint) and `ColourTokensTest` checks the zinc text Flux relies on. Flux also paints
+its danger buttons with the palette's `red-500` (white on it is 3.8:1), so `app.css` pins `--color-red-500` and
 `--color-red-600` to darker reds; `ColourTokensTest` checks white text on both.
 
 Colour never carries meaning alone: an error has an icon, a heading and text, the current page has `aria-current`, a
@@ -96,8 +103,11 @@ confirmation has an icon and text.
 ## Focus and touch targets
 
 - One focus ring (`--color-focus`) for everything focusable. Do not remove an outline without replacing it.
-- Controls are at least 24px (WCAG 2.5.8) and, where the pointer is coarse (`@media (pointer: coarse)`), 44px.
-  Icon-only controls need an `aria-label`.
+- Every control is 44px tall on every device (WCAG 2.5.8 asks for 24px; this is a household tool used briefly, and bigger
+  targets help older hands). Icon-only controls need an `aria-label`.
+- Text is 16px, and 14px (`text-sm`) is the smallest anywhere: `ColourUsageTest` refuses `text-xs` in views. Money and dates
+  use `tabular-nums` so that figures line up. The typeface, Atkinson Hyperlegible Next, draws a slashed zero on purpose, so
+  that 0 and O cannot be confused.
 - Layouts reflow at 400% zoom (a 320px viewport) with no horizontal scrolling: no fixed widths beyond `max-w-*`,
   no `min-w-*` wider than 320px outside `md:`.
 
@@ -128,7 +138,6 @@ After adding or changing an override, run `php artisan view:clear`: compiled vie
 | `flux/button-or-link.blade.php` | Adds `aria-current="page"` to a link to the current page; Flux marked it with colour only. |
 | `flux/error.blade.php` | Gives the message an id, drops `role="alert"` (the summary announces), and uses `text-danger` (red-500 was 3.8:1). |
 | `flux/modal/index.blade.php` | Passes `aria-labelledby`, `aria-describedby` and `aria-label` to the `<dialog>` instead of the wrapper; darkens the close icon. |
-| `flux/navlist/group.blade.php` | From the starter kit: the sidebar group. |
 
 When Flux is upgraded: for each file above, diff it with `vendor/livewire/flux/stubs/resources/views/<file>`, port what
 changed upstream, then update the version above.

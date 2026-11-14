@@ -80,15 +80,10 @@ new class extends Component {
 
 <div>
     <flux:dropdown position="bottom" align="start">
-        <flux:button variant="ghost" class="group w-full justify-start in-data-flux-sidebar-collapsed-desktop:justify-center" data-test="household-switcher-trigger">
-            <flux:icon name="users" class="hidden size-4 in-data-flux-sidebar-collapsed-desktop:block" />
-            <span class="truncate font-semibold in-data-flux-sidebar-collapsed-desktop:hidden">{{ $this->currentHousehold()['name'] ?? __('Select household') }}</span>
-            <flux:icon
-                name="chevrons-up-down"
-                variant="micro"
-                class="ms-auto size-4 in-data-flux-sidebar-collapsed-desktop:hidden"
-            />
-        </flux:button>
+        <button type="button" class="flex min-h-11 w-full items-center justify-between gap-2 rounded-lg bg-white/10 px-3 text-start font-medium text-rail-text hover:bg-white/15" data-test="household-switcher-trigger">
+            <span class="truncate">{{ $this->currentHousehold()['name'] ?? __('Select household') }}</span>
+            <flux:icon name="chevrons-up-down" variant="micro" class="size-4 shrink-0 text-rail-muted" />
+        </button>
 
         <flux:menu class="min-w-56">
             <flux:menu.heading>{{ __('Households') }}</flux:menu.heading>

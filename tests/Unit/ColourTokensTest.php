@@ -14,7 +14,7 @@ use PHPUnit\Framework\TestCase;
  */
 class ColourTokensTest extends TestCase
 {
-    private const SURFACES = ['surface', 'surface-sunken'];
+    private const SURFACES = ['paper', 'surface'];
 
     /**
      * @return array<string, array{string, string, float}>
@@ -24,7 +24,10 @@ class ColourTokensTest extends TestCase
         $roles = [];
 
         foreach (['light', 'dark'] as $theme) {
-            foreach (['danger', 'success', 'muted'] as $text) {
+            // Flux sets its secondary text in zinc-500 on the light theme and zinc-400 on the dark one.
+            $flux = $theme === 'light' ? 'zinc-500' : 'zinc-400';
+
+            foreach (['ink', 'muted', 'accent', 'danger', 'success', $flux] as $text) {
                 $roles["{$theme}: {$text} text"] = [$theme, $text, 4.5];
             }
 
@@ -52,6 +55,67 @@ class ColourTokensTest extends TestCase
                 $role, $surface, $theme, $ratio, $minimum,
             ));
         }
+    }
+
+    /**
+     * @return array<string, array{string, string, string, float}>
+     */
+    public static function grounds(): array
+    {
+        $pairs = [];
+
+        foreach (['light', 'dark'] as $theme) {
+            foreach ([
+                ['rail-text', 'rail', 4.5],
+                ['rail-muted', 'rail', 4.5],
+                ['accent-foreground', 'accent', 4.5],
+                ['warning', 'warning-surface', 4.5],
+                ['warning', 'paper', 4.5],
+                ['accent', 'accent-wash', 4.5],
+            ] as [$foreground, $background, $minimum]) {
+                $pairs["{$theme}: {$foreground} on {$background}"] = [$theme, $foreground, $background, $minimum];
+            }
+        }
+
+        return $pairs;
+    }
+
+    #[DataProvider('grounds')]
+    public function test_text_is_readable_on_the_ground_it_sits_on(string $theme, string $foreground, string $background, float $minimum): void
+    {
+        $colours = $this->colours($theme);
+
+        $this->assertArrayHasKey($foreground, $colours, "The {$theme} theme defines --color-{$foreground}.");
+        $this->assertArrayHasKey($background, $colours, "The {$theme} theme defines --color-{$background}.");
+
+        $ratio = $this->contrast($colours[$foreground], $colours[$background]);
+
+        $this->assertGreaterThanOrEqual($minimum, $ratio, sprintf(
+            '%s on %s in the %s theme is %.2f:1, below %.1f:1.',
+            $foreground, $background, $theme, $ratio, $minimum,
+        ));
+    }
+
+    /**
+     * The signature of the shell is the current page as a tab of paper joined to an ink rail. If the rail and the
+     * paper look alike, as they did in dark when both were near-black, the tab has nothing to stand out from.
+     */
+    #[DataProvider('themes')]
+    public function test_the_rail_stands_apart_from_the_paper(string $theme): void
+    {
+        $colours = $this->colours($theme);
+
+        $ratio = $this->contrast($colours['rail'], $colours['paper']);
+
+        $this->assertGreaterThanOrEqual(2.0, $ratio, sprintf('The rail is %.2f:1 against the paper in the %s theme.', $ratio, $theme));
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function themes(): array
+    {
+        return ['light' => ['light'], 'dark' => ['dark']];
     }
 
     public function test_white_text_on_a_danger_button_is_readable(): void

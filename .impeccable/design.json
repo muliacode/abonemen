@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-14T12:00:00Z",
+  "title": "Design System: Abonemen",
+  "extensions": {
+    "colorMeta": {
+      "accent": { "role": "primary", "displayName": "Ink Blue", "canonical": "#2d3b8f", "tonalRamp": ["#14173a", "#1d2563", "#2d3b8f", "#4558b8", "#6b7bd1", "#98a4e6", "#c6cdf4", "#e6e9fa"] },
+      "rail": { "role": "secondary", "displayName": "Rail Ink", "canonical": "#222a5e", "tonalRamp": ["#0b0d1f", "#12152f", "#222a5e", "#343f85", "#5560a8", "#8890c7", "#b9bee3", "#e3e5f5"] },
+      "paper": { "role": "neutral", "displayName": "Paper", "canonical": "#f6f4ef", "tonalRamp": ["#1a1917", "#3b3834", "#5a554d", "#857e72", "#a8a196", "#dcd7cd", "#e9e6df", "#f6f4ef"] },
+      "surface": { "role": "neutral", "displayName": "Surface", "canonical": "#ffffff", "tonalRamp": ["#242220", "#3b3834", "#6b655b", "#a8a196", "#dcd7cd", "#e9e6df", "#f6f4ef", "#ffffff"] },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#211f1c", "tonalRamp": ["#12110f", "#211f1c", "#3b3834", "#5a554d", "#857e72", "#a8a196", "#dcd7cd", "#f6f4ef"] },
+      "danger": { "role": "state", "displayName": "Danger", "canonical": "#a8261d", "tonalRamp": ["#4a0f0b", "#721a14", "#a8261d", "#cc4a3f", "#e07a70", "#f2a39b", "#f8cfca", "#fcebe9"] },
+      "success": { "role": "state", "displayName": "Success", "canonical": "#1d6a3a", "tonalRamp": ["#0b2f19", "#124a28", "#1d6a3a", "#35905a", "#5fb27f", "#8fd3a6", "#c3e9d0", "#e7f6ec"] },
+      "warning": { "role": "state", "displayName": "Warning", "canonical": "#7a4b00", "tonalRamp": ["#3a2400", "#5a3800", "#7a4b00", "#a86a10", "#d09a3a", "#f0c36a", "#f8dfa6", "#fbefd3"] }
+    },
+    "typographyMeta": {
+      "page-title": { "displayName": "Page title", "purpose": "The single h1 of an app page." },
+      "welcome-line": { "displayName": "Welcome line", "purpose": "The statement of purpose on the welcome page." },
+      "section-title": { "displayName": "Section title", "purpose": "An h2 naming a section of a page." },
+      "part-title": { "displayName": "Part title", "purpose": "An h3, a part of a section." },
+      "body": { "displayName": "Body", "purpose": "All running text, labels, buttons and menu items. Tabular figures for money and dates." },
+      "small": { "displayName": "Small", "purpose": "The 14px floor: help text and the error-summary list." }
+    },
+    "shadows": [
+      { "name": "none", "value": "none", "purpose": "Panels and cards are flat; Flux shadow-xs and shadow-sm are set to none." },
+      { "name": "overlay", "value": "Flux default for menus and dialogs", "purpose": "The only shadow: overlays that float above the page." }
+    ],
+    "motion": [],
+    "breakpoints": [
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "One per view: the page action or the form's submit.",
+      "html": "<button class=\"ds-btn-primary\">Save</button>",
+      "css": ".ds-btn-primary { background: #2d3b8f; color: #ffffff; min-height: 44px; min-width: 44px; padding: 0 16px; font: 500 16px/1 'Atkinson Hyperlegible Next', system-ui, sans-serif; border: 0; border-radius: 10px; cursor: pointer; } .ds-btn-primary:hover { background: #222a5e; } .ds-btn-primary:focus-visible { outline: 2px solid #222a5e; outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Surface field with a visible control edge.",
+      "html": "<button class=\"ds-btn-secondary\">Register</button>",
+      "css": ".ds-btn-secondary { background: #ffffff; color: #211f1c; min-height: 44px; min-width: 44px; padding: 0 16px; font: 500 16px/1 'Atkinson Hyperlegible Next', system-ui, sans-serif; border: 1px solid #857e72; border-radius: 10px; cursor: pointer; } .ds-btn-secondary:hover { background: #f6f4ef; } .ds-btn-secondary:focus-visible { outline: 2px solid #222a5e; outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "text-field",
+      "description": "Visible label above, help text in muted, 44px control with a visible edge, no placeholder.",
+      "html": "<div class=\"ds-field\"><label for=\"ds-name\">Name</label><input id=\"ds-name\" type=\"text\"><p>As it appears on invitations.</p></div>",
+      "css": ".ds-field { display: grid; gap: 8px; font-family: 'Atkinson Hyperlegible Next', system-ui, sans-serif; color: #211f1c; } .ds-field label { font-size: 16px; font-weight: 500; line-height: 1.25; } .ds-field input { min-height: 44px; padding: 0 12px; font: 400 16px/1.5 inherit; background: #ffffff; color: #211f1c; border: 1px solid #857e72; border-radius: 10px; } .ds-field input:focus { outline: 2px solid #222a5e; outline-offset: 2px; } .ds-field p { margin: 0; font-size: 14px; color: #5a554d; }"
+    },
+    {
+      "name": "Rail with Paper Tab",
+      "kind": "nav",
+      "refersTo": "rail-item-current",
+      "description": "The signature: the current destination is a tab of paper joined to the page, on the ink rail.",
+      "html": "<div class=\"ds-shell\"><nav class=\"ds-rail\" aria-label=\"Main\"><a class=\"ds-item\" href=\"#\">Settings</a><a class=\"ds-item ds-current\" href=\"#\" aria-current=\"page\">Dashboard</a></nav><div class=\"ds-page\"></div></div>",
+      "css": ".ds-shell { display: flex; height: 160px; background: #f6f4ef; font-family: 'Atkinson Hyperlegible Next', system-ui, sans-serif; } .ds-rail { width: 200px; background: #222a5e; padding: 16px 16px 16px 12px; display: flex; flex-direction: column; gap: 4px; overflow-x: hidden; } .ds-item { display: flex; align-items: center; min-height: 44px; padding: 0 12px; font-size: 16px; font-weight: 500; color: #f3f2fb; text-decoration: none; border-radius: 10px; } .ds-item:hover { background: rgba(255,255,255,0.1); } .ds-item:focus-visible { outline: 2px solid #f3f2fb; outline-offset: 2px; } .ds-current { background: #f6f4ef; color: #211f1c; font-weight: 600; width: calc(100% + 16px); margin-right: -16px; border-top-right-radius: 0; border-bottom-right-radius: 0; } .ds-current:hover { background: #f6f4ef; } .ds-page { flex: 1; }"
+    },
+    {
+      "name": "Settings Menu Item",
+      "kind": "nav",
+      "refersTo": "settings-nav-current",
+      "description": "Current section is an accent wash with accent text, semibold.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Settings\"><a href=\"#\" aria-current=\"page\" class=\"ds-nav-current\">Profile</a><a href=\"#\" class=\"ds-nav-item\">Security</a></nav>",
+      "css": ".ds-nav { display: grid; gap: 4px; width: 200px; font-family: 'Atkinson Hyperlegible Next', system-ui, sans-serif; } .ds-nav a { display: flex; align-items: center; min-height: 44px; padding: 0 12px; font-size: 16px; border-radius: 10px; text-decoration: none; color: #5a554d; } .ds-nav a:hover { background: #e9e6df; } .ds-nav a:focus-visible { outline: 2px solid #222a5e; outline-offset: 2px; } .ds-nav .ds-nav-current { background: #e6e9fa; color: #2d3b8f; font-weight: 600; }"
+    },
+    {
+      "name": "Error Summary",
+      "kind": "custom",
+      "description": "Opens a failed form: danger border, icon, heading, one link per invalid field.",
+      "html": "<div class=\"ds-summary\" tabindex=\"-1\" role=\"group\" aria-labelledby=\"ds-sum-h\"><h2 id=\"ds-sum-h\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"currentColor\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 6a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 6Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z\" clip-rule=\"evenodd\"/></svg>There is a problem</h2><ul><li><a href=\"#\">Enter a name.</a></li></ul></div>",
+      "css": ".ds-summary { border: 2px solid #a8261d; border-radius: 10px; padding: 16px; font-family: 'Atkinson Hyperlegible Next', system-ui, sans-serif; color: #211f1c; } .ds-summary h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 16px; font-weight: 600; color: #a8261d; } .ds-summary ul { margin: 8px 0 0; padding-left: 20px; font-size: 14px; } .ds-summary a { color: inherit; font-weight: 500; text-decoration: underline; text-underline-offset: 2px; } .ds-summary a:focus-visible { outline: 2px solid #222a5e; outline-offset: 2px; }"
+    },
+    {
+      "name": "Status Message",
+      "kind": "custom",
+      "description": "A confirmation in a live region: icon and text in success, never a toast.",
+      "html": "<div class=\"ds-status\" role=\"status\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"currentColor\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z\" clip-rule=\"evenodd\"/></svg> Saved.</div>",
+      "css": ".ds-status { display: flex; align-items: center; gap: 4px; font: 500 14px/1.43 'Atkinson Hyperlegible Next', system-ui, sans-serif; color: #1d6a3a; }"
+    },
+    {
+      "name": "Surface Panel",
+      "kind": "card",
+      "refersTo": "surface-panel",
+      "description": "A white surface on paper: 1px warm border, 12px corners, flat. Never on auth screens.",
+      "html": "<div class=\"ds-panel\"></div>",
+      "css": ".ds-panel { height: 120px; background: #ffffff; border: 1px solid #dcd7cd; border-radius: 12px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Household Binder",
+    "overview": "Abonemen looks like a paper binder with an ink spine. A deep ink-blue rail carries the mark, the household and the destinations; the pages beside it are warm paper with white surfaces laid on them. It is calm on purpose: the product's job is to say what renews next and what needs action, then let the person close it. It refuses the finance-dashboard look (navy and gold, hero numbers, glossy charts) and the default grey app with one blue button.\n\nThe system is flat and quiet. Corners are 10px, borders are 1px warm greys, nothing casts a shadow except menus and dialogs. Type is Atkinson Hyperlegible Next, chosen so that look-alike characters cannot be confused, because a child, an older relative and a person with low vision use this as much as the parent who runs the money. Red, green and amber appear only to mean something, and always with an icon and words.\n\nThe light and dark themes share one set of colour roles; a third (high contrast) is reserved for a later ticket.",
+    "keyCharacteristics": [
+      "Ink rail beside paper page, joined by a tab for the current destination.",
+      "One ink blue, doing two jobs: the rail field and the accent. Periwinkle replaces it in dark.",
+      "Warm greys throughout, including every colour Flux paints from its zinc scale.",
+      "Flat surfaces; shadow only on overlays.",
+      "16px body, 14px smallest, 44px controls on every device.",
+      "Colour never carries meaning alone."
+    ],
+    "rules": [
+      { "name": "The Meaning-Only Rule", "body": "Red, green and amber say something happened or needs doing. They are never decoration, and never alone: an icon and words go with them.", "section": "colors" },
+      { "name": "The Roles-Not-Palette Rule", "body": "A view says `text-danger` or `bg-surface`, never `text-red-500` or `bg-white`. `ColourUsageTest` fails the raw palette colours.", "section": "colors" },
+      { "name": "The One Ink Rule", "body": "The same ink blue is the rail and the accent. Do not add a second accent hue.", "section": "colors" },
+      { "name": "The Sixteen-Fourteen Rule", "body": "16px is the body and every control's text; 14px is the floor. `text-xs` never appears; `ColourUsageTest` refuses it.", "section": "typography" },
+      { "name": "The Tabular Rule", "body": "Money and dates use tabular figures so columns line up. Money is always amount, currency code and period together.", "section": "typography" },
+      { "name": "The Flat-Paper Rule", "body": "A panel on the page has a border and no shadow. A shadow means \"this floats above the page\".", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use colour roles (`bg-paper`, `bg-surface`, `text-ink`, `text-muted`, `text-accent`, `text-danger`, `text-success`, `text-warning`) for every colour.",
+      "Do open every app page with the page header: one h1, one line of description, the primary action at the right.",
+      "Do set `--mark-knock` to the colour behind the mark wherever it is placed.",
+      "Do keep every control 44px tall and every text at 16px, with 14px as the floor.",
+      "Do show a confirmation in the status message component, in the page, with an icon and text.",
+      "Do pair every danger, success or warning with an icon and words.",
+      "Do put money and dates in tabular figures, with amount, currency code and period together.",
+      "Do let surfaces be a white panel with a 1px warm border and no shadow."
+    ],
+    "donts": [
+      "Don't put eyebrow labels, kickers or small-caps overlines above headings.",
+      "Don't put cards or panels around auth screens; the form sits on the paper.",
+      "Don't use raw palette colours (`text-red-500`, `text-green-600`, `text-zinc-400`) for state or text.",
+      "Don't use `text-xs` or any text under 14px.",
+      "Don't use toasts; they vanish on a timer and a screen reader never hears them.",
+      "Don't add shadows to panels, or a second accent hue, or navy-and-gold finance styling with hero numbers.",
+      "Don't replace the slashed zero or switch the typeface to a system display face.",
+      "Don't show colour alone as meaning: the current page, an error and a confirmation each have a second cue.",
+      "Don't use placeholders as labels, or `label:sr-only`."
+    ]
+  }
+}

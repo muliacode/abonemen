@@ -29,7 +29,7 @@
                 },
             }"
         >
-            <div class="flex w-full flex-col text-center">
+            <div class="flex w-full flex-col gap-1">
                 <x-page-heading>
                     <span x-show="!showRecoveryInput">{{ __('Authentication code') }}</span>
                     <span x-show="showRecoveryInput">{{ __('Recovery code') }}</span>
@@ -45,15 +45,15 @@
 
                 <x-error-summary class="mb-5" />
 
-                <div class="space-y-5 text-center">
+                <div class="space-y-5">
                     <div x-show="!showRecoveryInput">
-                        <div class="flex items-center justify-center my-5" x-ref="otp">
+                        <div class="my-5 flex items-center" x-ref="otp">
                             <flux:otp
                                 x-model="code"
                                 length="6"
                                 name="code"
                                 :label="__('OTP Code')"
-                                class="mx-auto"
+                                
                              />
                         </div>
                     </div>
@@ -82,7 +82,7 @@
                     </flux:button>
                 </div>
 
-                <div class="mt-5 space-x-0.5 text-sm leading-5 text-center">
+                <div class="mt-5 space-x-0.5 leading-5">
                     <span class="text-zinc-600 dark:text-zinc-400">{{ __('or you can') }}</span>
                     <button type="button" class="inline font-medium underline cursor-pointer" x-show="!showRecoveryInput" @click="toggleInput()">{{ __('login using a recovery code') }}</button>
                     <button type="button" class="inline font-medium underline cursor-pointer" x-show="showRecoveryInput" @click="toggleInput()">{{ __('login using an authentication code') }}</button>
