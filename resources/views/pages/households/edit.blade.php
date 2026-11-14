@@ -75,7 +75,7 @@ new class extends Component
                     <flux:input wire:model="name" :label="__('Household name')" required data-test="household-name-input" />
 
                     <flux:select wire:model="mainCurrency" :label="__('Main currency')" required data-test="household-currency-input">
-                        @foreach (Currencies::getNames() as $code => $currencyName)
+                        @foreach (Currencies::getNames(app()->getLocale()) as $code => $currencyName)
                             <flux:select.option :value="$code">{{ $code }} – {{ $currencyName }}</flux:select.option>
                         @endforeach
                     </flux:select>

@@ -5,6 +5,7 @@
             <flux:navlist.item :href="route('security.edit')" wire:navigate>{{ __('Security') }}</flux:navlist.item>
             <flux:navlist.item :href="route('households.index')" :current="request()->routeIs('households.*')" wire:navigate>{{ __('Households') }}</flux:navlist.item>
             <flux:navlist.item :href="route('appearance.edit')" wire:navigate>{{ __('Appearance') }}</flux:navlist.item>
+            <flux:navlist.item :href="route('language.edit')" wire:navigate>{{ __('Language') }}</flux:navlist.item>
         </flux:navlist>
     </div>
 

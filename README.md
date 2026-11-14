@@ -40,9 +40,15 @@ To make a key by hand, for example for a server's environment settings, run `php
 
 Sessions are encrypted (`SESSION_ENCRYPT=true`). In development, mail is written to the log (`MAIL_MAILER=log`), so password-reset and verification links, which contain the email address, appear in `storage/logs`. Configure a real mail provider before using the app with other people.
 
+## Languages
+
+Abonemen is available in English, Dutch (`nl`), Indonesian (`id`), French (`fr`) and German (`de`). Each person picks theirs under Settings > Language; until they do, the language their browser asks for is used, and emails go out in the recipient's language.
+
+Texts are written in English where they are used, as `__('Some text')`, and translated in `lang/{code}.json`. A text missing from a language shows in English, and a test (`TranslationCompletenessTest`) fails and lists what is missing, so adding a screen means adding its texts to the four files. Messages from Laravel itself (validation, passwords, emails) come from the [`laravel-lang`](https://github.com/Laravel-Lang/lang) package: `php artisan lang:update` fetches improvements, and the files in `lang/` are generated, so they are left out of code-style checks.
+
 ## Existing local database
 
-If you have a database from before the master key existed, rebuild it: `php artisan migrate:fresh`. There is nothing to migrate yet.
+While Abonemen is unreleased the migrations are still being edited in place. If you have a database from an earlier version, rebuild it: `php artisan migrate:fresh`. There is nothing to migrate yet.
 
 ## Checks
 

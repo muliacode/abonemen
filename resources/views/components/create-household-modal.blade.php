@@ -53,7 +53,7 @@ new class extends Component {
         <flux:input wire:model="name" :label="__('Household name')" type="text" required autofocus data-test="create-household-name" />
 
         <flux:select wire:model="mainCurrency" :label="__('Main currency')" required data-test="create-household-currency">
-            @foreach (\Symfony\Component\Intl\Currencies::getNames() as $code => $currencyName)
+            @foreach (\Symfony\Component\Intl\Currencies::getNames(app()->getLocale()) as $code => $currencyName)
                 <flux:select.option :value="$code">{{ $code }} – {{ $currencyName }}</flux:select.option>
             @endforeach
         </flux:select>
