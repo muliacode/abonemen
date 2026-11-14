@@ -71,12 +71,6 @@
                                 x-model="recovery_code"
                             />
                         </div>
-
-                        @error('recovery_code')
-                            <flux:text color="red">
-                                {{ $message }}
-                            </flux:text>
-                        @enderror
                     </div>
 
                     <flux:button

@@ -24,7 +24,7 @@ if ($name && (is_null($message) || $message === '') && filter_var($deep, FILTER_
     $message = $errorBag->first($name . '.*');
 }
 
-$classes = Flux::classes('mt-3 text-sm font-medium text-red-700 dark:text-red-300')
+$classes = Flux::classes('mt-3 text-sm font-medium text-danger')
     ->add($message ? '' : 'hidden');
 @endphp
 

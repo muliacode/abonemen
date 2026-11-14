@@ -101,15 +101,15 @@ new class extends Component
             @else
                 <dl class="space-y-4">
                     <div>
-                        <dt class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Household name') }}</dt>
+                        <dt class="text-sm text-muted">{{ __('Household name') }}</dt>
                         <dd class="font-medium">{{ $household->name }}</dd>
                     </div>
                     <div>
-                        <dt class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Main currency') }}</dt>
+                        <dt class="text-sm text-muted">{{ __('Main currency') }}</dt>
                         <dd class="font-medium">{{ $household->main_currency }}</dd>
                     </div>
                     <div>
-                        <dt class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Time zone') }}</dt>
+                        <dt class="text-sm text-muted">{{ __('Time zone') }}</dt>
                         <dd class="font-medium">{{ $household->timezone }}</dd>
                     </div>
                 </dl>

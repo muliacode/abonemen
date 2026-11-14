@@ -17,10 +17,10 @@
         tabindex="-1"
         role="group"
         aria-labelledby="{{ $prefix }}error-summary-heading"
-        {{ $attributes->class('rounded-lg border-2 border-red-700 p-4 text-start focus:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 dark:border-red-300') }}
+        {{ $attributes->class('rounded-lg border-2 border-danger p-4 text-start focus:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2') }}
         data-error-summary
     >
-        <h2 id="{{ $prefix }}error-summary-heading" class="flex items-center gap-2 text-base font-semibold text-red-700 dark:text-red-300">
+        <h2 id="{{ $prefix }}error-summary-heading" class="flex items-center gap-2 text-base font-semibold text-danger">
             <flux:icon name="exclamation-triangle" variant="mini" class="shrink-0" />
             {{ __('There is a problem') }}
         </h2>

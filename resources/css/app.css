@@ -26,6 +26,18 @@
     --color-accent: var(--color-neutral-800);
     --color-accent-content: var(--color-neutral-800);
     --color-accent-foreground: var(--color-white);
+
+    /*
+     * Colour roles. Views use these for state, control edges and focus, never a raw palette colour,
+     * and tests/Unit/ColourTokensTest.php checks each in both themes (WCAG 2.2 AA).
+     */
+    --color-surface: #ffffff;
+    --color-surface-sunken: #fafafa;
+    --color-danger: #b91c1c;
+    --color-success: #166534;
+    --color-muted: #525252;
+    --color-control-border: #737373;
+    --color-focus: #262626;
 }
 
 @layer theme {
@@ -33,6 +45,14 @@
         --color-accent: var(--color-white);
         --color-accent-content: var(--color-white);
         --color-accent-foreground: var(--color-neutral-800);
+
+        --color-surface: #262626;
+        --color-surface-sunken: #171717;
+        --color-danger: #fca5a5;
+        --color-success: #86efac;
+        --color-muted: #a3a3a3;
+        --color-control-border: #a3a3a3;
+        --color-focus: #ffffff;
     }
 }
 
@@ -59,6 +79,17 @@ input:focus[data-flux-control],
 textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+}
+
+/* The edge of a text field has to be seen against the page (WCAG 1.4.11), which Flux's pale default is not. */
+[data-flux-control]:not([type='checkbox'], [type='radio']) {
+    border-color: var(--color-control-border);
+}
+
+/* One focus ring for everything a keyboard can reach. Elements focused by script (tabindex="-1") style their own. */
+:where(:focus-visible):not([tabindex='-1']) {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
 }
 
 /* \[:where(&)\]:size-4 {

@@ -92,7 +92,7 @@
                 x-init="$nextTick(() => $refs.passkeyNameInput?.focus())"
             />
 
-            <p x-show="error" x-text="error" x-cloak class="text-sm text-red-600 dark:text-red-400"></p>
+            <p x-show="error" x-text="error" x-cloak class="text-sm text-danger"></p>
 
             <div class="flex gap-2">
                 <flux:button
