@@ -31,7 +31,7 @@
         </flux:sidebar>
 
         <flux:header class="lg:hidden bg-rail text-rail-text [--mark-knock:var(--color-rail)]">
-            <x-app-logo href="{{ auth()->user()->homeUrl() }}" wire:navigate class="text-rail-text" />
+            <x-app-logo href="{{ auth()->user()->homeUrl() }}" wire:navigate class="-ms-2 text-rail-text" />
 
             <flux:spacer />
 

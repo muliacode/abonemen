@@ -143,6 +143,12 @@ select:focus[data-flux-control] {
     min-width: 2.75rem;
 }
 
+/* The box of a checkbox and the circle of a radio have to be seen against the page too (WCAG 1.4.11). */
+ui-checkbox:not([data-checked]) > div:first-child,
+:not([data-flux-radio-group-segmented]) > ui-radio:not([data-checked]) > div:first-child {
+    border: 1.5px solid var(--color-control-border);
+}
+
 /* A checkbox or radio row is 44px tall, so its label is as easy to hit as any button; the box itself keeps its size. */
 [data-flux-field]:has(> ui-checkbox, > ui-radio, > ui-switch) {
     min-height: 2.75rem;
@@ -210,6 +216,17 @@ select:focus[data-flux-control] {
     border-end-end-radius: 0;
 }
 
+/* The drawer's close control: ink-on-rail text, and 44px like every control. */
+[data-flux-sidebar-collapse] {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    color: var(--color-rail-text);
+}
+
+[data-flux-sidebar-collapse] svg {
+    color: var(--color-rail-text);
+}
+
 /* A dropdown trigger (the household switcher) fills the rail and truncates a long name instead of widening it. */
 [data-flux-sidebar] ui-dropdown {
     display: block;
@@ -222,7 +239,7 @@ select:focus[data-flux-control] {
 }
 
 [data-flux-sidebar] [data-flux-sidebar-item][data-current]:focus-visible {
-    outline-color: var(--color-rail);
+    outline-color: var(--color-focus);
     outline-offset: -4px;
 }
 

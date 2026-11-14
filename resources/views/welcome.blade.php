@@ -1,6 +1,8 @@
-<x-layouts::auth :title="config('app.name')">
+<x-layouts::auth :title="config('app.name')" :brand="false">
     <div class="flex flex-col gap-8">
         <div class="flex flex-col gap-4">
+            <x-app-logo-icon class="mb-2 size-16 text-accent" />
+
             <x-page-heading>{{ config('app.name') }}</x-page-heading>
 
             <p class="max-w-[24ch] text-[1.375rem] leading-snug font-medium">
