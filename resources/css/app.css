@@ -23,6 +23,10 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
+    /* Flux paints danger buttons red-500 (white on it is 3.8:1) and their hover red-600; both pinned to a red white text can sit on. */
+    --color-red-500: #dc2626;
+    --color-red-600: #b91c1c;
+
     --color-accent: var(--color-neutral-800);
     --color-accent-content: var(--color-neutral-800);
     --color-accent-foreground: var(--color-white);

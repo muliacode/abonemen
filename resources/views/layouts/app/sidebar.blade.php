@@ -35,6 +35,7 @@
 
             <flux:dropdown position="top" align="end">
                 <flux:profile
+                    :aria-label="__('User menu')"
                     :initials="auth()->user()->initials()"
                     icon-trailing="chevron-down"
                 />

@@ -110,6 +110,34 @@ class PageStructureTest extends TestCase
         }
     }
 
+    #[DataProvider('pages')]
+    public function test_no_empty_live_region_outside_a_form_takes_up_room_on_a_page_without_a_message(string $page): void
+    {
+        foreach ($this->render($page)->query('//*[@role="status"][not(ancestor::form)]') as $region) {
+            $this->assertNotSame('', trim($region->textContent), 'A status region outside a form is there to say something; an empty one only adds a gap. (Inside a form it waits for the save.)');
+        }
+    }
+
+    public function test_an_error_from_a_passkey_is_announced(): void
+    {
+        foreach (['login', 'security'] as $page) {
+            $errors = $this->render($page)->query('//*[@x-text="error"]');
+
+            $this->assertGreaterThan(0, $errors->length, "The {$page} page has a passkey error message.");
+
+            foreach ($errors as $error) {
+                $this->assertSame('alert', $error->getAttribute('role'), 'A message that appears after a failed passkey attempt is read out.');
+            }
+        }
+    }
+
+    public function test_the_user_menu_button_of_the_mobile_header_has_a_name_that_says_what_it_is(): void
+    {
+        foreach ($this->render('dashboard')->query('//*[@data-flux-profile]') as $button) {
+            $this->assertNotSame('', $button->getAttribute('aria-label'), 'Initials alone do not say what the button opens.');
+        }
+    }
+
     public function test_the_current_page_is_marked_in_the_sidebar(): void
     {
         $current = $this->render('dashboard')->query('//nav//a[@aria-current="page"]');

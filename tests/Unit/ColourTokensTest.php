@@ -54,6 +54,16 @@ class ColourTokensTest extends TestCase
         }
     }
 
+    public function test_white_text_on_a_danger_button_is_readable(): void
+    {
+        $colours = $this->colours('light');
+
+        foreach (['red-500', 'red-600'] as $background) {
+            $this->assertArrayHasKey($background, $colours, "Flux paints danger buttons with {$background}, which app.css pins to a dark enough red.");
+            $this->assertGreaterThanOrEqual(4.5, $this->contrast('#ffffff', $colours[$background]), "White on {$background} is below 4.5:1.");
+        }
+    }
+
     public function test_the_contrast_formula_matches_known_ratios(): void
     {
         $this->assertEqualsWithDelta(21.0, $this->contrast('#000000', '#ffffff'), 0.01);

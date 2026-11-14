@@ -87,6 +87,9 @@ on a timer (WCAG 2.2.1) and Flux's toast has no live region, so a screen reader 
 3:1 for control edges and the focus ring). `tests/Unit/ColourUsageTest.php` fails on `text-red-500`, `text-green-600`,
 `text-zinc-400` and the like in views. To add a role, add it to both themes in `app.css` and to `ColourTokensTest::roles()`.
 
+Flux paints its danger buttons with the palette's `red-500` (white on it is 3.8:1), so `app.css` pins `--color-red-500` and
+`--color-red-600` to darker reds; `ColourTokensTest` checks white text on both.
+
 Colour never carries meaning alone: an error has an icon, a heading and text, the current page has `aria-current`, a
 confirmation has an icon and text.
 
