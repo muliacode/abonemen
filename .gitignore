@@ -38,3 +38,6 @@ yarn-error.log
 /boost.json
 /opencode.json
 /opencode.jsonc
+
+# Impeccable: review captures are local evidence, not source
+/.impeccable/review/
