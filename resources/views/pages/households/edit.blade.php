@@ -1,6 +1,5 @@
 <?php
 
-use App\Concerns\ReportsStatus;
 use App\Models\Household;
 use App\Rules\HouseholdSettingRules;
 use Illuminate\Support\Facades\Gate;
@@ -10,8 +9,6 @@ use Symfony\Component\Intl\Currencies;
 
 new class extends Component
 {
-    use ReportsStatus;
-
     public Household $household;
 
     public string $name = '';
@@ -19,6 +16,11 @@ new class extends Component
     public string $mainCurrency = '';
 
     public string $timezone = '';
+
+    /**
+     * The confirmation shown next to the form until the User changes something again.
+     */
+    public ?string $status = null;
 
     public function mount(Household $household): void
     {
@@ -46,7 +48,12 @@ new class extends Component
             'timezone' => $validated['timezone'],
         ]);
 
-        $this->reportStatus(__('Household updated.'));
+        $this->status = __('Household updated.');
+    }
+
+    public function updated(): void
+    {
+        $this->status = null;
     }
 
     #[Computed]

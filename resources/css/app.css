@@ -92,6 +92,21 @@ select:focus[data-flux-control] {
     outline-offset: 2px;
 }
 
+/*
+ * Touch targets. Flux's smallest controls are 24px, which is the floor of WCAG 2.5.8; where a finger is the
+ * pointer, controls are at least 44px so that a child or a shaky hand does not hit the wrong one.
+ */
+@media (pointer: coarse) {
+    button,
+    [data-flux-button],
+    [data-flux-sidebar-item],
+    [role='menuitem'],
+    [data-flux-control]:not([type='checkbox'], [type='radio']) {
+        min-height: 2.75rem;
+        min-width: 2.75rem;
+    }
+}
+
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */

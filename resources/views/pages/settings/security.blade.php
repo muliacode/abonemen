@@ -1,7 +1,6 @@
 <?php
 
 use App\Concerns\PasswordValidationRules;
-use App\Concerns\ReportsStatus;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Actions\DisableTwoFactorAuthentication;
@@ -15,11 +14,15 @@ use Livewire\Attributes\On;
 
 new #[Title('Security settings')] class extends Component {
     use PasswordValidationRules;
-    use ReportsStatus;
 
     public string $current_password = '';
     public string $password = '';
     public string $password_confirmation = '';
+
+    /**
+     * The confirmation shown next to the form until the User changes something again.
+     */
+    public ?string $status = null;
 
     public bool $canManageTwoFactor;
 
@@ -86,7 +89,12 @@ new #[Title('Security settings')] class extends Component {
 
         $this->reset('current_password', 'password', 'password_confirmation');
 
-        $this->reportStatus(__('Password updated.'));
+        $this->status = __('Password updated.');
+    }
+
+    public function updated(): void
+    {
+        $this->status = null;
     }
 
     /**

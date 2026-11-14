@@ -1,7 +1,6 @@
 <?php
 
 use App\Concerns\ProfileValidationRules;
-use App\Concerns\ReportsStatus;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -11,10 +10,14 @@ use Livewire\Component;
 
 new #[Title('Profile settings')] class extends Component {
     use ProfileValidationRules;
-    use ReportsStatus;
 
     public string $name = '';
     public string $email = '';
+
+    /**
+     * The confirmation shown next to the form until the User changes something again.
+     */
+    public ?string $status = null;
 
     /**
      * Mount the component.
@@ -42,7 +45,12 @@ new #[Title('Profile settings')] class extends Component {
 
         $user->save();
 
-        $this->reportStatus(__('Profile updated.'));
+        $this->status = __('Profile updated.');
+    }
+
+    public function updated(): void
+    {
+        $this->status = null;
     }
 
     /**

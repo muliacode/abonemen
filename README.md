@@ -46,6 +46,10 @@ Abonemen is available in English, Dutch (`nl`), Indonesian (`id`), French (`fr`)
 
 Texts are written in English where they are used, as `__('Some text')`, and translated in `lang/{code}.json`. A text missing from a language shows in English, and a test (`TranslationCompletenessTest`) fails and lists what is missing, so adding a screen means adding its texts to the four files. Messages from Laravel itself (validation, passwords, emails) come from the [`laravel-lang`](https://github.com/Laravel-Lang/lang) package: `php artisan lang:update` fetches improvements, and the files in `lang/` are generated, so they are left out of code-style checks.
 
+## Accessibility
+
+Abonemen meets WCAG 2.2 level AA, in the light and the dark theme. [`docs/accessibility.md`](docs/accessibility.md) holds the patterns to build screens with, the definition of done for a new screen, the Flux views we override and the manual checklist. Structure, forms, colour contrast and the Flux overrides are checked by tests, so a screen added without following the patterns fails them.
+
 ## Existing local database
 
 While Abonemen is unreleased the migrations are still being edited in place. If you have a database from an earlier version, rebuild it: `php artisan migrate:fresh`. There is nothing to migrate yet.
