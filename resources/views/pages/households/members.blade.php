@@ -56,12 +56,11 @@ new #[Title('Members')] class extends Component
         Gate::authorize('manageMembers', $this->household);
 
         $member = $this->findMember($id);
-        $row = $this->members->firstWhere('id', $member->id);
 
         $this->editingId = $member->id;
         $this->editName = $member->name;
         $this->editNickname = (string) $member->nickname;
-        $this->editRole = $row->role?->value ?? '';
+        $this->editRole = $member->user?->householdRole($this->household)?->value ?? '';
         $this->status = null;
         $this->resetValidation();
 
@@ -73,27 +72,26 @@ new #[Title('Members')] class extends Component
         Gate::authorize('manageMembers', $this->household);
 
         $member = $this->findMember((int) $this->editingId);
-        $hasLogin = $member->user_id !== null;
+        $hasUser = $member->user_id !== null;
 
         $validated = $this->validate([
             'editName' => MemberRules::name(),
             'editNickname' => MemberRules::nickname(),
-            'editRole' => $hasLogin ? MemberRules::role() : ['nullable'],
+            'editRole' => $hasUser ? MemberRules::role() : ['nullable'],
         ]);
 
         try {
-            DB::transaction(function () use ($saveMember, $changeRole, $member, $hasLogin, $validated) {
+            DB::transaction(function () use ($saveMember, $changeRole, $member, $hasUser, $validated) {
                 $saveMember->update($member, $validated['editName'], $validated['editNickname']);
 
-                if ($hasLogin) {
+                if ($hasUser) {
                     $changeRole->handle($member, HouseholdRole::from($validated['editRole']));
                 }
             });
         } catch (MemberException $exception) {
-            match ($exception->reason) {
-                MemberException::LABEL_TAKEN => $this->addError('editNickname', MemberRules::labelTaken((string) $exception->label, filled($validated['editNickname']))),
-                default => $this->addError('editRole', $this->refusal($exception)),
-            };
+            $exception->reason === MemberException::LABEL_TAKEN
+                ? $this->addError('editNickname', $exception->userMessage(filled($validated['editNickname'])))
+                : $this->addError('editRole', $exception->userMessage());
 
             return;
         }
@@ -125,7 +123,7 @@ new #[Title('Members')] class extends Component
         try {
             $removeMember->handle($member);
         } catch (MemberException $exception) {
-            $this->addError('remove', $this->refusal($exception));
+            $this->addError('remove', $exception->userMessage());
 
             return;
         }
@@ -174,7 +172,7 @@ new #[Title('Members')] class extends Component
                 label: $member->label(),
                 name: $member->name,
                 nickname: $member->nickname,
-                hasLogin: $member->user_id !== null,
+                hasUser: $member->user_id !== null,
                 role: $roles[$member->id],
                 isLastOwner: $roles[$member->id] === HouseholdRole::Owner && $owners === 1,
                 holdsSubscriptions: $member->holdsSubscriptions(),
@@ -214,19 +212,6 @@ new #[Title('Members')] class extends Component
     }
 
     /**
-     * Say why a change was refused.
-     */
-    private function refusal(MemberException $exception): string
-    {
-        return match ($exception->reason) {
-            MemberException::LAST_OWNER => __('The Household needs an Owner who can sign in. Make someone else an Owner first.'),
-            MemberException::LAST_MEMBER => __('The Household needs at least one Member.'),
-            MemberException::HOLDS_SUBSCRIPTIONS => __('This Member holds Subscriptions. Reassign them first.'),
-            default => __('That could not be saved.'),
-        };
-    }
-
-    /**
      * Confirm a change. An Owner who has just given up their own rights has nothing left to manage here, and goes
      * back to their Households.
      */
@@ -255,13 +240,14 @@ new #[Title('Members')] class extends Component
                 <livewire:add-member-form :household="$household" />
             @endif
 
-            {{-- A form only so that the live region waits for a change, empty, as it does beside a Save button. Nothing submits. --}}
-            <form x-data @submit.prevent class="space-y-3">
-            <x-status-message :message="$status" />
+            {{-- Shown only when there is something to say, then focused so that it is read out after a dialog closes. --}}
+            @if (filled($status))
+                <x-status-message :message="$status" wire:key="status-{{ md5($status) }}" x-data x-init="$nextTick(() => $el.focus())" />
+            @endif
 
             <ul class="space-y-3" aria-label="{{ __('Members') }}">
                 @foreach ($this->members as $row)
-                    <li wire:key="member-{{ $row->id }}" class="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900" data-test="member-row">
+                    <li wire:key="member-{{ $row->id }}" class="rounded-lg border border-zinc-300 bg-surface p-4" data-test="member-row">
                         <div class="flex items-start justify-between gap-4">
                             <div class="min-w-0">
                                 <h3 class="font-medium break-words" data-test="member-label">{{ $row->label }}</h3>
@@ -271,12 +257,12 @@ new #[Title('Members')] class extends Component
                                 @endif
 
                                 <p class="mt-1 text-sm text-muted">
-                                    @if ($row->hasLogin)
-                                        <span data-test="member-login"><flux:icon name="key" variant="mini" class="inline" /> {{ __('Can sign in') }}</span>
+                                    @if ($row->hasUser)
+                                        <span data-test="member-can-sign-in"><flux:icon name="key" variant="mini" class="inline" /> {{ __('Can sign in') }}</span>
                                         <span aria-hidden="true">·</span>
                                         <span data-test="member-role">{{ $row->role?->label() }}</span>
                                     @else
-                                        {{ __('No login') }}
+                                        {{ __('Cannot sign in') }}
                                     @endif
                                 </p>
                             </div>
@@ -298,7 +284,6 @@ new #[Title('Members')] class extends Component
                     </li>
                 @endforeach
             </ul>
-            </form>
         </div>
     </x-pages::settings.layout>
 
@@ -313,7 +298,7 @@ new #[Title('Members')] class extends Component
 
                 <flux:input id="edit-member-editNickname" error:id="edit-member-error-editNickname" wire:model="editNickname" :label="__('Nickname')" :description="__('Shown instead of the name. Use it to tell two Members with the same name apart.')" data-test="edit-member-nickname" />
 
-                @if ($this->editing?->hasLogin)
+                @if ($this->editing?->hasUser)
                     <flux:select id="edit-member-editRole" error:id="edit-member-error-editRole" wire:model="editRole" :label="__('Role')" :disabled="$this->editing->isLastOwner" required data-test="edit-member-role">
                         @foreach ($this->roles() as $role)
                             <flux:select.option :value="$role->value">{{ $role->label() }}</flux:select.option>
@@ -324,7 +309,7 @@ new #[Title('Members')] class extends Component
                         <p class="text-sm text-muted" data-test="role-locked-note">{{ __('This is the only Owner who can sign in, so the role cannot change. Make someone else an Owner first.') }}</p>
                     @endif
                 @else
-                    <p class="text-sm text-muted">{{ __('This Member has no login, so there is no role to set.') }}</p>
+                    <p class="text-sm text-muted">{{ __('This Member is not linked to a User, so there is no role to set.') }}</p>
                 @endif
 
                 <div class="flex justify-end space-x-2 rtl:space-x-reverse">
@@ -347,7 +332,7 @@ new #[Title('Members')] class extends Component
                     <flux:heading id="remove-member-heading" level="2" size="lg">{{ __('Remove :label', ['label' => $this->removing?->label ?? '']) }}</flux:heading>
 
                     <flux:subheading>
-                        @if ($this->removing?->hasLogin)
+                        @if ($this->removing?->hasUser)
                             {{ __(':label will lose access to this Household, and keeps their account.', ['label' => $this->removing->label]) }}
                         @else
                             {{ __('Remove :label from this Household?', ['label' => $this->removing?->label ?? '']) }}

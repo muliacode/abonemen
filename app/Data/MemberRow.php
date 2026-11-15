@@ -14,7 +14,7 @@ readonly class MemberRow
         public string $label,
         public string $name,
         public ?string $nickname,
-        public bool $hasLogin,
+        public bool $hasUser,
         public ?HouseholdRole $role,
         public bool $isLastOwner,
         public bool $holdsSubscriptions,

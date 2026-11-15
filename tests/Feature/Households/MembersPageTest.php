@@ -107,7 +107,7 @@ class MembersPageTest extends TestCase
 
         $html = $this->page()->html();
 
-        $this->assertSame(2, substr_count($html, 'data-test="member-login"'));
+        $this->assertSame(2, substr_count($html, 'data-test="member-can-sign-in"'));
         $this->assertStringNotContainsString('pat@private.example', $html);
         $this->assertStringNotContainsString('Platform Pat', $html);
     }
@@ -136,7 +136,7 @@ class MembersPageTest extends TestCase
 
     // Adding
 
-    public function test_an_owner_adds_a_member_without_a_login(): void
+    public function test_an_owner_adds_a_member_that_is_not_linked_to_a_user(): void
     {
         $this->addForm()
             ->set('name', 'Robin')
@@ -237,7 +237,7 @@ class MembersPageTest extends TestCase
         $this->assertSame('Sam', $sam->fresh()->name);
     }
 
-    public function test_an_owner_changes_the_role_of_a_member_with_a_login(): void
+    public function test_an_owner_changes_the_role_of_a_member_linked_to_a_user(): void
     {
         $sam = $this->member('Sam', null, HouseholdRole::Viewer);
 
@@ -246,7 +246,7 @@ class MembersPageTest extends TestCase
         $this->assertSame(HouseholdRole::Owner, $sam->user->householdRole($this->household));
     }
 
-    public function test_a_role_cannot_be_set_on_a_member_without_a_login(): void
+    public function test_a_role_cannot_be_set_on_a_member_that_is_not_linked_to_a_user(): void
     {
         $robin = $this->member('Robin');
 
@@ -322,7 +322,19 @@ class MembersPageTest extends TestCase
         $this->assertModelMissing($robin);
     }
 
-    public function test_removing_a_member_with_a_login_says_they_lose_access_but_keep_their_account(): void
+    public function test_a_confirmation_is_in_a_live_region_that_is_focused_when_it_appears(): void
+    {
+        $robin = $this->member('Robin');
+
+        $page = $this->page();
+        $this->assertStringNotContainsString('was removed', $page->html());
+
+        $html = $page->call('confirmRemove', $robin->id)->call('remove')->html();
+
+        $this->assertMatchesRegularExpression('/role="status"[^<]*x-init="\$nextTick\(\(\) => \$el\.focus\(\)\)" data-status-message>.*?Robin was removed\./s', $html);
+    }
+
+    public function test_removing_a_member_linked_to_a_user_says_they_lose_access_but_keep_their_account(): void
     {
         $sam = $this->member('Sam', null, HouseholdRole::Editor);
 

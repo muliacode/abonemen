@@ -51,7 +51,7 @@ class MemberLabelTest extends TestCase
         $this->assertNull($member->nickname);
     }
 
-    public function test_a_member_without_a_login_is_created_in_the_household(): void
+    public function test_a_member_not_linked_to_a_user_is_created_in_the_household(): void
     {
         $member = $this->save()->create($this->household, 'Robin');
 
@@ -167,16 +167,5 @@ class MemberLabelTest extends TestCase
         $this->expectException(MemberException::class);
 
         app(AddUserToHousehold::class)->handle($this->household, $user, HouseholdRole::Viewer);
-    }
-
-    public function test_a_user_who_joins_may_bring_a_nickname_to_tell_them_apart(): void
-    {
-        $this->save()->create($this->household, 'Alex');
-        $user = User::factory()->create(['name' => 'Alex']);
-
-        $member = app(AddUserToHousehold::class)->handle($this->household, $user, HouseholdRole::Viewer, 'Alex J');
-
-        $this->assertSame('Alex J', $member->label());
-        $this->assertSame($user->id, $member->user_id);
     }
 }

@@ -13,7 +13,7 @@ class ChangeMemberRole
      * Give the User behind a Member a new role in the Member's Household, unless that would leave the Household
      * without an Owner who can sign in.
      *
-     * @throws MemberException when the Member has no User, or is the last Owner and would stop being one
+     * @throws MemberException when the Member is not linked to a User, or is the last Owner and would stop being one
      */
     public function handle(Member $member, HouseholdRole $role): void
     {
@@ -21,11 +21,9 @@ class ChangeMemberRole
             $household = $member->household;
             $household->lockMembers();
 
-            $user = $member->user ?? throw MemberException::noLogin();
+            $user = $member->user ?? throw MemberException::noUser();
 
-            if ($role !== HouseholdRole::Owner
-                && $user->householdRole($household) === HouseholdRole::Owner
-                && ! $household->hasOwnerOtherThan($member)) {
+            if ($role !== HouseholdRole::Owner && $household->isOnlyOwner($member)) {
                 throw MemberException::lastOwner();
             }
 

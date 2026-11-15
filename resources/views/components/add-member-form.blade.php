@@ -38,7 +38,7 @@ new class extends Component {
         try {
             $saveMember->create($this->household, $validated['name'], $validated['nickname']);
         } catch (MemberException $exception) {
-            $this->addError('nickname', MemberRules::labelTaken((string) $exception->label, filled($validated['nickname'])));
+            $this->addError('nickname', $exception->userMessage(filled($validated['nickname'])));
 
             return;
         }

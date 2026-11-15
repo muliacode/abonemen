@@ -19,14 +19,14 @@ class AddUserToHousehold
     /**
      * Make the user part of the household through a new member carrying their name, with the given role.
      *
-     * A nickname is needed when another Member in the household already goes by the user's name.
+     * Refused when another Member in the household already goes by the user's name.
      *
      * @throws MemberException when another Member already goes by the label
      */
-    public function handle(Household $household, User $user, HouseholdRole $role, ?string $nickname = null): Member
+    public function handle(Household $household, User $user, HouseholdRole $role): Member
     {
-        return DB::transaction(function () use ($household, $user, $role, $nickname) {
-            $member = $this->saveMember->create($household, $user->name, $nickname, $user);
+        return DB::transaction(function () use ($household, $user, $role) {
+            $member = $this->saveMember->create($household, $user->name, null, $user);
 
             $user->assignHouseholdRole($household, $role);
 

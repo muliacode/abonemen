@@ -79,6 +79,16 @@ class Household extends Model implements HoldsWaitingProtectedValues
     }
 
     /**
+     * Whether the given Member is the only one whose User holds the Owner role here.
+     *
+     * Such a Member can be neither demoted nor removed: the Household would be left without an Owner who can sign in.
+     */
+    public function isOnlyOwner(Member $member): bool
+    {
+        return $member->user?->householdRole($this) === HouseholdRole::Owner && ! $this->hasOwnerOtherThan($member);
+    }
+
+    /**
      * Whether a User other than the given Member's holds the Owner role here.
      */
     public function hasOwnerOtherThan(Member $member): bool

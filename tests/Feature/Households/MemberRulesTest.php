@@ -103,19 +103,19 @@ class MemberRulesTest extends TestCase
         $this->assertSame(HouseholdRole::Owner, $this->owner->householdRole($this->household));
     }
 
-    public function test_a_member_without_a_login_has_no_role_to_change(): void
+    public function test_a_member_not_linked_to_a_user_has_no_role_to_change(): void
     {
         $child = app(SaveMember::class)->create($this->household, 'Robin');
 
         try {
             app(ChangeMemberRole::class)->handle($child, HouseholdRole::Viewer);
-            $this->fail('A Member without a login has no role.');
+            $this->fail('A Member that is not linked to a User has no role.');
         } catch (MemberException $exception) {
-            $this->assertSame(MemberException::NO_LOGIN, $exception->reason);
+            $this->assertSame(MemberException::NO_USER, $exception->reason);
         }
     }
 
-    public function test_a_member_without_a_login_can_be_removed(): void
+    public function test_a_member_not_linked_to_a_user_can_be_removed(): void
     {
         $child = app(SaveMember::class)->create($this->household, 'Robin');
 
@@ -125,7 +125,7 @@ class MemberRulesTest extends TestCase
         $this->assertSame(1, $this->household->members()->count());
     }
 
-    public function test_removing_a_member_with_a_login_removes_the_user_but_not_their_account_or_other_households(): void
+    public function test_removing_a_member_linked_to_a_user_removes_the_user_but_not_their_account_or_other_households(): void
     {
         $member = $this->join(HouseholdRole::Editor);
         $user = $member->user;

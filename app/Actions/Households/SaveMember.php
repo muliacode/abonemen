@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 class SaveMember
 {
     /**
-     * Add a Member to the Household, with a login if a User is given.
+     * Add a Member to the Household, linked to the User if one is given.
      *
      * @throws MemberException when another Member already goes by the label
      */

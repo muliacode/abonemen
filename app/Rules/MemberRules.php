@@ -36,16 +36,4 @@ class MemberRules
     {
         return ['required', Rule::enum(HouseholdRole::class)];
     }
-
-    /**
-     * Say that another Member already goes by the label, and what to do about it.
-     *
-     * Without a nickname, the way out is to give one. With one, the nickname is what clashes.
-     */
-    public static function labelTaken(string $label, bool $hasNickname): string
-    {
-        return $hasNickname
-            ? __('Another Member here is already called :label. Choose a different nickname.', ['label' => $label])
-            : __('Another Member here is already called :label. Give this Member a nickname to tell them apart.', ['label' => $label]);
-    }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Actions\Households;
 
-use App\Enums\HouseholdRole;
 use App\Exceptions\MemberException;
 use App\Models\Member;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +28,7 @@ class RemoveMember
                 throw MemberException::holdsSubscriptions();
             }
 
-            if ($user && $user->householdRole($household) === HouseholdRole::Owner && ! $household->hasOwnerOtherThan($member)) {
+            if ($household->isOnlyOwner($member)) {
                 throw MemberException::lastOwner();
             }
 

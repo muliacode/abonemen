@@ -17,7 +17,7 @@ final class MemberException extends RuntimeException
 
     public const HOLDS_SUBSCRIPTIONS = 'holds_subscriptions';
 
-    public const NO_LOGIN = 'no_login';
+    public const NO_USER = 'no_user';
 
     private function __construct(string $message, public readonly string $reason, public readonly ?string $label = null)
     {
@@ -59,10 +59,28 @@ final class MemberException extends RuntimeException
     }
 
     /**
-     * A role belongs to a User, and this Member has none.
+     * A role belongs to a User, and this Member is not linked to one.
      */
-    public static function noLogin(): self
+    public static function noUser(): self
     {
-        return new self('A Member without a login has no role.', self::NO_LOGIN);
+        return new self('A Member that is not linked to a User has no role.', self::NO_USER);
+    }
+
+    /**
+     * Say what went wrong, for the person who asked for it.
+     *
+     * A taken label has two ways out: give the Member a nickname, or, when one was already given, choose another.
+     */
+    public function userMessage(bool $hadNickname = false): string
+    {
+        return match ($this->reason) {
+            self::LABEL_TAKEN => $hadNickname
+                ? __('Another Member here is already called :label. Choose a different nickname.', ['label' => $this->label])
+                : __('Another Member here is already called :label. Give this Member a nickname to tell them apart.', ['label' => $this->label]),
+            self::LAST_OWNER => __('The Household needs an Owner who can sign in. Make someone else an Owner first.'),
+            self::LAST_MEMBER => __('The Household needs at least one Member.'),
+            self::HOLDS_SUBSCRIPTIONS => __('This Member holds Subscriptions. Reassign them first.'),
+            default => __('That could not be saved.'),
+        };
     }
 }
