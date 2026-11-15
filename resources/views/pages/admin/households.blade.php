@@ -31,6 +31,8 @@ new #[Title('Households')] class extends Component {
 
     <x-admin-nav />
 
+    <x-admin-checklist />
+
     <table class="w-full text-start" data-test="households-table">
         <caption class="sr-only">{{ __('Households, newest first') }}</caption>
         <thead>

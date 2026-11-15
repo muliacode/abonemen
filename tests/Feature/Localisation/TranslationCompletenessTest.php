@@ -43,10 +43,10 @@ class TranslationCompletenessTest extends TestCase
      * @var array<string, list<string>>
      */
     private const SAME_AS_ENGLISH = [
-        'nl' => ['Dashboard', 'Platform', 'Repository'],
-        'id' => ['Editor', 'Passkeys', 'Platform'],
-        'fr' => ['Documentation'],
-        'de' => ['Dashboard', 'Name', 'Passkeys', 'Repository', 'System'],
+        'nl' => ['Cache', 'Dashboard', 'Database', 'Platform', 'Repository', 'Server', 'Software'],
+        'id' => ['Cache', 'Editor', 'Passkeys', 'Platform', 'Port', 'Server'],
+        'fr' => ['Cache', 'Documentation', 'Port'],
+        'de' => ['Cache', 'Dashboard', 'Name', 'Passkeys', 'Port', 'Repository', 'Server', 'Software', 'System'],
     ];
 
     /** @var list<string>|null */

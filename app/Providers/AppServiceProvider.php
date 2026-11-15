@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Auth\ProtectedUserProvider;
 use App\Support\KeyRing;
+use App\Support\MailConfiguration;
+use App\Support\PlatformSettings;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Auth;
@@ -20,6 +22,8 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(KeyRing::class);
+        $this->app->scoped(PlatformSettings::class);
+        $this->app->singleton(MailConfiguration::class);
     }
 
     /**
@@ -29,6 +33,9 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureProtectedUsers();
+
+        // Email settings an Instance Admin saved in the app win over .env.
+        $this->app->make(MailConfiguration::class)->apply();
     }
 
     /**

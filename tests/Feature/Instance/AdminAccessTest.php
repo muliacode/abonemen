@@ -3,7 +3,9 @@
 namespace Tests\Feature\Instance;
 
 use App\Models\User;
+use App\Support\PlatformSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
@@ -21,6 +23,31 @@ class AdminAccessTest extends TestCase
         $admin->save();
 
         return $admin;
+    }
+
+    /**
+     * Every page of the section, so that a page added without the gate fails here.
+     *
+     * @return array<string, array{string}>
+     */
+    public static function pages(): array
+    {
+        return array_combine(
+            $routes = ['instance.households', 'instance.users', 'instance.general', 'instance.email', 'instance.server'],
+            array_map(fn (string $route) => [$route], $routes),
+        );
+    }
+
+    #[DataProvider('pages')]
+    public function test_every_page_of_the_section_keeps_the_same_doors(string $route): void
+    {
+        $this->get(route($route))->assertNotFound();
+
+        $this->actingAs(User::factory()->withHousehold()->create())->get(route($route))->assertNotFound();
+
+        $this->actingAs($this->admin())->get(route($route))->assertRedirect(route('security.edit'));
+
+        $this->actingAs(User::factory()->instanceAdmin()->create())->get(route($route))->assertOk();
     }
 
     public function test_a_guest_finds_nothing(): void
@@ -65,6 +92,23 @@ class AdminAccessTest extends TestCase
                 ->get(route('security.edit'))
                 ->assertDontSee(__('Set up two-factor authentication or a passkey to open the Instance Admin section.'));
         }
+    }
+
+    public function test_when_the_instance_does_not_require_a_second_factor_an_admin_without_one_enters(): void
+    {
+        app(PlatformSettings::class)->setRequireSecondFactor(false);
+
+        $this->actingAs($this->admin())->get(route('instance.households'))->assertOk();
+    }
+
+    public function test_the_security_page_stays_quiet_about_it_when_a_second_factor_is_not_required(): void
+    {
+        app(PlatformSettings::class)->setRequireSecondFactor(false);
+
+        $this->actingAs($this->admin())
+            ->withSession(['auth.password_confirmed_at' => time()])
+            ->get(route('security.edit'))
+            ->assertDontSee(__('Set up two-factor authentication or a passkey to open the Instance Admin section.'));
     }
 
     public function test_an_admin_with_two_factor_enters(): void

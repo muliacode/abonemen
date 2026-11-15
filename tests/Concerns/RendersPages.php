@@ -24,7 +24,7 @@ trait RendersPages
             $names = [
                 'welcome', 'login', 'register', 'registration closed', 'setup', 'forgot password', 'reset password', 'two-factor challenge',
                 'verify email', 'confirm password', 'dashboard', 'profile', 'security', 'appearance', 'language',
-                'households', 'household settings', 'instance households', 'instance users', 'instance registration',
+                'households', 'household settings', 'instance households', 'instance users', 'instance general', 'instance email', 'instance server',
             ],
             array_map(fn (string $name) => [$name], $names),
         );
@@ -76,7 +76,9 @@ trait RendersPages
             'household settings' => $this->actingAs($user)->get(route('households.edit', $user->currentHousehold)),
             'instance households' => $this->actingAs(User::factory()->instanceAdmin()->create())->get(route('instance.households')),
             'instance users' => $this->actingAs(User::factory()->instanceAdmin()->create())->get(route('instance.users')),
-            'instance registration' => $this->actingAs(User::factory()->instanceAdmin()->create())->get(route('instance.registration')),
+            'instance server' => $this->actingAs(User::factory()->instanceAdmin()->create())->get(route('instance.server')),
+            'instance email' => $this->actingAs(User::factory()->instanceAdmin()->create())->get(route('instance.email')),
+            'instance general' => $this->actingAs(User::factory()->instanceAdmin()->create())->get(route('instance.general')),
         };
     }
 

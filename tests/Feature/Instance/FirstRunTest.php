@@ -3,7 +3,11 @@
 namespace Tests\Feature\Instance;
 
 use App\Enums\HouseholdRole;
+use App\Enums\Locale;
 use App\Models\User;
+use App\Support\PlatformSettings;
+use DOMDocument;
+use DOMXPath;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Arr;
 use Tests\TestCase;
@@ -66,11 +70,63 @@ class FirstRunTest extends TestCase
         $this->assertDatabaseCount('households', 1);
     }
 
+    public function test_setup_keeps_the_safe_choices_when_none_are_made(): void
+    {
+        $this->post(route('setup.store'), $this->details());
+
+        $settings = app(PlatformSettings::class);
+
+        $this->assertTrue($settings->requireSecondFactor());
+        $this->assertFalse($settings->registrationIsOpen());
+    }
+
+    public function test_the_installer_can_open_registration_and_drop_the_second_factor_requirement(): void
+    {
+        $this->post(route('setup.store'), $this->details(['require_second_factor' => '0', 'registration_open' => '1']));
+
+        $settings = app(PlatformSettings::class);
+
+        $this->assertFalse($settings->requireSecondFactor());
+        $this->assertTrue($settings->registrationIsOpen());
+    }
+
+    public function test_the_defaults_for_new_households_come_from_what_the_installer_is_using(): void
+    {
+        $this->withHeader('Accept-Language', 'de')
+            ->post(route('setup.store'), $this->details(['timezone' => 'Asia/Jakarta']));
+
+        $settings = app(PlatformSettings::class);
+
+        $this->assertSame(Locale::German, $settings->defaultLanguage());
+        $this->assertSame('Asia/Jakarta', $settings->defaultTimezone());
+        $this->assertSame('EUR', $settings->defaultCurrency());
+    }
+
+    public function test_a_time_zone_that_does_not_exist_falls_back_to_the_servers(): void
+    {
+        $this->post(route('setup.store'), $this->details(['timezone' => 'Mars/Olympus']))->assertSessionHasNoErrors();
+
+        $this->assertSame(config('app.timezone'), app(PlatformSettings::class)->defaultTimezone());
+    }
+
     public function test_the_setup_page_is_there_while_the_instance_has_no_admin(): void
     {
         $this->get(route('setup'))
             ->assertOk()
             ->assertSee(__('Set up Abonemen'));
+    }
+
+    public function test_the_setup_page_offers_the_safe_choices_ticked_the_right_way(): void
+    {
+        $page = new DOMXPath(tap(new DOMDocument, fn ($dom) => @$dom->loadHTML('<?xml encoding="utf-8" ?>'.$this->get(route('setup'))->getContent())));
+
+        $secondFactor = $page->query('//ui-checkbox[@name="require_second_factor"]');
+        $registration = $page->query('//ui-checkbox[@name="registration_open"]');
+
+        $this->assertCount(1, $secondFactor);
+        $this->assertCount(1, $registration);
+        $this->assertTrue($secondFactor->item(0)->hasAttribute('checked'), 'The second factor is required unless the installer unticks it.');
+        $this->assertFalse($registration->item(0)->hasAttribute('checked'), 'Registration is closed unless the installer ticks it.');
     }
 
     public function test_a_wrong_or_missing_token_creates_nobody(): void

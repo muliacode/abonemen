@@ -4,6 +4,7 @@ namespace Tests\Feature\Protection;
 
 use App\Models\Household;
 use App\Models\User;
+use App\Support\PlatformSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -51,11 +52,18 @@ class RawDatabaseTest extends TestCase
         $other = Household::factory()->withUser($mark)->create(['name' => 'Appartement Dekker']);
         $other->members()->create(['name' => 'Ayu Wulandari']);
 
+        // The Instance Admin sets up email, whose password is a secret of the whole instance.
+        app(PlatformSettings::class)->saveMail([
+            'from_name' => 'Abonemen', 'from_address' => 'post@abonemen.example', 'host' => 'smtp.private.example',
+            'port' => 587, 'scheme' => 'smtp', 'username' => 'smtp-user-name', 'password' => 'smtp-secret-pw',
+        ]);
+
         $protected = [
             'sanne.visser', 'sanne.visser@example.com', 'mark.dekker', 'mark.dekker@example.org', 'example.com', 'example.org',
             'Sanne Visser', 'Visser', 'Mark Dekker',
             'Villa Zonnebloem', 'Zonnebloem', 'Appartement Dekker',
             'Daan Oosterhuis', 'Oosterhuis', 'Kleine Fenna', 'Ayu Wulandari', 'Wulandari',
+            'smtp-secret-pw', 'smtp-user-name', 'smtp.private.example', 'post@abonemen.example',
         ];
 
         $tables = array_column(Schema::getTables(), 'name');

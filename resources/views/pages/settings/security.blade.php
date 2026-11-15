@@ -179,7 +179,7 @@ new #[Title('Security settings')] class extends Component {
     @include('partials.settings-heading')
 
     {{-- The Instance Admin section is why an admin lands here. It stays until a second factor is set up. --}}
-    @if (auth()->user()->is_instance_admin && ! $twoFactorEnabled && $passkeys === [])
+    @if (auth()->user()->is_instance_admin && app(\App\Support\PlatformSettings::class)->requireSecondFactor() && ! $twoFactorEnabled && $passkeys === [])
         <p class="mb-8 max-w-prose rounded-lg border-2 border-accent p-4" data-test="second-factor-needed">
             {{ __('Set up two-factor authentication or a passkey to open the Instance Admin section.') }}
         </p>

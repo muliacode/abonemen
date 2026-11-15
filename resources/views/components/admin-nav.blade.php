@@ -6,7 +6,9 @@
     @foreach ([
         'instance.households' => __('Households'),
         'instance.users' => __('Users'),
-        'instance.registration' => __('Registration'),
+        'instance.general' => __('General'),
+        'instance.email' => __('Email'),
+        'instance.server' => __('Server'),
     ] as $route => $label)
         @php($current = request()->routeIs($route))
 
