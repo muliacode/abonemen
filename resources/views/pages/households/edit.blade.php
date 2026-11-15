@@ -73,9 +73,7 @@ new class extends Component
 }; ?>
 
 <section class="w-full">
-    @include('partials.settings-heading')
-
-    <x-pages::settings.layout :heading="__('Households')" :subheading="__('Manage your household settings')">
+    <x-pages::households.layout :household="$household" :heading="__('Details')" :subheading="__('Manage your household settings')">
         <div class="space-y-6">
             @if ($this->canUpdate)
                 <form wire:submit="updateHousehold" class="space-y-6">
@@ -103,11 +101,6 @@ new class extends Component
                         <x-status-message :message="$status" />
                     </div>
                 </form>
-
-                <p>
-                    <flux:link :href="route('households.connections', $household)" wire:navigate data-test="household-connections-link">{{ __('Connections') }}</flux:link>
-                    <span class="block text-muted">{{ __('What this Household sends out, and whether it is on') }}</span>
-                </p>
             @else
                 <dl class="space-y-4">
                     <div>
@@ -124,11 +117,6 @@ new class extends Component
                     </div>
                 </dl>
             @endif
-
-            <p>
-                <flux:link :href="route('households.members', $household)" wire:navigate data-test="household-members-link">{{ __('Members') }}</flux:link>
-                <span class="block text-muted">{{ __('The people Subscriptions can be held by, and who can sign in') }}</span>
-            </p>
         </div>
-    </x-pages::settings.layout>
+    </x-pages::households.layout>
 </section>

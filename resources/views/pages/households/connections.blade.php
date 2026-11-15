@@ -98,9 +98,7 @@ new #[Title('Connections')] class extends Component
 }; ?>
 
 <section class="w-full">
-    @include('partials.settings-heading')
-
-    <x-pages::settings.layout :heading="__('Connections')" :subheading="__('What this Household sends out, and whether it is on')">
+    <x-pages::households.layout :household="$household" :heading="__('Connections')" :subheading="__('What this Household sends out, and whether it is on')">
         <div class="space-y-6" data-test="connection-email">
             <h3 class="text-base font-semibold">{{ __('Email') }}</h3>
 
@@ -141,5 +139,5 @@ new #[Title('Connections')] class extends Component
                 </div>
             </form>
         </div>
-    </x-pages::settings.layout>
+    </x-pages::households.layout>
 </section>

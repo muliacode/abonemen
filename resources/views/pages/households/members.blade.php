@@ -232,9 +232,7 @@ new #[Title('Members')] class extends Component
 }; ?>
 
 <section class="w-full">
-    @include('partials.settings-heading')
-
-    <x-pages::settings.layout :heading="__('Members')" :subheading="__('The people Subscriptions can be held by')">
+    <x-pages::households.layout :household="$household" :heading="__('Members')" :subheading="__('The people Subscriptions can be held by')">
         <div class="space-y-8">
             @if ($this->canManage)
                 <livewire:add-member-form :household="$household" />
@@ -285,7 +283,7 @@ new #[Title('Members')] class extends Component
                 @endforeach
             </ul>
         </div>
-    </x-pages::settings.layout>
+    </x-pages::households.layout>
 
     @if ($this->canManage)
         <flux:modal name="edit-member" aria-labelledby="edit-member-heading" :show="$errors->hasAny(['editName', 'editNickname', 'editRole'])" focusable class="max-w-lg">

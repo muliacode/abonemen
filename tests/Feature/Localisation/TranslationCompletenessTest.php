@@ -46,7 +46,7 @@ class TranslationCompletenessTest extends TestCase
         'nl' => ['Cache', 'Dashboard', 'Database', 'Platform', 'Repository', 'Server', 'Software'],
         'id' => ['Cache', 'Editor', 'Passkeys', 'Platform', 'Port', 'Server'],
         'fr' => ['Cache', 'Documentation', 'Invitations', 'Port'],
-        'de' => ['Cache', 'Dashboard', 'Name', 'Passkeys', 'Port', 'Repository', 'Server', 'Software', 'System'],
+        'de' => ['Cache', 'Dashboard', 'Details', 'Name', 'Passkeys', 'Port', 'Repository', 'Server', 'Software', 'System'],
     ];
 
     /** @var list<string>|null */
