@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Instance;
 
+use App\Enums\HouseholdRole;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Arr;
@@ -42,15 +43,27 @@ class FirstRunTest extends TestCase
     public function test_the_installer_becomes_a_verified_instance_admin_and_is_signed_in(): void
     {
         $this->post(route('setup.store'), $this->details())
-            ->assertSessionHasNoErrors()
-            ->assertRedirect(route('households.index', absolute: false));
+            ->assertSessionHasNoErrors();
 
         $admin = User::whereEmail('ada@example.com')->sole();
 
         $this->assertTrue($admin->is_instance_admin);
         $this->assertNotNull($admin->email_verified_at);
         $this->assertAuthenticatedAs($admin);
-        $this->assertDatabaseCount('households', 0);
+    }
+
+    public function test_the_installer_also_gets_a_household_of_their_own_like_anyone_who_registers(): void
+    {
+        $response = $this->post(route('setup.store'), $this->details());
+
+        $admin = User::whereEmail('ada@example.com')->sole();
+        $household = $admin->currentHousehold;
+
+        $response->assertRedirect(route('dashboard', ['current_household' => $household->ulid], absolute: false));
+
+        $this->assertSame("Ada Admin's household", $household->name);
+        $this->assertSame(HouseholdRole::Owner, $admin->householdRole($household));
+        $this->assertDatabaseCount('households', 1);
     }
 
     public function test_the_setup_page_is_there_while_the_instance_has_no_admin(): void

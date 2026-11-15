@@ -39,8 +39,32 @@ class AdminAccessTest extends TestCase
     {
         $this->actingAs($this->admin())
             ->get(route('instance.households'))
-            ->assertRedirect(route('security.edit'))
-            ->assertSessionHas('status');
+            ->assertRedirect(route('security.edit'));
+    }
+
+    /**
+     * Security asks for the password first, which would swallow a message flashed by the redirect. So the page itself
+     * says why an Instance Admin has been sent there, for as long as it is true.
+     */
+    public function test_the_security_page_tells_an_admin_without_a_second_factor_why_they_are_there(): void
+    {
+        $this->actingAs($this->admin())
+            ->withSession(['auth.password_confirmed_at' => time()])
+            ->get(route('security.edit'))
+            ->assertSee(__('Set up two-factor authentication or a passkey to open the Instance Admin section.'));
+    }
+
+    public function test_the_security_page_says_nothing_about_it_to_anyone_who_does_not_need_it(): void
+    {
+        $withTwoFactor = User::factory()->instanceAdmin()->create();
+        $member = User::factory()->withHousehold()->create();
+
+        foreach ([$withTwoFactor, $member] as $user) {
+            $this->actingAs($user)
+                ->withSession(['auth.password_confirmed_at' => time()])
+                ->get(route('security.edit'))
+                ->assertDontSee(__('Set up two-factor authentication or a passkey to open the Instance Admin section.'));
+        }
     }
 
     public function test_an_admin_with_two_factor_enters(): void

@@ -178,6 +178,13 @@ new #[Title('Security settings')] class extends Component {
 <section class="w-full">
     @include('partials.settings-heading')
 
+    {{-- The Instance Admin section is why an admin lands here. It stays until a second factor is set up. --}}
+    @if (auth()->user()->is_instance_admin && ! $twoFactorEnabled && $passkeys === [])
+        <p class="mb-8 max-w-prose rounded-lg border-2 border-accent p-4" data-test="second-factor-needed">
+            {{ __('Set up two-factor authentication or a passkey to open the Instance Admin section.') }}
+        </p>
+    @endif
+
     <x-pages::settings.layout :heading="__('Update password')" :subheading="__('Ensure your account is using a long, random password to stay secure')">
         <form method="POST" wire:submit="updatePassword" class="mt-6 space-y-6">
             <x-error-summary />

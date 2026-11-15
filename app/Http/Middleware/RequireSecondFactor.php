@@ -17,11 +17,9 @@ class RequireSecondFactor
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = $request->user();
-
-        if ($user->two_factor_confirmed_at === null && ! $user->hasPasskeysEnabled()) {
-            return redirect()->route('security.edit')
-                ->with('status', __('Set up two-factor authentication or a passkey to open the Instance Admin section.'));
+        if (! $request->user()->hasSecondFactor()) {
+            // The Security page says why, because it asks for the password first and a flashed message would be lost.
+            return redirect()->route('security.edit');
         }
 
         return $next($request);

@@ -80,6 +80,14 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     }
 
     /**
+     * Whether the User has a second factor set up: confirmed two-factor authentication or a passkey.
+     */
+    public function hasSecondFactor(): bool
+    {
+        return $this->two_factor_confirmed_at !== null || $this->hasPasskeysEnabled();
+    }
+
+    /**
      * Get the identifier stored in password reset tokens: the blind index, never the readable email.
      */
     public function getEmailForPasswordReset(): string

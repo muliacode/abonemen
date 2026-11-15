@@ -2,7 +2,7 @@
 
 namespace App\Actions\Fortify;
 
-use App\Actions\Households\CreateHousehold;
+use App\Actions\Households\CreateStarterHousehold;
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\User;
@@ -15,7 +15,7 @@ class CreateNewUser implements CreatesNewUsers
 {
     use PasswordValidationRules, ProfileValidationRules;
 
-    public function __construct(private PlatformSettings $settings, private CreateHousehold $createHousehold)
+    public function __construct(private PlatformSettings $settings, private CreateStarterHousehold $createStarterHousehold)
     {
         //
     }
@@ -42,12 +42,7 @@ class CreateNewUser implements CreatesNewUsers
                 'locale' => app()->getLocale(),
             ]);
 
-            $this->createHousehold->handle(
-                $user,
-                __(":name's household", ['name' => $user->name]),
-                'EUR',
-                config('app.timezone'),
-            );
+            $this->createStarterHousehold->handle($user);
 
             return $user;
         });

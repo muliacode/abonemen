@@ -2,6 +2,7 @@
 
 namespace App\Actions\Instance;
 
+use App\Actions\Households\CreateStarterHousehold;
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\User;
@@ -11,6 +12,11 @@ use Illuminate\Support\Facades\Validator;
 class CreateInstanceAdmin
 {
     use PasswordValidationRules, ProfileValidationRules;
+
+    public function __construct(private CreateStarterHousehold $createStarterHousehold)
+    {
+        //
+    }
 
     /**
      * Whether the instance still has nobody who can run it.
@@ -48,6 +54,8 @@ class CreateInstanceAdmin
             ]);
 
             $admin->forceFill(['is_instance_admin' => true, 'email_verified_at' => now()])->save();
+
+            $this->createStarterHousehold->handle($admin);
 
             return $admin;
         });

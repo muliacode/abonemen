@@ -28,7 +28,7 @@ composer dev
 
 ### Creating the first Instance Admin
 
-A new instance has nobody who can run it, and registration is closed. Open `/setup`, enter the **setup token** (`ABONEMEN_SETUP_TOKEN` in your `.env`) and the name, email address and password of the first Instance Admin. That person is signed in and `/setup` disappears for good: once an Instance Admin exists it answers 404, and it does not exist at all while no token is configured. Make a token with `php artisan setup-token:generate --write`.
+A new instance has nobody who can run it, and registration is closed. Open `/setup`, enter the **setup token** (`ABONEMEN_SETUP_TOKEN` in your `.env`) and the name, email address and password of the first Instance Admin. That person is signed in, gets a Household of their own like anyone who registers, and `/setup` disappears for good: once an Instance Admin exists it answers 404, and it does not exist at all while no token is configured. Make a token with `php artisan setup-token:generate --write`.
 
 ### The Instance Admin section
 
