@@ -1,0 +1,134 @@
+<?php
+
+namespace Tests\Feature\Connections;
+
+use App\Enums\Connection;
+use App\Exceptions\ConnectionException;
+use App\Models\Household;
+use App\Models\HouseholdConnection;
+use App\Models\User;
+use App\Support\Connections;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+/**
+ * Email that carries Household data needs two switches: the Instance Admin makes it available, then an Owner
+ * turns it on for the Household after reading what it sends. See ADR 0007.
+ */
+class ConnectionsTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_email_is_off_for_a_household_on_a_fresh_instance(): void
+    {
+        $household = Household::factory()->create();
+
+        $this->assertFalse(app(Connections::class)->allows(Connection::Email, $household));
+    }
+
+    public function test_email_is_on_once_mail_delivers_and_both_switches_are_on(): void
+    {
+        $this->mailDeliversThrough('smtp.home.example');
+        $household = Household::factory()->create();
+        $connections = app(Connections::class);
+
+        $connections->makeAvailable(Connection::Email);
+        $connections->confirm(Connection::Email, $household, User::factory()->create());
+
+        $this->assertTrue($connections->allows(Connection::Email, $household));
+    }
+
+    public function test_email_pauses_while_mail_does_not_deliver_and_resumes_when_it_does(): void
+    {
+        $this->mailDeliversThrough('smtp.home.example');
+        $household = Household::factory()->create();
+        $connections = app(Connections::class);
+        $connections->makeAvailable(Connection::Email);
+        $connections->confirm(Connection::Email, $household, User::factory()->create());
+
+        config(['mail.default' => 'log']);
+        $this->assertFalse($connections->allows(Connection::Email, $household));
+
+        $this->mailDeliversThrough('smtp.home.example');
+        $this->assertTrue($connections->allows(Connection::Email, $household));
+    }
+
+    public function test_a_changed_mail_server_pauses_email_until_the_owner_confirms_again(): void
+    {
+        $this->mailDeliversThrough('smtp.home.example');
+        $household = Household::factory()->create();
+        $owner = User::factory()->create();
+        $connections = app(Connections::class);
+        $connections->makeAvailable(Connection::Email);
+        $connections->confirm(Connection::Email, $household, $owner);
+
+        $this->mailDeliversThrough('smtp.elsewhere.example');
+        $this->assertFalse($connections->allows(Connection::Email, $household));
+
+        $connections->confirm(Connection::Email, $household, $owner);
+        $this->assertTrue($connections->allows(Connection::Email, $household));
+    }
+
+    public function test_a_changed_disclosure_pauses_email_until_the_owner_confirms_again(): void
+    {
+        $this->mailDeliversThrough('smtp.home.example');
+        $household = Household::factory()->create();
+        $connections = app(Connections::class);
+        $connections->makeAvailable(Connection::Email);
+        $connections->confirm(Connection::Email, $household, User::factory()->create());
+
+        // What the Owner confirmed was an older version of the disclosure than the one in this release.
+        HouseholdConnection::query()->update(['confirmed_version' => Connection::Email->disclosureVersion() - 1]);
+
+        $this->assertFalse($connections->allows(Connection::Email, $household));
+    }
+
+    public function test_the_admin_cannot_make_email_available_while_mail_does_not_deliver(): void
+    {
+        $connections = app(Connections::class);
+
+        $this->assertFalse($connections->canBeMadeAvailable(Connection::Email));
+
+        try {
+            $connections->makeAvailable(Connection::Email);
+            $this->fail('Email was made available although nobody would receive it.');
+        } catch (ConnectionException) {
+            $this->assertFalse($connections->isAvailable(Connection::Email));
+        }
+    }
+
+    public function test_turning_the_platform_switch_off_pauses_email_and_turning_it_on_resumes_it(): void
+    {
+        $this->mailDeliversThrough('smtp.home.example');
+        $household = Household::factory()->create();
+        $connections = app(Connections::class);
+        $connections->makeAvailable(Connection::Email);
+        $connections->confirm(Connection::Email, $household, User::factory()->create());
+
+        $connections->makeUnavailable(Connection::Email);
+        $this->assertFalse($connections->allows(Connection::Email, $household));
+
+        $connections->makeAvailable(Connection::Email);
+        $this->assertTrue($connections->allows(Connection::Email, $household));
+    }
+
+    public function test_an_owner_can_switch_email_off_even_while_the_platform_switch_is_off(): void
+    {
+        $this->mailDeliversThrough('smtp.home.example');
+        $household = Household::factory()->create();
+        $connections = app(Connections::class);
+        $connections->makeAvailable(Connection::Email);
+        $connections->confirm(Connection::Email, $household, User::factory()->create());
+        $connections->makeUnavailable(Connection::Email);
+
+        $connections->disable(Connection::Email, $household);
+
+        $connections->makeAvailable(Connection::Email);
+        $this->assertFalse($connections->allows(Connection::Email, $household));
+    }
+
+    private function mailDeliversThrough(string $host): void
+    {
+        config(['mail.default' => 'smtp', 'mail.mailers.smtp.host' => $host]);
+    }
+}
