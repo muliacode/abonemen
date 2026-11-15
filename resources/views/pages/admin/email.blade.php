@@ -68,7 +68,7 @@ new #[Title('Email')] class extends Component {
         $this->port = (string) ($smtp['port'] ?? '587');
         $this->scheme = (string) ($smtp['scheme'] ?? 'smtp');
         $this->username = (string) ($smtp['username'] ?? '');
-        $this->householdsWaiting = app(Connections::class)->householdCounts(Connection::Email)['waiting'];
+        $this->refreshHouseholdsWaiting();
     }
 
     public function save(PlatformSettings $settings, MailConfiguration $mail): void
@@ -97,7 +97,7 @@ new #[Title('Email')] class extends Component {
 
         $this->hasPassword = filled($settings->mail()['password']);
         $this->source = $mail->source();
-        $this->householdsWaiting = app(Connections::class)->householdCounts(Connection::Email)['waiting'];
+        $this->refreshHouseholdsWaiting();
         $this->reset('password', 'testResult', 'testFailed');
         $this->status = __('Saved.');
     }
@@ -146,6 +146,11 @@ new #[Title('Email')] class extends Component {
     public function updated(): void
     {
         $this->status = null;
+    }
+
+    private function refreshHouseholdsWaiting(): void
+    {
+        $this->householdsWaiting = app(Connections::class)->householdCounts(Connection::Email)['waiting'];
     }
 
     /**

@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\Connection;
+use App\Exceptions\ConnectionException;
 use App\Support\Connections;
 use App\Support\MailConfiguration;
 use Livewire\Attributes\Computed;
@@ -21,6 +22,11 @@ new #[Title('Connections')] class extends Component {
     #[Locked]
     public int $householdsWaiting = 0;
 
+    /**
+     * The confirmation shown beside the buttons until the admin does something else.
+     */
+    public ?string $status = null;
+
     public function mount(): void
     {
         $this->refresh();
@@ -28,11 +34,17 @@ new #[Title('Connections')] class extends Component {
 
     public function makeEmailAvailable(Connections $connections): void
     {
-        if ($connections->canBeMadeAvailable(Connection::Email)) {
+        try {
             $connections->makeAvailable(Connection::Email);
+        } catch (ConnectionException) {
+            // Nobody would receive it. The page already says so, and nothing changed to confirm.
+            $this->refresh();
+
+            return;
         }
 
         $this->refresh();
+        $this->status = __('Saved.');
     }
 
     public function makeEmailUnavailable(Connections $connections): void
@@ -40,6 +52,12 @@ new #[Title('Connections')] class extends Component {
         $connections->makeUnavailable(Connection::Email);
 
         $this->refresh();
+        $this->status = __('Saved.');
+    }
+
+    public function updated(): void
+    {
+        $this->status = null;
     }
 
     /**
@@ -84,13 +102,16 @@ new #[Title('Connections')] class extends Component {
                 </p>
             @endunless
 
-            <div class="mt-3">
+            {{-- A form, so that the status message waits inside it for the change (docs/accessibility.md). --}}
+            <form wire:submit="makeEmailAvailable" class="mt-3 flex flex-wrap items-center gap-4">
                 @if ($emailAvailable)
                     <flux:button type="button" wire:click="makeEmailUnavailable" data-test="email-unavailable-button">{{ __('Make email unavailable') }}</flux:button>
                 @else
-                    <flux:button type="button" variant="primary" wire:click="makeEmailAvailable" :disabled="! $this->mailDelivers" data-test="email-available-button">{{ __('Make email available to Households') }}</flux:button>
+                    <flux:button type="submit" variant="primary" :disabled="! $this->mailDelivers" data-test="email-available-button">{{ __('Make email available to Households') }}</flux:button>
                 @endif
-            </div>
+
+                <x-status-message :message="$status" />
+            </form>
 
             <dl class="mt-4 grid grid-cols-[1fr_auto] gap-x-6 gap-y-1">
                 <dt>{{ __('Households that switched it on') }}</dt>

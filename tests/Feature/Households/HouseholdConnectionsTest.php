@@ -4,6 +4,7 @@ namespace Tests\Feature\Households;
 
 use App\Actions\Households\AddUserToHousehold;
 use App\Enums\Connection;
+use App\Enums\ConnectionState;
 use App\Enums\HouseholdRole;
 use App\Models\Household;
 use App\Models\HouseholdConnection;
@@ -68,11 +69,11 @@ class HouseholdConnectionsTest extends TestCase
         $this->mailDelivers();
 
         $this->page()
-            ->assertSet('state', 'unavailable')
+            ->assertSet('state', ConnectionState::Unavailable)
             ->assertSee(__('Your Instance Admin has not made email available.'))
             ->set('confirmed', true)
             ->call('enable')
-            ->assertSet('state', 'unavailable');
+            ->assertSet('state', ConnectionState::Unavailable);
 
         $this->assertSame(0, HouseholdConnection::count());
     }
@@ -82,7 +83,7 @@ class HouseholdConnectionsTest extends TestCase
         $this->adminMakesEmailAvailable();
 
         $this->page()
-            ->assertSet('state', 'off')
+            ->assertSet('state', ConnectionState::Off)
             ->assertSee(__('Invitations'))
             ->assertSee(__('Reminders'))
             ->assertSee('smtp.home.example');
@@ -95,7 +96,7 @@ class HouseholdConnectionsTest extends TestCase
         $this->page()
             ->call('enable')
             ->assertHasErrors('confirmed')
-            ->assertSet('state', 'off');
+            ->assertSet('state', ConnectionState::Off);
 
         $this->assertSame(0, HouseholdConnection::count());
         $this->assertFalse(app(Connections::class)->allows(Connection::Email, $this->household));
@@ -109,7 +110,7 @@ class HouseholdConnectionsTest extends TestCase
             ->set('confirmed', true)
             ->call('enable')
             ->assertHasNoErrors()
-            ->assertSet('state', 'on')
+            ->assertSet('state', ConnectionState::On)
             ->assertSet('switchedOn', true);
 
         $this->assertTrue(app(Connections::class)->allows(Connection::Email, $this->household));
@@ -128,7 +129,7 @@ class HouseholdConnectionsTest extends TestCase
         app(Connections::class)->makeUnavailable(Connection::Email);
 
         Livewire::actingAs($this->owner)->test('pages::households.connections', ['household' => $this->household])
-            ->assertSet('state', 'unavailable')
+            ->assertSet('state', ConnectionState::Unavailable)
             ->assertSet('switchedOn', true)
             ->call('disable')
             ->assertSet('switchedOn', false);
@@ -144,14 +145,14 @@ class HouseholdConnectionsTest extends TestCase
         $this->mailDelivers('smtp.elsewhere.example');
 
         $page = Livewire::actingAs($this->owner)->test('pages::households.connections', ['household' => $this->household])
-            ->assertSet('state', 'confirm-again')
+            ->assertSet('state', ConnectionState::ConfirmAgain)
             ->assertSee('smtp.elsewhere.example');
 
         $this->assertFalse(app(Connections::class)->allows(Connection::Email, $this->household));
 
         $page->call('enable')->assertHasErrors('confirmed');
 
-        $page->set('confirmed', true)->call('enable')->assertSet('state', 'on');
+        $page->set('confirmed', true)->call('enable')->assertSet('state', ConnectionState::On);
         $this->assertTrue(app(Connections::class)->allows(Connection::Email, $this->household));
     }
 
@@ -163,7 +164,7 @@ class HouseholdConnectionsTest extends TestCase
         config(['mail.default' => 'log']);
 
         Livewire::actingAs($this->owner)->test('pages::households.connections', ['household' => $this->household])
-            ->assertSet('state', 'paused')
+            ->assertSet('state', ConnectionState::Paused)
             ->assertSee(__('Email is not delivered right now, so nothing is sent.'));
     }
 

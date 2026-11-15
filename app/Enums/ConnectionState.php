@@ -20,4 +20,12 @@ enum ConnectionState: string
     case ConfirmAgain = 'confirm-again';
 
     case On = 'on';
+
+    /**
+     * Whether an Owner can switch the Connection on now: they have not yet, or must confirm again.
+     */
+    public function canBeSwitchedOn(): bool
+    {
+        return $this === self::Off || $this === self::ConfirmAgain;
+    }
 }

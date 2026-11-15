@@ -5,6 +5,7 @@ use App\Enums\ConnectionState;
 use App\Exceptions\ConnectionException;
 use App\Models\Household;
 use App\Support\Connections;
+use App\Support\MailConfiguration;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Locked;
@@ -24,7 +25,7 @@ new #[Title('Connections')] class extends Component
      * Where email stands for this Household. Locked, so that the page only says what is true.
      */
     #[Locked]
-    public string $state = 'off';
+    public ConnectionState $state = ConnectionState::Off;
 
     /**
      * Whether the Owner has switched email on, whatever the instance says now. Switching off is always possible.
@@ -49,7 +50,7 @@ new #[Title('Connections')] class extends Component
     {
         Gate::authorize('update', $this->household);
 
-        if (! in_array($this->state, [ConnectionState::Off->value, ConnectionState::ConfirmAgain->value], true)) {
+        if (! $this->state->canBeSwitchedOn()) {
             return;
         }
 
@@ -89,9 +90,9 @@ new #[Title('Connections')] class extends Component
     {
         $connections = app(Connections::class);
 
-        $this->state = $connections->stateFor(Connection::Email, $this->household)->value;
+        $this->state = $connections->stateFor(Connection::Email, $this->household);
         $this->switchedOn = $connections->hasSwitchedOn(Connection::Email, $this->household);
-        $this->destination = $connections->destination();
+        $this->destination = app(MailConfiguration::class)->destination();
         $this->confirmed = false;
     }
 }; ?>
@@ -103,28 +104,32 @@ new #[Title('Connections')] class extends Component
         <div class="space-y-6" data-test="connection-email">
             <h3 class="text-base font-semibold">{{ __('Email') }}</h3>
 
-            @if ($state === 'unavailable')
-                <p data-test="email-state-message">{{ __('Your Instance Admin has not made email available.') }}</p>
-            @elseif ($state === 'paused')
-                <p data-test="email-state-message">{{ __('Email is not delivered right now, so nothing is sent.') }}</p>
-            @elseif ($state === 'on')
-                <p class="font-medium" data-test="email-state-message">{{ __('Email is on for this Household.') }}</p>
-            @elseif ($state === 'confirm-again')
-                <p class="font-medium" data-test="email-state-message">{{ __('Email is paused until you confirm again. The mail server or what is sent has changed since you confirmed.') }}</p>
+            @php
+                $message = match ($state) {
+                    \App\Enums\ConnectionState::Unavailable => __('Your Instance Admin has not made email available.'),
+                    \App\Enums\ConnectionState::Paused => __('Email is not delivered right now, so nothing is sent.'),
+                    \App\Enums\ConnectionState::On => __('Email is on for this Household.'),
+                    \App\Enums\ConnectionState::ConfirmAgain => __('Email is paused until you confirm again. The mail server or what is sent has changed since you confirmed.'),
+                    \App\Enums\ConnectionState::Off => null,
+                };
+            @endphp
+
+            @if ($message)
+                <p class="font-medium" data-test="email-state-message">{{ $message }}</p>
             @endif
 
             {{-- One form, so that the status message waits inside it for the save (docs/accessibility.md). --}}
             <form wire:submit="enable" class="space-y-4">
                 <x-error-summary />
 
-                @if (in_array($state, ['off', 'confirm-again'], true))
+                @if ($state->canBeSwitchedOn())
                     <x-disclosure.email :destination="$destination" />
 
                     <flux:checkbox id="confirmed" wire:model="confirmed" :label="__('I have read what email sends and where it goes')" data-test="confirm-checkbox" />
                 @endif
 
                 <div class="flex flex-wrap items-center gap-4">
-                    @if (in_array($state, ['off', 'confirm-again'], true))
+                    @if ($state->canBeSwitchedOn())
                         <flux:button variant="primary" type="submit" data-test="enable-email-button">{{ __('Switch email on') }}</flux:button>
                     @endif
 

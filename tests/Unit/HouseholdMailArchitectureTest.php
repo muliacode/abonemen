@@ -4,6 +4,8 @@ namespace Tests\Unit;
 
 use App\Mail\HouseholdMail;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 /**
  * An email that carries a Household's data must go through the email Connection's gate, and the gate lives in
@@ -14,6 +16,7 @@ class HouseholdMailArchitectureTest extends TestCase
 {
     /**
      * Emails that carry no Household data. They depend on the mail setup alone, not on a Household's consent.
+     * Keyed by class name below App\Mail, with the namespace of any folder it sits in.
      *
      * @var array<string, string>
      */
@@ -22,15 +25,21 @@ class HouseholdMailArchitectureTest extends TestCase
     ];
 
     /**
-     * @return list<string> Short class names in app/Mail.
+     * @return list<string> Class names below App\Mail, at any depth, such as "TestMail" or "Reminders\UpcomingPayment".
      */
     private function mailClasses(): array
     {
+        $root = dirname(__DIR__, 2).'/app/Mail';
         $names = [];
 
-        foreach (glob(dirname(__DIR__, 2).'/app/Mail/*.php') as $file) {
-            $names[] = basename($file, '.php');
+        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, RecursiveDirectoryIterator::SKIP_DOTS)) as $file) {
+            if ($file->getExtension() === 'php') {
+                $relative = substr($file->getPathname(), strlen($root) + 1, -strlen('.php'));
+                $names[] = str_replace(DIRECTORY_SEPARATOR, '\\', $relative);
+            }
         }
+
+        sort($names);
 
         return $names;
     }
@@ -40,7 +49,7 @@ class HouseholdMailArchitectureTest extends TestCase
         $skippingTheGate = [];
 
         foreach ($this->mailClasses() as $name) {
-            $class = "App\\Mail\\{$name}";
+            $class = 'App\\Mail\\'.$name;
 
             if ($class === HouseholdMail::class || array_key_exists($name, self::ACCOUNT_EMAILS)) {
                 continue;

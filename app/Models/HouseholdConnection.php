@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\Connection;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -31,6 +32,19 @@ class HouseholdConnection extends Model
             'connection' => Connection::class,
             'enabled_at' => 'datetime',
         ];
+    }
+
+    /**
+     * The consents that still match what is disclosed now. With a destination they must also match where it goes;
+     * without one (mail does not deliver) only the disclosure version is compared.
+     *
+     * @param  Builder<HouseholdConnection>  $query
+     */
+    public function scopeWithCurrentConsent(Builder $query, Connection $connection, ?string $destination): void
+    {
+        $query->where('connection', $connection)
+            ->where('confirmed_version', $connection->disclosureVersion())
+            ->when($destination !== null, fn (Builder $query) => $query->where('confirmed_destination', $destination));
     }
 
     /**

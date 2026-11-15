@@ -99,4 +99,24 @@ class AdminConnectionsTest extends TestCase
             ->assertSee(__('Account emails'))
             ->assertSee(__('On because email is set up'));
     }
+
+    public function test_the_change_is_announced_in_a_live_region(): void
+    {
+        $this->mailDelivers();
+
+        Livewire::test('pages::admin.connections')
+            ->assertSet('status', null)
+            ->call('makeEmailAvailable')
+            ->assertSet('status', __('Saved.'))
+            ->assertSeeHtml('data-status-message')
+            ->call('makeEmailUnavailable')
+            ->assertSet('status', __('Saved.'));
+    }
+
+    public function test_nothing_is_announced_when_email_could_not_be_made_available(): void
+    {
+        Livewire::test('pages::admin.connections')
+            ->call('makeEmailAvailable')
+            ->assertSet('status', null);
+    }
 }

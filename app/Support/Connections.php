@@ -59,31 +59,6 @@ class Connections
     }
 
     /**
-     * An Owner switches a Connection off for their Household. It is always possible, whatever the platform says.
-     */
-    public function disable(Connection $connection, Household $household): void
-    {
-        $switchedOff = HouseholdConnection::where('household_id', $household->id)->where('connection', $connection)->delete();
-
-        if ($switchedOff > 0) {
-            $this->log($connection, $household, 'disabled', Auth::id());
-        }
-    }
-
-    /**
-     * A change is logged with who made it and where, never with what a Household sends.
-     */
-    private function log(Connection $connection, Household $household, string $action, ?int $userId): void
-    {
-        Log::info('Household connection changed.', [
-            'household_id' => $household->id,
-            'connection' => $connection->value,
-            'action' => $action,
-            'user_id' => $userId,
-        ]);
-    }
-
-    /**
      * An Owner switches a Connection on for their Household, having read what it sends and where it goes.
      *
      * @throws ConnectionException
@@ -108,25 +83,19 @@ class Connections
             ],
         );
 
-        $this->log($connection, $household, 'enabled', $owner->id);
+        $this->logChange($connection, $household, 'enabled', $owner->id);
     }
 
     /**
-     * How many Households have a Connection switched on with consent that still holds, and how many switched it on
-     * but must confirm again. Counts only: an Instance Admin never sees which Households.
-     *
-     * @return array{on: int, waiting: int}
+     * An Owner switches a Connection off for their Household. It is always possible, whatever the platform says.
      */
-    public function householdCounts(Connection $connection): array
+    public function disable(Connection $connection, Household $household): void
     {
-        $switchedOn = HouseholdConnection::where('connection', $connection)->count();
+        $switchedOff = HouseholdConnection::where('household_id', $household->id)->where('connection', $connection)->delete();
 
-        $on = HouseholdConnection::where('connection', $connection)
-            ->where('confirmed_destination', $this->mail->destination())
-            ->where('confirmed_version', $connection->disclosureVersion())
-            ->count();
-
-        return ['on' => $on, 'waiting' => $switchedOn - $on];
+        if ($switchedOff > 0) {
+            $this->logChange($connection, $household, 'disabled', Auth::id());
+        }
     }
 
     /**
@@ -153,17 +122,27 @@ class Connections
     }
 
     /**
-     * Where Household emails go now: the SMTP host, or the mailer's name. This is what an Owner confirms.
+     * How many Households have a Connection switched on, and how many of those must confirm again. Counts only: an
+     * Instance Admin never sees which Households.
+     *
+     * While mail does not deliver there is no server to compare with, so only a changed disclosure counts as needing
+     * confirmation: consent that has not changed holds again as soon as the same server returns.
+     *
+     * @return array{on: int, waiting: int}
      */
-    public function destination(): string
+    public function householdCounts(Connection $connection): array
     {
-        return $this->mail->destination();
+        $switchedOn = HouseholdConnection::where('connection', $connection)->count();
+        $destination = $this->canBeMadeAvailable($connection) ? $this->mail->destination() : null;
+        $current = HouseholdConnection::withCurrentConsent($connection, $destination)->count();
+
+        return ['on' => $current, 'waiting' => $switchedOn - $current];
     }
 
     public function allows(Connection $connection, Household $household): bool
     {
-        return $this->settings->connectionIsAvailable($connection)
-            && $this->mail->delivers()
+        return $this->isAvailable($connection)
+            && $this->canBeMadeAvailable($connection)
             && $this->consentIsCurrent($connection, $household);
     }
 
@@ -173,11 +152,21 @@ class Connections
      */
     private function consentIsCurrent(Connection $connection, Household $household): bool
     {
-        return HouseholdConnection::query()
+        return HouseholdConnection::withCurrentConsent($connection, $this->mail->destination())
             ->where('household_id', $household->id)
-            ->where('connection', $connection)
-            ->where('confirmed_destination', $this->mail->destination())
-            ->where('confirmed_version', $connection->disclosureVersion())
             ->exists();
+    }
+
+    /**
+     * A change is logged with who made it and where, never with what a Household sends.
+     */
+    private function logChange(Connection $connection, Household $household, string $action, int|string|null $userId): void
+    {
+        Log::info('Household connection changed.', [
+            'household_id' => $household->id,
+            'connection' => $connection->value,
+            'action' => $action,
+            'user_id' => $userId,
+        ]);
     }
 }

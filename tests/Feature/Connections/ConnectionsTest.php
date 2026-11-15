@@ -177,4 +177,18 @@ class ConnectionsTest extends TestCase
     {
         config(['mail.default' => 'smtp', 'mail.mailers.smtp.host' => $host]);
     }
+
+    public function test_households_do_not_have_to_confirm_again_just_because_mail_stopped_delivering(): void
+    {
+        $this->mailDeliversThrough('smtp.home.example');
+        $connections = app(Connections::class);
+        $connections->makeAvailable(Connection::Email);
+        $connections->confirm(Connection::Email, Household::factory()->create(), User::factory()->create());
+
+        // With no real mailer there is no server to compare with. Their consent has not changed, and holds again
+        // as soon as the same server returns.
+        config(['mail.default' => 'log']);
+
+        $this->assertSame(['on' => 1, 'waiting' => 0], $connections->householdCounts(Connection::Email));
+    }
 }
