@@ -79,6 +79,24 @@ class Connections
         );
     }
 
+    /**
+     * How many Households have a Connection switched on with consent that still holds, and how many switched it on
+     * but must confirm again. Counts only: an Instance Admin never sees which Households.
+     *
+     * @return array{on: int, waiting: int}
+     */
+    public function householdCounts(Connection $connection): array
+    {
+        $switchedOn = HouseholdConnection::where('connection', $connection)->count();
+
+        $on = HouseholdConnection::where('connection', $connection)
+            ->where('confirmed_destination', $this->mail->destination())
+            ->where('confirmed_version', $connection->disclosureVersion())
+            ->count();
+
+        return ['on' => $on, 'waiting' => $switchedOn - $on];
+    }
+
     public function allows(Connection $connection, Household $household): bool
     {
         return $this->settings->connectionIsAvailable($connection)

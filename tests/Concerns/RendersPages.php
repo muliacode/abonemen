@@ -24,7 +24,7 @@ trait RendersPages
             $names = [
                 'welcome', 'login', 'register', 'registration closed', 'setup', 'forgot password', 'reset password', 'two-factor challenge',
                 'verify email', 'confirm password', 'dashboard', 'profile', 'security', 'appearance', 'language',
-                'households', 'household settings', 'instance households', 'instance users', 'instance general', 'instance email', 'instance server',
+                'households', 'household settings', 'instance households', 'instance users', 'instance general', 'instance connections', 'instance email', 'instance server',
             ],
             array_map(fn (string $name) => [$name], $names),
         );
@@ -78,6 +78,7 @@ trait RendersPages
             'instance users' => $this->actingAs(User::factory()->instanceAdmin()->create())->withSession(['auth.password_confirmed_at' => time()])->get(route('instance.users')),
             'instance server' => $this->actingAs(User::factory()->instanceAdmin()->create())->withSession(['auth.password_confirmed_at' => time()])->get(route('instance.server')),
             'instance email' => $this->actingAs(User::factory()->instanceAdmin()->create())->withSession(['auth.password_confirmed_at' => time()])->get(route('instance.email')),
+            'instance connections' => $this->actingAs(User::factory()->instanceAdmin()->create())->withSession(['auth.password_confirmed_at' => time()])->get(route('instance.connections')),
             'instance general' => $this->actingAs(User::factory()->instanceAdmin()->create())->withSession(['auth.password_confirmed_at' => time()])->get(route('instance.general')),
         };
     }

@@ -127,6 +127,21 @@ class ConnectionsTest extends TestCase
         $this->assertFalse($connections->allows(Connection::Email, $household));
     }
 
+    public function test_households_are_counted_as_on_or_waiting_to_confirm_again(): void
+    {
+        $this->mailDeliversThrough('smtp.home.example');
+        $connections = app(Connections::class);
+        $owner = User::factory()->create();
+        [$confirmed, $outdated] = Household::factory()->count(2)->create();
+        Household::factory()->create();
+
+        $connections->confirm(Connection::Email, $confirmed, $owner);
+        $connections->confirm(Connection::Email, $outdated, $owner);
+        HouseholdConnection::where('household_id', $outdated->id)->update(['confirmed_version' => 0]);
+
+        $this->assertSame(['on' => 1, 'waiting' => 1], $connections->householdCounts(Connection::Email));
+    }
+
     private function mailDeliversThrough(string $host): void
     {
         config(['mail.default' => 'smtp', 'mail.mailers.smtp.host' => $host]);

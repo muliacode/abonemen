@@ -1,6 +1,8 @@
 <?php
 
+use App\Enums\Connection;
 use App\Mail\TestMail;
+use App\Support\Connections;
 use App\Support\MailConfiguration;
 use App\Support\PlatformSettings;
 use Illuminate\Support\Facades\Auth;
@@ -37,6 +39,13 @@ new #[Title('Email')] class extends Component {
     #[Locked]
     public string $source = 'undelivered';
 
+    /**
+     * How many Households switched email on but must confirm again, because the server or the disclosure changed.
+     * Locked, so that it only says what is true.
+     */
+    #[Locked]
+    public int $householdsWaiting = 0;
+
     public ?string $status = null;
 
     public ?string $testResult = null;
@@ -59,6 +68,7 @@ new #[Title('Email')] class extends Component {
         $this->port = (string) ($smtp['port'] ?? '587');
         $this->scheme = (string) ($smtp['scheme'] ?? 'smtp');
         $this->username = (string) ($smtp['username'] ?? '');
+        $this->householdsWaiting = app(Connections::class)->householdCounts(Connection::Email)['waiting'];
     }
 
     public function save(PlatformSettings $settings, MailConfiguration $mail): void
@@ -87,6 +97,7 @@ new #[Title('Email')] class extends Component {
 
         $this->hasPassword = filled($settings->mail()['password']);
         $this->source = $mail->source();
+        $this->householdsWaiting = app(Connections::class)->householdCounts(Connection::Email)['waiting'];
         $this->reset('password', 'testResult', 'testFailed');
         $this->status = __('Saved.');
     }
@@ -171,6 +182,13 @@ new #[Title('Email')] class extends Component {
             <p class="text-muted">{{ __('The mailer only writes emails to a log, so nobody receives a password reset or a verification link. Fill in your SMTP server below.') }}</p>
         @endif
     </div>
+
+    @if ($householdsWaiting > 0)
+        <div class="mb-8 max-w-xl rounded-lg border-2 border-accent p-4" data-test="households-waiting">
+            <p class="font-medium">{{ __('Households that must confirm email again') }}: {{ $householdsWaiting }}</p>
+            <p class="text-muted">{{ __('Household emails stop for them until their Owner reads what is sent and where it goes, and confirms. This happens when the mail server or what is sent changes.') }}</p>
+        </div>
+    @endif
 
     <form wire:submit="save" class="flex max-w-xl flex-col gap-5">
         <x-error-summary />
