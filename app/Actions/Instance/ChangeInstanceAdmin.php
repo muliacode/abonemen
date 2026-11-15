@@ -27,10 +27,14 @@ class ChangeInstanceAdmin
 
     /**
      * Whether the instance would be left without an Instance Admin if this User stopped being one.
+     *
+     * Call it inside a transaction. It locks every Instance Admin row, this User's too: with only the others locked,
+     * two admins demoting each other would lock different rows, both pass, and leave nobody to run the instance.
      */
     public function wouldLeaveNoAdmin(User $user): bool
     {
-        return $user->is_instance_admin
-            && ! User::where('is_instance_admin', true)->whereKeyNot($user->getKey())->lockForUpdate()->exists();
+        $admins = User::where('is_instance_admin', true)->lockForUpdate()->pluck('id');
+
+        return $user->is_instance_admin && $admins->diff([$user->getKey()])->isEmpty();
     }
 }
