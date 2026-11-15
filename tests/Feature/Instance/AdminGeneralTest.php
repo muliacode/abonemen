@@ -27,6 +27,7 @@ class AdminGeneralTest extends TestCase
 
         $this->settings = app(PlatformSettings::class);
         $this->actingAs(User::factory()->instanceAdmin()->create());
+        $this->withSession(['auth.password_confirmed_at' => time()]);
     }
 
     public function test_the_page_starts_from_the_safe_choices(): void

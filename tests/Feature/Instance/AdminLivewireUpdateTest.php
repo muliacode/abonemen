@@ -25,7 +25,7 @@ class AdminLivewireUpdateTest extends TestCase
      */
     private function openUsersPage(User $admin): string
     {
-        $html = $this->actingAs($admin)->get(route('instance.users'))->assertOk()->getContent();
+        $html = $this->actingAs($admin)->withSession(['auth.password_confirmed_at' => time()])->get(route('instance.users'))->assertOk()->getContent();
 
         // The page holds several components (the sidebar has its own); take the page itself.
         preg_match_all('/wire:snapshot="([^"]+)"/', $html, $matches);

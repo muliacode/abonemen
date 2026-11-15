@@ -26,6 +26,7 @@ class AdminChecklistTest extends TestCase
 
         $this->admin = User::factory()->instanceAdmin()->create();
         $this->actingAs($this->admin);
+        $this->withSession(['auth.password_confirmed_at' => time()]);
     }
 
     private function landing(string $origin = 'http://localhost'): TestResponse

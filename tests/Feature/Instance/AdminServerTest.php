@@ -21,6 +21,7 @@ class AdminServerTest extends TestCase
         parent::setUp();
 
         $this->actingAs(User::factory()->instanceAdmin()->create());
+        $this->withSession(['auth.password_confirmed_at' => time()]);
     }
 
     /**

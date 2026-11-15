@@ -74,11 +74,11 @@ trait RendersPages
             'language' => $this->actingAs($user)->get(route('language.edit')),
             'households' => $this->actingAs($user)->get(route('households.index')),
             'household settings' => $this->actingAs($user)->get(route('households.edit', $user->currentHousehold)),
-            'instance households' => $this->actingAs(User::factory()->instanceAdmin()->create())->get(route('instance.households')),
-            'instance users' => $this->actingAs(User::factory()->instanceAdmin()->create())->get(route('instance.users')),
-            'instance server' => $this->actingAs(User::factory()->instanceAdmin()->create())->get(route('instance.server')),
-            'instance email' => $this->actingAs(User::factory()->instanceAdmin()->create())->get(route('instance.email')),
-            'instance general' => $this->actingAs(User::factory()->instanceAdmin()->create())->get(route('instance.general')),
+            'instance households' => $this->actingAs(User::factory()->instanceAdmin()->create())->withSession(['auth.password_confirmed_at' => time()])->get(route('instance.households')),
+            'instance users' => $this->actingAs(User::factory()->instanceAdmin()->create())->withSession(['auth.password_confirmed_at' => time()])->get(route('instance.users')),
+            'instance server' => $this->actingAs(User::factory()->instanceAdmin()->create())->withSession(['auth.password_confirmed_at' => time()])->get(route('instance.server')),
+            'instance email' => $this->actingAs(User::factory()->instanceAdmin()->create())->withSession(['auth.password_confirmed_at' => time()])->get(route('instance.email')),
+            'instance general' => $this->actingAs(User::factory()->instanceAdmin()->create())->withSession(['auth.password_confirmed_at' => time()])->get(route('instance.general')),
         };
     }
 
