@@ -20,7 +20,7 @@
                     {{ __('Log in') }}
                 </flux:button>
 
-                @if (Route::has('register'))
+                @if (app(\App\Support\PlatformSettings::class)->registrationIsOpen())
                     <flux:button class="w-full" :href="route('register')" data-test="welcome-register-link">
                         {{ __('Register') }}
                     </flux:button>

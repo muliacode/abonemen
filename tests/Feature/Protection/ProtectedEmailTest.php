@@ -41,6 +41,8 @@ class ProtectedEmailTest extends TestCase
 
     public function test_a_registered_email_is_stored_protected_and_found_again_by_exact_match(): void
     {
+        $this->openRegistration();
+
         $this->post(route('register.store'), [
             'name' => 'Sanne',
             'email' => 'sanne@example.com',
@@ -64,6 +66,8 @@ class ProtectedEmailTest extends TestCase
 
     public function test_registering_with_an_email_that_is_taken_is_refused_whatever_its_case(): void
     {
+        $this->openRegistration();
+
         User::factory()->create(['email' => 'sanne@example.com']);
 
         $this->post(route('register.store'), [

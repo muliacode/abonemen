@@ -4,6 +4,7 @@ namespace Tests\Feature\Protection;
 
 use App\Models\Household;
 use App\Models\User;
+use App\Support\PlatformSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -17,12 +18,14 @@ class RawDatabaseTest extends TestCase
 
     public function test_a_dump_of_the_whole_database_holds_none_of_the_protected_plaintext(): void
     {
+        $this->openRegistration();
+
         Notification::fake();
 
         // Sessions are stored in the database, as on a default install.
         config(['session.driver' => 'database']);
 
-        // A User registers, forgets their password and creates a Household.
+        // A User registers (which gives them a Household), forgets their password and creates a second Household.
         $this->post(route('register.store'), [
             'name' => 'Sanne Visser',
             'email' => 'sanne.visser@example.com',
@@ -42,18 +45,25 @@ class RawDatabaseTest extends TestCase
             ->assertHasNoErrors();
 
         // Members without a sign-in, and another Household with its own User.
-        $household = Household::sole();
+        $household = $sanne->fresh()->currentHousehold;
         $household->members()->create(['name' => 'Daan Oosterhuis']);
         $household->members()->create(['name' => 'Kleine Fenna']);
         $mark = User::factory()->create(['name' => 'Mark Dekker', 'email' => 'mark.dekker@example.org']);
         $other = Household::factory()->withUser($mark)->create(['name' => 'Appartement Dekker']);
         $other->members()->create(['name' => 'Ayu Wulandari']);
 
+        // The Instance Admin sets up email, whose password is a secret of the whole instance.
+        app(PlatformSettings::class)->saveMail([
+            'from_name' => 'Abonemen', 'from_address' => 'post@abonemen.example', 'host' => 'smtp.private.example',
+            'port' => 587, 'scheme' => 'smtp', 'username' => 'smtp-user-name', 'password' => 'smtp-secret-pw',
+        ]);
+
         $protected = [
             'sanne.visser', 'sanne.visser@example.com', 'mark.dekker', 'mark.dekker@example.org', 'example.com', 'example.org',
             'Sanne Visser', 'Visser', 'Mark Dekker',
             'Villa Zonnebloem', 'Zonnebloem', 'Appartement Dekker',
             'Daan Oosterhuis', 'Oosterhuis', 'Kleine Fenna', 'Ayu Wulandari', 'Wulandari',
+            'smtp-secret-pw', 'smtp-user-name', 'smtp.private.example', 'post@abonemen.example',
         ];
 
         $tables = array_column(Schema::getTables(), 'name');

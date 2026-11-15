@@ -25,6 +25,14 @@
                 </flux:sidebar.item>
             </flux:sidebar.nav>
 
+            @if (auth()->user()->is_instance_admin)
+                <flux:sidebar.nav :aria-label="__('Instance Admin')">
+                    <flux:sidebar.item icon="building-office-2" :href="route('instance.households')" :current="request()->routeIs('instance.*')" wire:navigate data-test="instance-admin-link">
+                        {{ __('Instance Admin') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.nav>
+            @endif
+
             <flux:spacer />
 
             <x-user-menu />

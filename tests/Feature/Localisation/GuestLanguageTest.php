@@ -62,6 +62,8 @@ class GuestLanguageTest extends TestCase
 
     public function test_a_new_user_starts_in_the_language_they_registered_in(): void
     {
+        $this->openRegistration();
+
         $this->withHeader('Accept-Language', 'de')
             ->post(route('register.store'), [
                 'name' => 'Sanne',
@@ -75,6 +77,8 @@ class GuestLanguageTest extends TestCase
 
     public function test_a_new_user_registered_in_an_unsupported_language_gets_the_default(): void
     {
+        $this->openRegistration();
+
         $this->withHeader('Accept-Language', 'ja')
             ->post(route('register.store'), [
                 'name' => 'Sanne',

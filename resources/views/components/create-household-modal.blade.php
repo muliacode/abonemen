@@ -2,6 +2,7 @@
 
 use App\Actions\Households\CreateHousehold;
 use App\Rules\HouseholdSettingRules;
+use App\Support\PlatformSettings;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -12,9 +13,10 @@ new class extends Component {
 
     public string $timezone = '';
 
-    public function mount(): void
+    public function mount(PlatformSettings $settings): void
     {
-        $this->timezone = config('app.timezone');
+        $this->mainCurrency = $settings->defaultCurrency();
+        $this->timezone = $settings->defaultTimezone();
     }
 
     public function createHousehold(CreateHousehold $createHousehold): void

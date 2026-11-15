@@ -23,6 +23,8 @@ class ProtectedUserNameTest extends TestCase
 
     public function test_a_registered_name_is_protected_and_shown_on_the_profile_page(): void
     {
+        $this->openRegistration();
+
         $this->post(route('register.store'), [
             'name' => 'Sanne Visser',
             'email' => 'sanne@example.com',

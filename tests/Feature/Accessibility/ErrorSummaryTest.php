@@ -43,6 +43,8 @@ class ErrorSummaryTest extends TestCase
 
     public function test_a_failed_registration_lists_each_invalid_field_in_a_summary(): void
     {
+        $this->openRegistration();
+
         $response = $this->from(route('register'))->followingRedirects()
             ->post(route('register.store'), ['name' => '', 'email' => 'not-an-email', 'password' => 'x', 'password_confirmation' => 'y']);
 
@@ -134,6 +136,90 @@ class ErrorSummaryTest extends TestCase
 
         $html = Livewire::test('pages::settings.delete-user-modal')
             ->set('password', 'wrong')
+            ->call('deleteUser')
+            ->html();
+
+        $this->assertSummaryLinksToInvalidFields($this->parse($html), ['password'], 'delete-user-');
+    }
+
+    public function test_a_failed_setup_lists_each_invalid_field_in_a_summary(): void
+    {
+        config(['abonemen.setup_token' => 'the-setup-token']);
+
+        $response = $this->from(route('setup'))->followingRedirects()
+            ->post(route('setup.store'), ['token' => 'the-setup-token', 'name' => '', 'email' => 'not-an-email', 'password' => 'x', 'password_confirmation' => 'y']);
+
+        $this->assertSummaryLinksToInvalidFields($this->parse($response->getContent()), ['name', 'email', 'password']);
+    }
+
+    public function test_a_wrong_setup_token_is_named_in_the_summary(): void
+    {
+        config(['abonemen.setup_token' => 'the-setup-token']);
+
+        $response = $this->from(route('setup'))->followingRedirects()
+            ->post(route('setup.store'), ['token' => 'not-it', 'name' => 'Ada', 'email' => 'ada@example.com', 'password' => 'a-good-password-1', 'password_confirmation' => 'a-good-password-1']);
+
+        $this->assertSummaryLinksToInvalidFields($this->parse($response->getContent()), ['token']);
+    }
+
+    public function test_a_failed_general_form_lists_each_invalid_field_in_a_summary(): void
+    {
+        $this->actingAs(User::factory()->instanceAdmin()->create());
+
+        $html = Livewire::test('pages::admin.general')
+            ->set('language', 'xx')
+            ->set('currency', 'ZZZ')
+            ->set('timezone', 'Mars/Olympus')
+            ->call('save')
+            ->html();
+
+        $this->assertSummaryLinksToInvalidFields($this->parse($html), ['language', 'currency', 'timezone']);
+    }
+
+    public function test_dropping_the_second_factor_without_the_password_is_named_in_the_summary(): void
+    {
+        $this->actingAs(User::factory()->instanceAdmin()->create());
+
+        $html = Livewire::test('pages::admin.general')
+            ->set('requireSecondFactor', false)
+            ->call('save')
+            ->html();
+
+        $this->assertSummaryLinksToInvalidFields($this->parse($html), ['password']);
+    }
+
+    public function test_a_failed_email_form_lists_each_invalid_field_in_a_summary(): void
+    {
+        $this->actingAs(User::factory()->instanceAdmin()->create());
+
+        $html = Livewire::test('pages::admin.email')
+            ->set('fromAddress', 'not-an-email')
+            ->set('host', '')
+            ->call('save')
+            ->html();
+
+        $this->assertSummaryLinksToInvalidFields($this->parse($html), ['fromAddress', 'host']);
+    }
+
+    public function test_a_failed_new_user_lists_each_invalid_field_in_a_summary(): void
+    {
+        $this->actingAs(User::factory()->instanceAdmin()->create());
+
+        $html = Livewire::test('pages::admin.users')
+            ->set('newName', '')
+            ->set('newEmail', 'not-an-email')
+            ->call('createUser')
+            ->html();
+
+        $this->assertSummaryLinksToInvalidFields($this->parse($html), ['newName', 'newEmail']);
+    }
+
+    public function test_the_last_instance_admin_refused_deleting_their_account_is_told_in_the_summary(): void
+    {
+        $this->actingAs(User::factory()->instanceAdmin()->create());
+
+        $html = Livewire::test('pages::settings.delete-user-modal')
+            ->set('password', 'password')
             ->call('deleteUser')
             ->html();
 

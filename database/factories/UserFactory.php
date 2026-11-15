@@ -49,6 +49,16 @@ class UserFactory extends Factory
     }
 
     /**
+     * Make the user an Instance Admin, with the second factor the Instance Admin section asks for.
+     */
+    public function instanceAdmin(): static
+    {
+        return $this->withTwoFactor()->state(fn (array $attributes) => [
+            'is_instance_admin' => true,
+        ]);
+    }
+
+    /**
      * Indicate that the model's email address should be unverified.
      */
     public function unverified(): static
