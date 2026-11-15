@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Protection;
 
+use App\Actions\Households\SaveMember;
 use App\Exceptions\ProtectionException;
 use App\Models\Household;
 use App\Models\Member;
@@ -42,6 +43,16 @@ class ProtectedHouseholdDataTest extends TestCase
 
         $this->assertStringNotContainsString('Sanne', (string) DB::table('members')->value('name'));
         $this->assertSame('Sanne', $household->members()->sole()->name);
+    }
+
+    public function test_a_member_nickname_is_unreadable_in_the_raw_database_but_read_back_by_the_app(): void
+    {
+        $household = Household::factory()->create();
+
+        app(SaveMember::class)->create($household, 'Alex', 'Alex Kowalski');
+
+        $this->assertStringNotContainsString('Kowalski', (string) DB::table('members')->value('nickname'));
+        $this->assertSame('Alex Kowalski', $household->members()->sole()->nickname);
     }
 
     public function test_saving_without_model_events_never_stores_a_protected_value_in_plaintext(): void

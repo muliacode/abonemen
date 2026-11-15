@@ -54,6 +54,8 @@ so that a third theme can slot in.
 - **Error summary.** `<x-error-summary />` is the first thing in the form. On a failed submit it appears, takes focus,
   names the problem and lists one link per invalid field, each landing on that field. It is the only announcement:
   Flux's inline error is no longer a `role="alert"`.
+- **Several forms in one component.** A component that holds more than one form (a page with an edit dialog and a remove dialog)
+  gives each summary `:only="['editName', ...]"`, the validation keys of that form, so that one form's problem is not announced in the other.
 - **Inline error.** Each field shows its own message under the control (Flux does this from the `name` or `wire:model`).
   `resources/js/app.js` points the control at it with `aria-describedby`, which Flux does not do.
 - **Validation runs on submit and on blur**, not on every keystroke. Live validation is an opt-in per field
