@@ -112,6 +112,15 @@ The cash view: the amount actually charged in the current month.
 **Budget**:
 A monthly amount in the Household's main currency for the whole Household, one Category, or one Member (by Holder). Household and Category Budgets are shown to Owners and Editors only; a Member's Budget is also shown to that Member's User.
 
+### Connections
+
+**Connection**:
+An outbound call the platform makes, such as sending email. Each is off until the Instance Admin makes it available. A Connection that carries Household data is also off until an Owner switches it on for the Household, after reading what it sends. Account emails (password reset, verification) carry no Household data and depend only on the mail setup.
+_Avoid_: Integration, channel
+
+**Disclosure**:
+The plain statement of what a Connection sends: which messages, what data each holds, who receives them and through which server. An Owner confirms it before switching a Connection on, and confirms again when the server or the data or recipients in it change.
+
 ### Reminders
 
 **Reminder**:

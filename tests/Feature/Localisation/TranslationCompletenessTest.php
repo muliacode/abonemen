@@ -45,7 +45,7 @@ class TranslationCompletenessTest extends TestCase
     private const SAME_AS_ENGLISH = [
         'nl' => ['Cache', 'Dashboard', 'Database', 'Platform', 'Repository', 'Server', 'Software'],
         'id' => ['Cache', 'Editor', 'Passkeys', 'Platform', 'Port', 'Server'],
-        'fr' => ['Cache', 'Documentation', 'Port'],
+        'fr' => ['Cache', 'Documentation', 'Invitations', 'Port'],
         'de' => ['Cache', 'Dashboard', 'Name', 'Passkeys', 'Port', 'Repository', 'Server', 'Software', 'System'],
     ];
 

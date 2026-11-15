@@ -2,8 +2,11 @@
 
 namespace Tests\Feature\Instance;
 
+use App\Enums\Connection;
 use App\Mail\TestMail;
+use App\Models\Household;
 use App\Models\User;
+use App\Support\Connections;
 use App\Support\MailConfiguration;
 use App\Support\PlatformSettings;
 use Exception;
@@ -81,6 +84,28 @@ class AdminEmailTest extends TestCase
         $this->assertSame('Abonemen at Home', config('mail.from.name'));
 
         $page->assertSet('source', 'saved')->assertSee(__('Using the settings saved here'));
+    }
+
+    public function test_saving_a_different_server_says_how_many_households_must_confirm_again_and_still_saves(): void
+    {
+        $this->fill(Livewire::test('pages::admin.email'), $this->smtp())->call('save');
+
+        $connections = app(Connections::class);
+        $connections->makeAvailable(Connection::Email);
+
+        foreach (Household::factory()->count(2)->create() as $household) {
+            $connections->confirm(Connection::Email, $household, $this->admin);
+        }
+
+        $page = Livewire::test('pages::admin.email')->assertSet('householdsWaiting', 0)->assertDontSee(__('Households that must confirm email again'));
+
+        $this->fill($page, $this->smtp(['host' => 'smtp.elsewhere.example']))
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertSet('householdsWaiting', 2)
+            ->assertSee(__('Households that must confirm email again'));
+
+        $this->assertSame('smtp.elsewhere.example', config('mail.mailers.smtp.host'));
     }
 
     public function test_what_is_saved_is_applied_again_on_the_next_boot(): void

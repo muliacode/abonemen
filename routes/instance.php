@@ -19,6 +19,7 @@ Route::prefix(config('abonemen.admin_path'))
         Route::livewire('/', 'pages::admin.households')->name('instance.households');
         Route::livewire('users', 'pages::admin.users')->name('instance.users');
         Route::livewire('general', 'pages::admin.general')->name('instance.general');
+        Route::livewire('connections', 'pages::admin.connections')->name('instance.connections');
         Route::livewire('email', 'pages::admin.email')->name('instance.email');
         Route::livewire('server', 'pages::admin.server')->name('instance.server');
     });

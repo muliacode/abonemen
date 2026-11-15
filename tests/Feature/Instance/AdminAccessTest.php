@@ -33,7 +33,7 @@ class AdminAccessTest extends TestCase
     public static function pages(): array
     {
         return array_combine(
-            $routes = ['instance.households', 'instance.users', 'instance.general', 'instance.email', 'instance.server'],
+            $routes = ['instance.households', 'instance.users', 'instance.general', 'instance.connections', 'instance.email', 'instance.server'],
             array_map(fn (string $route) => [$route], $routes),
         );
     }

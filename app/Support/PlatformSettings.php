@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Enums\Connection;
 use App\Enums\Locale;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -90,6 +91,19 @@ class PlatformSettings
         $this->put(self::LANGUAGE, $language->value);
         $this->put(self::CURRENCY, $currency);
         $this->put(self::TIMEZONE, $timezone);
+    }
+
+    /**
+     * Whether the Instance Admin has made a Connection available to Households. Off until they do.
+     */
+    public function connectionIsAvailable(Connection $connection): bool
+    {
+        return $this->get('connection.'.$connection->value) === '1';
+    }
+
+    public function setConnectionAvailable(Connection $connection, bool $available): void
+    {
+        $this->put('connection.'.$connection->value, $available ? '1' : '0');
     }
 
     /**

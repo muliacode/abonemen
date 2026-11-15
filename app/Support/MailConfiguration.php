@@ -66,6 +66,24 @@ class MailConfiguration
         return in_array(config('mail.default'), ['log', 'array', null], true) ? 'undelivered' : 'env';
     }
 
+    /**
+     * Whether anyone receives what the app sends: a real mailer is in use, not one that only writes to a log.
+     */
+    public function delivers(): bool
+    {
+        return $this->source() !== 'undelivered';
+    }
+
+    /**
+     * Where an email goes: the SMTP host, or the mailer's name when it is not SMTP (SES, Mailgun and so on).
+     */
+    public function destination(): string
+    {
+        $mailer = (string) config('mail.default');
+
+        return $mailer === 'smtp' ? (string) config('mail.mailers.smtp.host') : $mailer;
+    }
+
     private function savedSettingsExist(): bool
     {
         try {

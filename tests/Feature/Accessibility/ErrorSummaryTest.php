@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\Accessibility;
 
+use App\Enums\Connection;
 use App\Models\User;
+use App\Support\Connections;
 use DOMElement;
 use DOMXPath;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -262,5 +264,20 @@ class ErrorSummaryTest extends TestCase
             $this->assertNotSame('', $error->getAttribute('id'), 'The message can be referred to by the field.');
             $this->assertFalse($error->hasAttribute('role'), 'The summary announces the problem, not each message.');
         }
+    }
+
+    public function test_switching_email_on_without_the_confirmation_names_the_checkbox_in_the_summary(): void
+    {
+        $owner = User::factory()->withHousehold()->create();
+        $this->actingAs($owner);
+
+        config(['mail.default' => 'smtp', 'mail.mailers.smtp.host' => 'smtp.home.example']);
+        app(Connections::class)->makeAvailable(Connection::Email);
+
+        $html = Livewire::test('pages::households.connections', ['household' => $owner->currentHousehold])
+            ->call('enable')
+            ->html();
+
+        $this->assertSummaryLinksToInvalidFields($this->parse($html), ['confirmed']);
     }
 }
