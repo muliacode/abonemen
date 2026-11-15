@@ -19,7 +19,7 @@ A sign-in identity. A User can belong to several Households, and belongs to a Ho
 _Avoid_: Account, login
 
 **Instance Admin**:
-A User who operates the platform (platform configuration and administration), separate from any Household role. Never sees a Household's financial information unless they are a Member of that Household.
+A User who operates the platform (platform configuration and administration), separate from any Household role. Never sees a Household's financial information unless they are a Member of that Household. An instance always has at least one, and an Instance Admin enters their section only with a second factor.
 _Avoid_: Super admin, root
 
 **Role**:

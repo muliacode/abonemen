@@ -33,6 +33,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Locale|null $locale
  * @property Carbon|null $email_verified_at
  * @property string $password
+ * @property bool $is_instance_admin
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
@@ -62,6 +63,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
             'name' => ProtectedAttribute::class.':platform',
             'email' => ProtectedAttribute::class.':platform,email_index',
             'email_verified_at' => 'datetime',
+            'is_instance_admin' => 'boolean',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
         ];

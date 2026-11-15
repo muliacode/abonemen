@@ -17,12 +17,14 @@ class RawDatabaseTest extends TestCase
 
     public function test_a_dump_of_the_whole_database_holds_none_of_the_protected_plaintext(): void
     {
+        $this->openRegistration();
+
         Notification::fake();
 
         // Sessions are stored in the database, as on a default install.
         config(['session.driver' => 'database']);
 
-        // A User registers, forgets their password and creates a Household.
+        // A User registers (which gives them a Household), forgets their password and creates a second Household.
         $this->post(route('register.store'), [
             'name' => 'Sanne Visser',
             'email' => 'sanne.visser@example.com',
@@ -42,7 +44,7 @@ class RawDatabaseTest extends TestCase
             ->assertHasNoErrors();
 
         // Members without a sign-in, and another Household with its own User.
-        $household = Household::sole();
+        $household = $sanne->fresh()->currentHousehold;
         $household->members()->create(['name' => 'Daan Oosterhuis']);
         $household->members()->create(['name' => 'Kleine Fenna']);
         $mark = User::factory()->create(['name' => 'Mark Dekker', 'email' => 'mark.dekker@example.org']);

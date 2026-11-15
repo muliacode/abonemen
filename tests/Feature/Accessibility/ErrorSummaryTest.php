@@ -43,6 +43,8 @@ class ErrorSummaryTest extends TestCase
 
     public function test_a_failed_registration_lists_each_invalid_field_in_a_summary(): void
     {
+        $this->openRegistration();
+
         $response = $this->from(route('register'))->followingRedirects()
             ->post(route('register.store'), ['name' => '', 'email' => 'not-an-email', 'password' => 'x', 'password_confirmation' => 'y']);
 

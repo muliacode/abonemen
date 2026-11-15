@@ -118,6 +118,8 @@ class HouseholdTest extends TestCase
 
     public function test_no_visible_text_on_the_sign_in_pages_calls_a_household_a_team(): void
     {
+        $this->openRegistration();
+
         foreach ([route('login'), route('register')] as $page) {
             $html = $this->get($page)->assertOk()->getContent();
             $visible = strip_tags(preg_replace('#<(script|style)\b.*?</\1>#si', '', $html));

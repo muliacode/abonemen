@@ -22,9 +22,9 @@ trait RendersPages
     {
         return array_combine(
             $names = [
-                'welcome', 'login', 'register', 'forgot password', 'reset password', 'two-factor challenge',
+                'welcome', 'login', 'register', 'registration closed', 'setup', 'forgot password', 'reset password', 'two-factor challenge',
                 'verify email', 'confirm password', 'dashboard', 'profile', 'security', 'appearance', 'language',
-                'households', 'household settings',
+                'households', 'household settings', 'instance households', 'instance users', 'instance registration',
             ],
             array_map(fn (string $name) => [$name], $names),
         );
@@ -59,7 +59,9 @@ trait RendersPages
         return match ($page) {
             'welcome' => $this->get(route('home')),
             'login' => $this->get(route('login')),
-            'register' => $this->get(route('register')),
+            'register' => $this->openingRegistration(fn () => $this->get(route('register'))),
+            'registration closed' => $this->get(route('register')),
+            'setup' => $this->openingSetup(fn () => $this->get(route('setup'))),
             'forgot password' => $this->get(route('password.request')),
             'reset password' => $this->get(route('password.reset', ['token' => 'a-token'])),
             'two-factor challenge' => $this->twoFactorChallenge(),
@@ -72,7 +74,24 @@ trait RendersPages
             'language' => $this->actingAs($user)->get(route('language.edit')),
             'households' => $this->actingAs($user)->get(route('households.index')),
             'household settings' => $this->actingAs($user)->get(route('households.edit', $user->currentHousehold)),
+            'instance households' => $this->actingAs(User::factory()->instanceAdmin()->create())->get(route('instance.households')),
+            'instance users' => $this->actingAs(User::factory()->instanceAdmin()->create())->get(route('instance.users')),
+            'instance registration' => $this->actingAs(User::factory()->instanceAdmin()->create())->get(route('instance.registration')),
         };
+    }
+
+    private function openingRegistration(callable $visit): TestResponse
+    {
+        $this->openRegistration();
+
+        return $visit();
+    }
+
+    private function openingSetup(callable $visit): TestResponse
+    {
+        config(['abonemen.setup_token' => 'a-token-for-the-test']);
+
+        return $visit();
     }
 
     private function twoFactorChallenge(): TestResponse

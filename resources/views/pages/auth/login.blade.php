@@ -53,15 +53,17 @@
             </div>
         </form>
 
-        <div class="space-x-1 text-sm rtl:space-x-reverse text-zinc-600 dark:text-zinc-400">
-            <span>{{ __('Don\'t have an account?') }}</span>
-            <flux:link
-                :href="route('register')"
-                data-test="register-link"
-                wire:navigate
-            >
-                {{ __('Sign up') }}
-            </flux:link>
-        </div>
+        @if (app(\App\Support\PlatformSettings::class)->registrationIsOpen())
+            <div class="space-x-1 text-sm rtl:space-x-reverse text-muted">
+                <span>{{ __('Don\'t have an account?') }}</span>
+                <flux:link
+                    :href="route('register')"
+                    data-test="register-link"
+                    wire:navigate
+                >
+                    {{ __('Sign up') }}
+                </flux:link>
+            </div>
+        @endif
     </div>
 </x-layouts::auth>

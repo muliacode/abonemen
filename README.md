@@ -18,13 +18,26 @@ cd abonemen
 composer setup
 ```
 
-`composer setup` installs the dependencies, creates your `.env` file, generates the application key **and the master key**, creates the SQLite database, runs the migrations and builds the assets. It is safe to run again: an existing key is never replaced.
+`composer setup` installs the dependencies, creates your `.env` file, generates the application key, **the master key and the setup token**, creates the SQLite database, runs the migrations and builds the assets. It is safe to run again: an existing key or token is never replaced.
 
 Then start the app:
 
 ```bash
 composer dev
 ```
+
+### Creating the first Instance Admin
+
+A new instance has nobody who can run it, and registration is closed. Open `/setup`, enter the **setup token** (`ABONEMEN_SETUP_TOKEN` in your `.env`) and the name, email address and password of the first Instance Admin. That person is signed in and `/setup` disappears for good: once an Instance Admin exists it answers 404, and it does not exist at all while no token is configured. Make a token with `php artisan setup-token:generate --write`.
+
+### The Instance Admin section
+
+An Instance Admin runs the instance: sees how many Households there are, finds a User by their exact email address, makes or removes other Instance Admins, creates Users and opens or closes registration. An Instance Admin cannot read anything inside a Household, and being one gives no access to any of them ([ADR 0003](docs/adr/0003-instance-admin-boundary-is-policy-not-cryptography.md)).
+
+- The section lives under `/instance`. Set `ABONEMEN_ADMIN_PATH` to put it somewhere else; the app refuses to start if the path would hide a page it already has. The path is a first line of quiet, not a lock: to everyone who is not an Instance Admin it answers 404, and the real protection is signing in plus a second factor.
+- An Instance Admin enters it only after setting up two-factor authentication or a passkey under Settings > Security.
+- Registration is closed by default. Until an Instance Admin opens it, `/register` explains that it is closed and the sign-up links are hidden. When it is open, a new User gets a Household of their own, with them as Owner.
+- The last Instance Admin cannot be removed, and cannot delete their own account.
 
 ### The master key
 
