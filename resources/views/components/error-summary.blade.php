@@ -1,13 +1,15 @@
 @props([
     'prefix' => '',
     'bag' => 'default',
+    'only' => null,
 ])
 
 {{--
     The summary of a form that failed to submit: one link per invalid field, each landing on that field.
     It takes focus when it appears. A field's id is its validation key behind the form's prefix. See docs/accessibility.md.
+    When a component holds several forms, `only` names the keys that belong to this one.
 --}}
-@php($messages = $errors->getBag($bag)->messages())
+@php($messages = $only === null ? $errors->getBag($bag)->messages() : \Illuminate\Support\Arr::only($errors->getBag($bag)->messages(), $only))
 
 @if ($messages !== [])
     <div

@@ -124,6 +124,11 @@ new class extends Component
                     </div>
                 </dl>
             @endif
+
+            <p>
+                <flux:link :href="route('households.members', $household)" wire:navigate data-test="household-members-link">{{ __('Members') }}</flux:link>
+                <span class="block text-muted">{{ __('The people Subscriptions can be held by, and who can sign in') }}</span>
+            </p>
         </div>
     </x-pages::settings.layout>
 </section>
