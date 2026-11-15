@@ -2,7 +2,7 @@
     Moves between the pages of the Instance Admin section. The current page is marked with aria-current and an underline,
     never by colour alone. Hands out links of at least 44px, like every control (docs/accessibility.md).
 --}}
-<nav aria-label="{{ __('Instance Admin') }}" class="-mt-3 mb-8 flex flex-wrap gap-x-6 border-b border-zinc-300">
+<nav aria-label="{{ __('Instance Admin pages') }}" class="-mt-3 mb-8 flex flex-wrap gap-x-6 border-b border-zinc-300">
     @foreach ([
         'instance.households' => __('Households'),
         'instance.users' => __('Users'),

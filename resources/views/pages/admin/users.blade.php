@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -14,8 +15,11 @@ new #[Title('Users')] class extends Component {
 
     public string $email = '';
 
+    // Locked: only a search by email address may choose the User. A browser could otherwise set these and read any User by id.
+    #[Locked]
     public bool $searched = false;
 
+    #[Locked]
     public ?int $userId = null;
 
     public string $newName = '';

@@ -6,6 +6,7 @@ use App\Support\PlatformSettings;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -27,11 +28,13 @@ new #[Title('Email')] class extends Component {
      */
     public string $password = '';
 
+    #[Locked]
     public bool $hasPassword = false;
 
     /**
-     * Where the settings in use come from: saved, env or undelivered.
+     * Where the settings in use come from: saved, env or undelivered. Locked, so that it only says what is true.
      */
+    #[Locked]
     public string $source = 'undelivered';
 
     public ?string $status = null;

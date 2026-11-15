@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Auth\ProtectedUserProvider;
+use App\Http\Middleware\EnsureInstanceAdmin;
+use App\Http\Middleware\RequireSecondFactor;
 use App\Support\KeyRing;
 use App\Support\MailConfiguration;
 use App\Support\PlatformSettings;
@@ -13,6 +15,7 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -33,6 +36,10 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureProtectedUsers();
+
+        // A page of the Instance Admin section stays open in a browser, and every action on it is a request of its own.
+        // Livewire re-applies only the route middleware it is told to, so the doors of the section are named here.
+        Livewire::addPersistentMiddleware([EnsureInstanceAdmin::class, RequireSecondFactor::class]);
 
         // Email settings an Instance Admin saved in the app win over .env.
         $this->app->make(MailConfiguration::class)->apply();

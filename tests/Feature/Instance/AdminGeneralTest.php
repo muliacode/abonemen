@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Support\PlatformSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -82,6 +83,17 @@ class AdminGeneralTest extends TestCase
             ->assertSet('password', '');
 
         $this->assertFalse((new PlatformSettings)->requireSecondFactor());
+    }
+
+    public function test_the_password_check_cannot_be_skipped_by_editing_the_page_from_the_browser(): void
+    {
+        try {
+            Livewire::test('pages::admin.general')->set('wasRequired', false);
+
+            $this->fail('wasRequired can be set from the browser, which would skip the password for lowering a protection.');
+        } catch (CannotUpdateLockedPropertyException) {
+            $this->addToAssertionCount(1);
+        }
     }
 
     public function test_requiring_a_second_factor_again_and_saving_other_choices_need_no_password(): void

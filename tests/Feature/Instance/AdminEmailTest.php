@@ -10,6 +10,7 @@ use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -128,6 +129,19 @@ class AdminEmailTest extends TestCase
         $page->set('password', 'a-new-password')->call('save');
 
         $this->assertSame('a-new-password', (new PlatformSettings)->mail()['password']);
+    }
+
+    public function test_what_the_page_says_about_the_settings_cannot_be_edited_from_the_browser(): void
+    {
+        foreach (['source' => 'saved', 'hasPassword' => true] as $property => $value) {
+            try {
+                Livewire::test('pages::admin.email')->set($property, $value);
+
+                $this->fail("{$property} can be set from the browser, so the page could be made to say what is not true.");
+            } catch (CannotUpdateLockedPropertyException) {
+                $this->addToAssertionCount(1);
+            }
+        }
     }
 
     public function test_the_stored_settings_hold_nothing_readable(): void

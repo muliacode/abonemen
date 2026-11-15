@@ -5,6 +5,7 @@ use App\Enums\Locale;
 use App\Rules\HouseholdSettingRules;
 use App\Support\PlatformSettings;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -28,7 +29,9 @@ new #[Title('General')] class extends Component {
 
     /**
      * Whether the requirement was on when the page opened, so the password is asked only for turning it off.
+     * Locked: if the browser could set it, the password for lowering a protection could be skipped.
      */
+    #[Locked]
     public bool $wasRequired = true;
 
     /**
@@ -92,6 +95,7 @@ new #[Title('General')] class extends Component {
                 data-test="registration-switch"
             />
 
+            {{-- Live, on purpose: turning this off must show the password field at once. See docs/accessibility.md. --}}
             <flux:switch
                 id="requireSecondFactor"
                 wire:model.live="requireSecondFactor"
