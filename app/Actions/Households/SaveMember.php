@@ -27,7 +27,7 @@ class SaveMember
         return DB::transaction(function () use ($household, $name, $nickname, $user) {
             [$name, $nickname] = $this->clean($name, $nickname);
 
-            $this->lock($household);
+            $household->lockMembers();
             $this->ensureLabelFree($household, $nickname ?? $name);
 
             return $household->members()->create([
@@ -48,7 +48,7 @@ class SaveMember
         return DB::transaction(function () use ($member, $name, $nickname) {
             [$name, $nickname] = $this->clean($name, $nickname);
 
-            $this->lock($member->household);
+            $member->household->lockMembers();
             $this->ensureLabelFree($member->household, $nickname ?? $name, $member);
 
             $member->update(['name' => $name, 'nickname' => $nickname]);
@@ -67,14 +67,6 @@ class SaveMember
         $nickname = $nickname === null ? '' : trim($nickname);
 
         return [trim($name), $nickname === '' ? null : $nickname];
-    }
-
-    /**
-     * Hold every other change to this Household's Members back until this one is done.
-     */
-    private function lock(Household $household): void
-    {
-        Household::whereKey($household->getKey())->lockForUpdate()->first();
     }
 
     /**

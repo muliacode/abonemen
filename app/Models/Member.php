@@ -53,6 +53,17 @@ class Member extends Model implements HoldsWaitingProtectedValues
     }
 
     /**
+     * Whether the Member holds any Subscription, which stops it being removed until they are handed over.
+     *
+     * Subscriptions do not exist yet: the ticket that adds them must answer this for real and test that removing a
+     * Member who holds one is refused (see RemoveMember).
+     */
+    public function holdsSubscriptions(): bool
+    {
+        return false;
+    }
+
+    /**
      * Whether two labels are the same label: ignoring case and surrounding spaces, but not accents.
      */
     public static function sameLabel(string $first, string $second): bool

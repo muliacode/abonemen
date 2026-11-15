@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Casts\ProtectedAttribute;
 use App\Concerns\HasWaitingProtectedValues;
 use App\Contracts\HoldsWaitingProtectedValues;
+use App\Enums\HouseholdRole;
 use Database\Factories\HouseholdFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -64,6 +65,30 @@ class Household extends Model implements HoldsWaitingProtectedValues
     public function members(): HasMany
     {
         return $this->hasMany(Member::class);
+    }
+
+    /**
+     * Hold every other change to this household's Members back until the current transaction ends.
+     *
+     * Rules about the Members as a whole (a unique label, always an Owner) are checked in memory, so changes must
+     * not interleave. Call it first inside a transaction.
+     */
+    public function lockMembers(): void
+    {
+        static::whereKey($this->getKey())->lockForUpdate()->first();
+    }
+
+    /**
+     * Whether a User other than the given Member's holds the Owner role here.
+     */
+    public function hasOwnerOtherThan(Member $member): bool
+    {
+        return $this->members()
+            ->whereNotNull('user_id')
+            ->whereKeyNot($member->getKey())
+            ->with('user')
+            ->get()
+            ->contains(fn (Member $other) => $other->user->householdRole($this) === HouseholdRole::Owner);
     }
 
     /**
