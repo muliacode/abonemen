@@ -11,8 +11,12 @@ The scope that owns all data. A platform can have zero, one or many Households; 
 _Avoid_: Team, family, account, tenant
 
 **Member**:
-A person within a Household that Subscriptions can be held by. A Member may or may not be linked to a User.
+A person within a Household that Subscriptions can be held by. A Member may or may not be linked to a User. A Member is shown by its Nickname when it has one, otherwise by its name, and that label is unique within the Household. Two Members with the same name are told apart by a Nickname; names themselves need not be unique.
 _Avoid_: Person, profile, family member
+
+**Nickname**:
+An optional label a Member is shown by instead of its name, so that two Members with the same name can be told apart. It must not match any other Member's label in the Household, whether that is their name or their Nickname.
+_Avoid_: Alias, display name
 
 **User**:
 A sign-in identity. A User can belong to several Households, and belongs to a Household only through exactly one Member in it.

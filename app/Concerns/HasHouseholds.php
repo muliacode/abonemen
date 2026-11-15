@@ -153,6 +153,14 @@ trait HasHouseholds
     }
 
     /**
+     * Take away every role the user holds in the given household, so that nothing is left for a later join to inherit.
+     */
+    public function forgetHouseholdRoles(Household $household): void
+    {
+        $this->inHousehold($household, fn () => $this->syncRoles([]));
+    }
+
+    /**
      * Get the user's households as a collection of UserHousehold objects.
      *
      * @return Collection<int, UserHousehold>

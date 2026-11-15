@@ -17,12 +17,13 @@ use Illuminate\Support\Carbon;
  * @property int $household_id
  * @property int|null $user_id
  * @property string $name
+ * @property string|null $nickname
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Household $household
  * @property-read User|null $user
  */
-#[Fillable(['household_id', 'user_id', 'name'])]
+#[Fillable(['household_id', 'user_id', 'name', 'nickname'])]
 class Member extends Model implements HoldsWaitingProtectedValues
 {
     /** @use HasFactory<MemberFactory> */
@@ -37,7 +38,37 @@ class Member extends Model implements HoldsWaitingProtectedValues
     {
         return [
             'name' => ProtectedAttribute::class,
+            'nickname' => ProtectedAttribute::class,
         ];
+    }
+
+    /**
+     * Get what the Member is shown as: its nickname when it has one, otherwise its name.
+     *
+     * The label is unique within a Household.
+     */
+    public function label(): string
+    {
+        return $this->nickname ?? $this->name;
+    }
+
+    /**
+     * Whether the Member holds any Subscription, which stops it being removed until they are handed over.
+     *
+     * Subscriptions do not exist yet: the ticket that adds them must answer this for real and test that removing a
+     * Member who holds one is refused (see RemoveMember).
+     */
+    public function holdsSubscriptions(): bool
+    {
+        return false;
+    }
+
+    /**
+     * Whether two labels are the same label: ignoring case and surrounding spaces, but not accents.
+     */
+    public static function sameLabel(string $first, string $second): bool
+    {
+        return mb_strtolower(trim($first)) === mb_strtolower(trim($second));
     }
 
     /**

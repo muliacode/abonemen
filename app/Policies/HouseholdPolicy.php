@@ -41,6 +41,17 @@ class HouseholdPolicy
     }
 
     /**
+     * Determine whether the user can manage the household's Members: add, rename, change a User's role and remove.
+     *
+     * Today that is whoever can manage the household. It has its own ability so that a role can be given one without
+     * the other later, without touching any check.
+     */
+    public function manageMembers(User $user, Household $household): bool
+    {
+        return $user->hasHouseholdPermission($household, HouseholdPermission::ManageHousehold);
+    }
+
+    /**
      * Determine whether the user can read the household's data, at any scope.
      */
     public function readData(User $user, Household $household): bool

@@ -280,4 +280,67 @@ class ErrorSummaryTest extends TestCase
 
         $this->assertSummaryLinksToInvalidFields($this->parse($html), ['confirmed']);
     }
+
+    public function test_adding_a_member_without_a_name_names_the_name_field_in_the_summary(): void
+    {
+        $owner = User::factory()->withHousehold()->create();
+        $this->actingAs($owner);
+
+        $html = Livewire::test('add-member-form', ['household' => $owner->currentHousehold])
+            ->set('name', '')
+            ->call('add')
+            ->html();
+
+        $this->assertSummaryLinksToInvalidFields($this->parse($html), ['name'], 'add-member-');
+    }
+
+    public function test_adding_a_member_with_a_taken_label_names_the_nickname_field_in_the_summary(): void
+    {
+        $owner = User::factory()->withHousehold()->create();
+        $this->actingAs($owner);
+
+        $html = Livewire::test('add-member-form', ['household' => $owner->currentHousehold])
+            ->set('name', $owner->name)
+            ->call('add')
+            ->html();
+
+        $this->assertSummaryLinksToInvalidFields($this->parse($html), ['nickname'], 'add-member-');
+    }
+
+    public function test_editing_a_member_with_a_blank_name_names_the_name_field_in_the_summary_of_that_dialog_only(): void
+    {
+        $owner = User::factory()->withHousehold()->create();
+        $this->actingAs($owner);
+        $member = $owner->currentHousehold->members()->firstOrFail();
+
+        $html = Livewire::test('pages::households.members', ['household' => $owner->currentHousehold])
+            ->call('edit', $member->id)
+            ->set('editName', '')
+            ->call('saveEdit')
+            ->html();
+
+        $page = $this->parse($html);
+
+        $this->assertSummaryLinksToInvalidFields($page, ['editName'], 'edit-member-');
+        $this->assertCount(0, $page->query('//*[@data-error-summary][@aria-labelledby="remove-member-error-summary-heading"]'), 'The other dialog is not told about it.');
+    }
+
+    public function test_a_refused_removal_is_announced_in_the_remove_dialog_and_links_to_its_button(): void
+    {
+        $owner = User::factory()->withHousehold()->create();
+        $this->actingAs($owner);
+        $member = $owner->currentHousehold->members()->firstOrFail();
+
+        $html = Livewire::test('pages::households.members', ['household' => $owner->currentHousehold])
+            ->call('confirmRemove', $member->id)
+            ->call('remove')
+            ->html();
+
+        $page = $this->parse($html);
+        $summary = $page->query('//*[@data-error-summary][@aria-labelledby="remove-member-error-summary-heading"]');
+
+        $this->assertCount(1, $summary);
+        $this->assertCount(1, $page->query('//*[@id="remove-member-remove"]'), 'The link lands on the Remove button.');
+        $this->assertSame('#remove-member-remove', $page->query('.//a', $summary->item(0))->item(0)->getAttribute('href'));
+    }
 }
