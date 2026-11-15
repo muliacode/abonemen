@@ -30,6 +30,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware(EnsureHouseholdMembership::class)->group(function () {
         Route::livewire('settings/households/{household}', 'pages::households.edit')->name('households.edit');
+        Route::livewire('settings/households/{household}/connections', 'pages::households.connections')->name('households.connections');
     });
 });
 

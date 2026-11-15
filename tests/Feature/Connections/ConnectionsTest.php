@@ -127,6 +127,36 @@ class ConnectionsTest extends TestCase
         $this->assertFalse($connections->allows(Connection::Email, $household));
     }
 
+    public function test_an_owner_cannot_switch_email_on_while_the_admin_has_not_made_it_available(): void
+    {
+        $this->mailDeliversThrough('smtp.home.example');
+        $household = Household::factory()->create();
+
+        try {
+            app(Connections::class)->confirm(Connection::Email, $household, User::factory()->create());
+            $this->fail('Email was switched on for a Household although the Instance Admin has not made it available.');
+        } catch (ConnectionException) {
+            $this->assertSame(0, HouseholdConnection::count());
+        }
+    }
+
+    public function test_an_owner_cannot_switch_email_on_while_mail_does_not_deliver(): void
+    {
+        $this->mailDeliversThrough('smtp.home.example');
+        $household = Household::factory()->create();
+        $connections = app(Connections::class);
+        $connections->makeAvailable(Connection::Email);
+
+        config(['mail.default' => 'log']);
+
+        try {
+            $connections->confirm(Connection::Email, $household, User::factory()->create());
+            $this->fail('Email was switched on for a Household although nobody would receive it.');
+        } catch (ConnectionException) {
+            $this->assertSame(0, HouseholdConnection::count());
+        }
+    }
+
     public function test_households_are_counted_as_on_or_waiting_to_confirm_again(): void
     {
         $this->mailDeliversThrough('smtp.home.example');
@@ -134,6 +164,7 @@ class ConnectionsTest extends TestCase
         $owner = User::factory()->create();
         [$confirmed, $outdated] = Household::factory()->count(2)->create();
         Household::factory()->create();
+        $connections->makeAvailable(Connection::Email);
 
         $connections->confirm(Connection::Email, $confirmed, $owner);
         $connections->confirm(Connection::Email, $outdated, $owner);

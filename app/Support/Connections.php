@@ -3,10 +3,13 @@
 namespace App\Support;
 
 use App\Enums\Connection;
+use App\Enums\ConnectionState;
 use App\Exceptions\ConnectionException;
 use App\Models\Household;
 use App\Models\HouseholdConnection;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Decides whether a Connection may be used for a Household. Everything that sends Household data asks here.
@@ -60,14 +63,41 @@ class Connections
      */
     public function disable(Connection $connection, Household $household): void
     {
-        HouseholdConnection::where('household_id', $household->id)->where('connection', $connection)->delete();
+        $switchedOff = HouseholdConnection::where('household_id', $household->id)->where('connection', $connection)->delete();
+
+        if ($switchedOff > 0) {
+            $this->log($connection, $household, 'disabled', Auth::id());
+        }
+    }
+
+    /**
+     * A change is logged with who made it and where, never with what a Household sends.
+     */
+    private function log(Connection $connection, Household $household, string $action, ?int $userId): void
+    {
+        Log::info('Household connection changed.', [
+            'household_id' => $household->id,
+            'connection' => $connection->value,
+            'action' => $action,
+            'user_id' => $userId,
+        ]);
     }
 
     /**
      * An Owner switches a Connection on for their Household, having read what it sends and where it goes.
+     *
+     * @throws ConnectionException
      */
     public function confirm(Connection $connection, Household $household, User $owner): void
     {
+        if (! $this->isAvailable($connection)) {
+            throw ConnectionException::notAvailable();
+        }
+
+        if (! $this->canBeMadeAvailable($connection)) {
+            throw ConnectionException::mailDoesNotDeliver();
+        }
+
         HouseholdConnection::updateOrCreate(
             ['household_id' => $household->id, 'connection' => $connection],
             [
@@ -77,6 +107,8 @@ class Connections
                 'enabled_at' => now(),
             ],
         );
+
+        $this->log($connection, $household, 'enabled', $owner->id);
     }
 
     /**
@@ -95,6 +127,37 @@ class Connections
             ->count();
 
         return ['on' => $on, 'waiting' => $switchedOn - $on];
+    }
+
+    /**
+     * Where a Connection stands for a Household, in the order an Owner needs to hear it: whether the Instance Admin has
+     * made it available, whether anyone would receive it, and whether their own consent still holds.
+     */
+    public function stateFor(Connection $connection, Household $household): ConnectionState
+    {
+        return match (true) {
+            ! $this->isAvailable($connection) => ConnectionState::Unavailable,
+            ! $this->canBeMadeAvailable($connection) => ConnectionState::Paused,
+            ! $this->hasSwitchedOn($connection, $household) => ConnectionState::Off,
+            ! $this->consentIsCurrent($connection, $household) => ConnectionState::ConfirmAgain,
+            default => ConnectionState::On,
+        };
+    }
+
+    /**
+     * Whether the Owner has switched the Connection on, however current their consent is.
+     */
+    public function hasSwitchedOn(Connection $connection, Household $household): bool
+    {
+        return HouseholdConnection::where('household_id', $household->id)->where('connection', $connection)->exists();
+    }
+
+    /**
+     * Where Household emails go now: the SMTP host, or the mailer's name. This is what an Owner confirms.
+     */
+    public function destination(): string
+    {
+        return $this->mail->destination();
     }
 
     public function allows(Connection $connection, Household $household): bool

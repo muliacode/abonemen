@@ -103,6 +103,11 @@ new class extends Component
                         <x-status-message :message="$status" />
                     </div>
                 </form>
+
+                <p>
+                    <flux:link :href="route('households.connections', $household)" wire:navigate data-test="household-connections-link">{{ __('Connections') }}</flux:link>
+                    <span class="block text-muted">{{ __('What this Household sends out, and whether it is on') }}</span>
+                </p>
             @else
                 <dl class="space-y-4">
                     <div>
