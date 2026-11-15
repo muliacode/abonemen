@@ -15,12 +15,29 @@
 
             <livewire:household-switcher />
 
+            @php
+                // The Household item is "current" on the pages of the Household the User is working in. The pages of another
+                // Household, reached from Settings > Households, belong to Settings, so that the rail never claims a
+                // Household that is not the one in the switcher.
+                $user = auth()->user();
+                $viewed = request()->route('household');
+                $viewed = is_string($viewed) ? \App\Models\Household::where('ulid', $viewed)->first() : $viewed;
+                $inHousehold = request()->routeIs('households.edit', 'households.members', 'households.connections')
+                    && $viewed !== null && $user->isCurrentHousehold($viewed);
+            @endphp
+
             <flux:sidebar.nav :aria-label="__('Main')">
-                <flux:sidebar.item icon="home" :href="auth()->user()->homeUrl()" :current="request()->routeIs('dashboard')" wire:navigate>
+                <flux:sidebar.item icon="home" :href="$user->homeUrl()" :current="request()->routeIs('dashboard')" wire:navigate>
                     {{ __('Dashboard') }}
                 </flux:sidebar.item>
 
-                <flux:sidebar.item icon="adjustments-horizontal" :href="route('profile.edit')" :current="request()->routeIs('profile.edit', 'security.edit', 'appearance.edit', 'language.edit', 'households.*')" wire:navigate>
+                @if ($user->currentHousehold)
+                    <flux:sidebar.item icon="users" :href="route('households.edit', $user->currentHousehold)" :current="$inHousehold" wire:navigate data-test="household-link">
+                        {{ __('Household') }}
+                    </flux:sidebar.item>
+                @endif
+
+                <flux:sidebar.item icon="adjustments-horizontal" :href="route('profile.edit')" :current="! $inHousehold && request()->routeIs('profile.edit', 'security.edit', 'appearance.edit', 'language.edit', 'households.*')" wire:navigate>
                     {{ __('Settings') }}
                 </flux:sidebar.item>
             </flux:sidebar.nav>

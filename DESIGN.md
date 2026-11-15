@@ -241,6 +241,7 @@ A house with a renewal arrow: a solid house in the text colour (currentColor), w
 - **Rail:** ink rail, rail-text items at 500 weight, a 10% white wash on hover, and the paper tab for the current item. Items are 44px.
 - **Mobile:** an ink top bar with the mark and a menu button; the rail opens as a drawer with a 44px close control.
 - **Settings menu:** a named navlist whose current section is accent-wash with accent text, semibold.
+- **Household menu:** the rail's Household item leads to the Household in the switcher, one step from anywhere. Its pages (Details, Members, Connections) share a tab menu under the page header, the same shape as the Instance Admin menu: 44px links, the current one underlined with accent text and `aria-current`. The page heading is the Household's name. Connections appears only to those who can manage the Household. Settings keeps the personal pages and the list of all Households.
 - **Household switcher:** a dropdown trigger filling the rail, truncating long names.
 
 ### Error summary
